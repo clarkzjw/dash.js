@@ -11,13 +11,15 @@ var App = function () {
         chart: {}
     }
     this.chartTimeout = null;
-    this.chartReportingInterval = 300;
+    this.chartReportingInterval = 100;
     this.chartNumberOfEntries = 30;
     this.chartData = {
         playbackTime: 0,
         lastTimeStamp: null
     }
 };
+
+var statServerUrl = "https://192.168.1.223:8444";
 
 App.prototype.init = function () {
     this._setDomElements();
@@ -50,6 +52,7 @@ App.prototype._setDomElements = function () {
     this.domElements.metrics.bufferTag = document.getElementById('buffer-tag');
     this.domElements.metrics.sec = document.getElementById('sec');
     this.domElements.metrics.min = document.getElementById('min');
+    this.domElements.metrics.msec = document.getElementById('msec');
     this.domElements.metrics.videoMaxIndex = document.getElementById('video-max-index');
     this.domElements.metrics.videoIndex = document.getElementById('video-index');
     this.domElements.metrics.videoBitrate = document.getElementById('video-bitrate');
@@ -85,7 +88,7 @@ App.prototype._load = function () {
         // "DYNAMIC_TO_STATIC",
         // "ERROR",
         "LOG",
-        // "MANIFEST_LOADED",
+        "MANIFEST_LOADED",
         // "METRIC_ADDED",
         // "METRIC_CHANGED",
         // "METRIC_UPDATED",
@@ -95,7 +98,7 @@ App.prototype._load = function () {
         // "PLAYBACK_ENDED",
         // "PLAYBACK_ERROR",
         // "PLAYBACK_METADATA_LOADED",
-        // "PLAYBACK_PAUSED",
+        "PLAYBACK_PAUSED",
         // "PLAYBACK_PLAYING",
         // "PLAYBACK_PROGRESS",
         // "PLAYBACK_RATE_CHANGED",
@@ -424,11 +427,46 @@ App.prototype._startIntervalHandler = function () {
             var currentBuffer = dashMetrics.getCurrentBufferLevel('video');
             self.domElements.metrics.bufferTag.innerHTML = currentBuffer + ' secs';
 
+            // Wall clock reference time
             var d = new Date();
+            var milliSecond = d.getMilliseconds();
+            self.domElements.metrics.msec.innerHTML = (milliSecond < 10 ? '00': milliSecond < 100 ? '0': '') + milliSecond;
+
             var seconds = d.getSeconds();
-            self.domElements.metrics.sec.innerHTML = (seconds < 10 ? '0' : '') + seconds;
+            self.domElements.metrics.sec.innerHTML = (seconds < 10 ? '0' : '') + seconds + ':';
+
             var minutes = d.getMinutes();
             self.domElements.metrics.min.innerHTML = (minutes < 10 ? '0' : '') + minutes + ':';
+            
+            const metric = {
+                time: d.getFullYear() + "-" + d.getMonth() + "-" + d.getDay() + " " + d.getHours() + ":" + minutes + ":" + seconds + ":" + milliSecond,
+                currentLatency: currentLatency,
+                currentPlaybackRate: currentPlaybackRate,
+                currentBuffer: currentBuffer,
+                currentBitrate: self.domElements.metrics.videoBitrate.innerHTML
+            }
+            console.log(JSON.stringify(metric))
+            const dataToSend = JSON.stringify({"metric": JSON.stringify(metric)});
+            
+            fetch(statServerUrl+"/metric", {
+                credentials: "omit",
+                mode: "cors",
+                method: "post",
+                headers: { "Content-Type": "application/json" },
+                body: dataToSend
+            })
+                .then(resp => {
+                    if (resp.status === 200) {
+                        return resp.json()
+                    } else {
+                        console.log("Status: " + resp.status)
+                        return Promise.reject("server")
+                    }
+                })
+                .catch(err => {
+                    if (err === "server") return
+                    console.log(err)
+                })
         }
 
     }, METRIC_INTERVAL_MS);
@@ -440,11 +478,11 @@ App.prototype._registerEventHandler = function () {
     document.getElementById('apply-settings-button').addEventListener('click', function () {
         self._applyParameters();
         Swal.fire({
-            position: 'top-end',
+            position: 'center',
             icon: 'success',
             title: 'Settings applied',
             showConfirmButton: false,
-            timer: 1500
+            timer: 1000
         })
     })
 
@@ -459,11 +497,11 @@ App.prototype._registerEventHandler = function () {
     document.getElementById('chart-settings-button').addEventListener('click', function () {
         self._adjustChartSettings();
         Swal.fire({
-            position: 'top-end',
+            position: 'center',
             icon: 'success',
             title: 'Settings applied',
             showConfirmButton: false,
-            timer: 1500
+            timer: 1000
         })
     })
 }
