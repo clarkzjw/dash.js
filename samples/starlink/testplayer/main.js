@@ -77,6 +77,7 @@ App.prototype._load = function () {
     this.player.initialize(this.video, url, true);
     this.controlbar = new ControlBar(this.player);
     this.controlbar.initialize();
+    this.video.muted = true;
 
     this.player.updateSettings({
         'debug': {
@@ -88,8 +89,8 @@ App.prototype._load = function () {
         // "DYNAMIC_TO_STATIC",
         // "ERROR",
         "LOG",
-        "MANIFEST_LOADED",
-        // "METRIC_ADDED",
+        // "MANIFEST_LOADED",
+        "METRIC_ADDED",
         // "METRIC_CHANGED",
         // "METRIC_UPDATED",
         // "METRICS_CHANGED",
@@ -98,7 +99,7 @@ App.prototype._load = function () {
         // "PLAYBACK_ENDED",
         // "PLAYBACK_ERROR",
         // "PLAYBACK_METADATA_LOADED",
-        "PLAYBACK_PAUSED",
+        // "PLAYBACK_PAUSED",
         // "PLAYBACK_PLAYING",
         // "PLAYBACK_PROGRESS",
         // "PLAYBACK_RATE_CHANGED",
@@ -112,7 +113,6 @@ App.prototype._load = function () {
         // "TEXT_TRACK_ADDED",
         // "TEXT_TRACKS_ADDED"
     ]
-
 
     document.getElementById("eventHolder").innerHTML = "";
     document.getElementById("trace").innerHTML = "";
@@ -444,27 +444,27 @@ App.prototype._startIntervalHandler = function () {
                 currentBuffer: currentBuffer,
                 currentBitrate: self.domElements.metrics.videoBitrate.innerHTML
             }
-            const dataToSend = JSON.stringify({"metric": JSON.stringify(metric)});
+            // const dataToSend = JSON.stringify({"metric": JSON.stringify(metric)});
             
-            fetch(statServerUrl+"/metric", {
-                credentials: "omit",
-                mode: "cors",
-                method: "post",
-                headers: { "Content-Type": "application/json" },
-                body: dataToSend
-            })
-                .then(resp => {
-                    if (resp.status === 200) {
-                        return resp.json()
-                    } else {
-                        console.log("Status: " + resp.status)
-                        return Promise.reject("server")
-                    }
-                })
-                .catch(err => {
-                    if (err === "server") return
-                    console.log(err)
-                })
+            // fetch(statServerUrl+"/metric", {
+            //     credentials: "omit",
+            //     mode: "cors",
+            //     method: "post",
+            //     headers: { "Content-Type": "application/json" },
+            //     body: dataToSend
+            // })
+            //     .then(resp => {
+            //         if (resp.status === 200) {
+            //             return resp.json()
+            //         } else {
+            //             console.log("Status: " + resp.status)
+            //             return Promise.reject("server")
+            //         }
+            //     })
+            //     .catch(err => {
+            //         if (err === "server") return
+            //         console.log(err)
+            //     })
         }
 
     }, METRIC_INTERVAL_MS);

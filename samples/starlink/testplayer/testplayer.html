@@ -26,6 +26,11 @@
         .btn {
           margin-top: 3px;  
         }
+
+        .video-controller {
+            width: 1280px;
+        }
+
         #trace {
             height:500px;
             margin-top: 20px;
@@ -368,28 +373,26 @@
 
     function showEvent(e)
     {
-        const dataToSend = JSON.stringify({"event": JSON.stringify(e)});
-        fetch(statServerUrl+"/event", {
-            credentials: "omit",
-            mode: "cors",
-            method: "post",
-            headers: { "Content-Type": "application/json" },
-            body: dataToSend
-        })
-            .then(resp => {
-                if (resp.status === 200) {
-                    return resp.json()
-                } else {
-                    console.log("Status: " + resp.status)
-                    return Promise.reject("server")
-                }
-            })
-            .catch(err => {
-                if (err === "server") return
-                console.log(err)
-            })
-
-
+        // const dataToSend = JSON.stringify({"event": JSON.stringify(e)});
+        // fetch(statServerUrl+"/event", {
+        //     credentials: "omit",
+        //     mode: "cors",
+        //     method: "post",
+        //     headers: { "Content-Type": "application/json" },
+        //     body: dataToSend
+        // })
+        //     .then(resp => {
+        //         if (resp.status === 200) {
+        //             return resp.json()
+        //         } else {
+        //             console.log("Status: " + resp.status)
+        //             return Promise.reject("server")
+        //         }
+        //     })
+        //     .catch(err => {
+        //         if (err === "server") return
+        //         console.log(err)
+        //     })
 
         // log("Event received: " + e.type);
         // for (var name in e)
@@ -412,11 +415,10 @@
     }
 
     function log(msg) {
-        msg = msg.length > 90 ? msg.substring(0, 90) + "..." : msg; 
         var tracePanel = document.getElementById("trace");
         tracePanel.innerHTML += msg + "\n";
         tracePanel.scrollTop = tracePanel.scrollHeight;
-        console.log(msg);
+        // console.log(msg);
     }
 
     function setListener(eventName)
