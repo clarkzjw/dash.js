@@ -148,12 +148,13 @@ App.prototype._load = function () {
         console.log(self.events.length)
         console.log(self.playbackMetric.length)
 
+        var dataToSend = JSON.stringify({"events": self.events});
         fetch("http://192.168.1.223:8000"+"/event", {
             credentials: "omit",
             mode: "cors",
             method: "post",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({"event": JSON.stringify(self.events)})
+            body: dataToSend
         })
             .then(resp => {
                 if (resp.status === 200) {
@@ -168,12 +169,13 @@ App.prototype._load = function () {
                 console.log(err)
             })
 
+        dataToSend = JSON.stringify({"metric": self.playbackMetric});
         fetch("http://192.168.1.223:8000"+"/metric", {
             credentials: "omit",
             mode: "cors",
             method: "post",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({"metric": JSON.stringify(self.playbackMetric)})
+            body: dataToSend
         })
             .then(resp => {
                 if (resp.status === 200) {
