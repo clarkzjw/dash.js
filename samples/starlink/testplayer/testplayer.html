@@ -373,26 +373,8 @@
 
     function showEvent(e)
     {
-        // const dataToSend = JSON.stringify({"event": JSON.stringify(e)});
-        // fetch(statServerUrl+"/event", {
-        //     credentials: "omit",
-        //     mode: "cors",
-        //     method: "post",
-        //     headers: { "Content-Type": "application/json" },
-        //     body: dataToSend
-        // })
-        //     .then(resp => {
-        //         if (resp.status === 200) {
-        //             return resp.json()
-        //         } else {
-        //             console.log("Status: " + resp.status)
-        //             return Promise.reject("server")
-        //         }
-        //     })
-        //     .catch(err => {
-        //         if (err === "server") return
-        //         console.log(err)
-        //     })
+        const dataToSend = JSON.stringify({"event": JSON.stringify(e)});
+        app.addEvent(e)
 
         // log("Event received: " + e.type);
         // for (var name in e)
@@ -418,7 +400,6 @@
         var tracePanel = document.getElementById("trace");
         tracePanel.innerHTML += msg + "\n";
         tracePanel.scrollTop = tracePanel.scrollHeight;
-        // console.log(msg);
     }
 
     function setListener(eventName)

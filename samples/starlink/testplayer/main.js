@@ -17,9 +17,19 @@ var App = function () {
         playbackTime: 0,
         lastTimeStamp: null
     }
+    this.events = []
+    this.playbackMetric = []
 };
 
 var statServerUrl = "https://192.168.1.223:8444";
+
+App.prototype.addEvent = function (e) {
+    this.events.push(e)
+}
+
+App.prototype.addPlaybackMetric = function (m) {
+    this.playbackMetric.push(m)
+}
 
 App.prototype.init = function () {
     this._setDomElements();
@@ -131,6 +141,54 @@ App.prototype._load = function () {
         };
         document.getElementById("eventHolder").appendChild(element);
     }
+
+    var self = this;
+
+    setInterval(function() {
+        console.log(self.events.length)
+        console.log(self.playbackMetric.length)
+
+        fetch("http://192.168.1.223:8000"+"/event", {
+            credentials: "omit",
+            mode: "cors",
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({"event": JSON.stringify(self.events)})
+        })
+            .then(resp => {
+                if (resp.status === 200) {
+                    return resp.json()
+                } else {
+                    console.log("Status: " + resp.status)
+                    return Promise.reject("500")
+                }
+            })
+            .catch(err => {
+                if (err === "500") return
+                console.log(err)
+            })
+
+        fetch("http://192.168.1.223:8000"+"/metric", {
+            credentials: "omit",
+            mode: "cors",
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({"metric": JSON.stringify(self.playbackMetric)})
+        })
+            .then(resp => {
+                if (resp.status === 200) {
+                    return resp.json()
+                } else {
+                    console.log("Status: " + resp.status)
+                    return Promise.reject("500")
+                }
+            })
+            .catch(err => {
+                if (err === "500") return
+                console.log(err)
+            })
+
+    }, 5000)
 }
 
 App.prototype._applyParameters = function () {
@@ -444,27 +502,7 @@ App.prototype._startIntervalHandler = function () {
                 currentBuffer: currentBuffer,
                 currentBitrate: self.domElements.metrics.videoBitrate.innerHTML
             }
-            // const dataToSend = JSON.stringify({"metric": JSON.stringify(metric)});
-            
-            // fetch(statServerUrl+"/metric", {
-            //     credentials: "omit",
-            //     mode: "cors",
-            //     method: "post",
-            //     headers: { "Content-Type": "application/json" },
-            //     body: dataToSend
-            // })
-            //     .then(resp => {
-            //         if (resp.status === 200) {
-            //             return resp.json()
-            //         } else {
-            //             console.log("Status: " + resp.status)
-            //             return Promise.reject("server")
-            //         }
-            //     })
-            //     .catch(err => {
-            //         if (err === "server") return
-            //         console.log(err)
-            //     })
+            self.addPlaybackMetric(metric)
         }
 
     }, METRIC_INTERVAL_MS);
@@ -524,6 +562,3 @@ App.prototype._onRepresentationSwitch = function (e) {
 
     }
 }
-
-
-
