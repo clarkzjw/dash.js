@@ -391,24 +391,24 @@
 
 
 
-        log("Event received: " + e.type);
-        for (var name in e)
-        {
-            if (typeof e[name] != 'object') {
-                log("    " + name + ": " + e[name]);
-            }
-        }
-        for (name in e)
-        {
-            if (typeof e[name] == 'object' )
-            {
-                log("    " + name + ":");
-                for (name2 in e[name])
-                {
-                    log("        " + name2 + ": " + JSON.stringify(e[name][name2]));
-                }
-            }
-        }
+        // log("Event received: " + e.type);
+        // for (var name in e)
+        // {
+        //     if (typeof e[name] != 'object') {
+        //         log("    " + name + ": " + e[name]);
+        //     }
+        // }
+        // for (name in e)
+        // {
+        //     if (typeof e[name] == 'object' )
+        //     {
+        //         log("    " + name + ":");
+        //         for (name2 in e[name])
+        //         {
+        //             log("        " + name2 + ": " + JSON.stringify(e[name][name2]));
+        //         }
+        //     }
+        // }
     }
 
     function log(msg) {

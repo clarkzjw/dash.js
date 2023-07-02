@@ -118,7 +118,6 @@ App.prototype._load = function () {
     document.getElementById("trace").innerHTML = "";
 
     for (const e of events) {
-        console.log(e);
         app.player.on(dashjs.MediaPlayer.events[e], showEvent);
 
         var element = document.createElement("input");
@@ -445,7 +444,6 @@ App.prototype._startIntervalHandler = function () {
                 currentBuffer: currentBuffer,
                 currentBitrate: self.domElements.metrics.videoBitrate.innerHTML
             }
-            console.log(JSON.stringify(metric))
             const dataToSend = JSON.stringify({"metric": JSON.stringify(metric)});
             
             fetch(statServerUrl+"/metric", {
