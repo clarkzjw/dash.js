@@ -370,6 +370,12 @@
         app.init();
     })
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const expID = urlParams.get('experimentID');
+    if (expID != null) {
+        document.getElementById('experiment-id').value = expID;
+    }
+
     function showEvent(e)
     {
         app.addEvent(e)

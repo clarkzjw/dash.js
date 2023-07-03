@@ -1,4 +1,5 @@
 var METRIC_INTERVAL_MS = 100; // 0.1s
+var SEND_STAT_INTERVAL_MS = 5000; // 5s
 
 var App = function () {
     this.player = null;
@@ -22,7 +23,8 @@ var App = function () {
     this.playbackMetric = []
 };
 
-var statServerUrl = "https://192.168.1.223:8444";
+// var statServerUrl = "https://192.168.1.223:8444";
+var statServerUrl = "http://192.168.1.223:8000";
 
 App.prototype.addEvent = function (e) {
     this.events.push(e)
@@ -70,6 +72,30 @@ App.prototype._setDomElements = function () {
 
     this.domElements.experimentID = document.getElementById('experiment-id');
 }
+
+async function sendStats(url, type, stat) {
+    fetch(url, {
+            credentials: "omit",
+            mode: "cors",
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({type: stat})
+        })
+            .then(resp => {
+                if (resp.status === 200) {
+                    console.log("Sent %d %s", stat.length, type)
+                    return resp.json()
+                } else {
+                    console.log("Status: " + resp.status)
+                    return Promise.reject("500")
+                }
+            })
+            .catch(err => {
+                if (err === "500") return
+                console.log(err)
+            })
+}
+
 
 App.prototype._load = function () {
     var url;
@@ -146,59 +172,17 @@ App.prototype._load = function () {
     }
 
     var self = this;
-
     setInterval(function() {
-        console.log(self.events.length)
-        console.log(self.playbackMetric.length)
-
-        var dataToSend = JSON.stringify({"events": self.events});
-        self.events = []
-
         var experimentID = self.domElements.experimentID.value;
 
-        fetch("http://192.168.1.223:8000"+"/event/"+experimentID, {
-            credentials: "omit",
-            mode: "cors",
-            method: "post",
-            headers: { "Content-Type": "application/json" },
-            body: dataToSend
-        })
-            .then(resp => {
-                if (resp.status === 200) {
-                    return resp.json()
-                } else {
-                    console.log("Status: " + resp.status)
-                    return Promise.reject("500")
-                }
-            })
-            .catch(err => {
-                if (err === "500") return
-                console.log(err)
-            })
+        const sendingEvents = self.events
+        self.events = []
+        sendStats(statServerUrl+"/event/"+experimentID, "event", sendingEvents)
 
-        dataToSend = JSON.stringify({"metric": self.playbackMetric});
+        const sendingPlaybackMetric = self.playbackMetric
         self.playbackMetric = []
-        fetch("http://192.168.1.223:8000"+"/metric/"+experimentID, {
-            credentials: "omit",
-            mode: "cors",
-            method: "post",
-            headers: { "Content-Type": "application/json" },
-            body: dataToSend
-        })
-            .then(resp => {
-                if (resp.status === 200) {
-                    return resp.json()
-                } else {
-                    console.log("Status: " + resp.status)
-                    return Promise.reject("500")
-                }
-            })
-            .catch(err => {
-                if (err === "500") return
-                console.log(err)
-            })
-
-    }, 5000)
+        sendStats(statServerUrl+"/metric/"+experimentID, "metric", sendingPlaybackMetric)
+    }, SEND_STAT_INTERVAL_MS)
 }
 
 App.prototype._applyParameters = function () {
