@@ -149,6 +149,8 @@ App.prototype._load = function () {
         console.log(self.playbackMetric.length)
 
         var dataToSend = JSON.stringify({"events": self.events});
+        self.events = []
+
         fetch("http://192.168.1.223:8000"+"/event", {
             credentials: "omit",
             mode: "cors",
@@ -170,6 +172,7 @@ App.prototype._load = function () {
             })
 
         dataToSend = JSON.stringify({"metric": self.playbackMetric});
+        self.playbackMetric = []
         fetch("http://192.168.1.223:8000"+"/metric", {
             credentials: "omit",
             mode: "cors",
