@@ -8,7 +8,8 @@ var App = function () {
     this.domElements = {
         settings: {},
         metrics: {},
-        chart: {}
+        chart: {},
+        experimentID: {}
     }
     this.chartTimeout = null;
     this.chartReportingInterval = 100;
@@ -66,6 +67,8 @@ App.prototype._setDomElements = function () {
     this.domElements.metrics.videoMaxIndex = document.getElementById('video-max-index');
     this.domElements.metrics.videoIndex = document.getElementById('video-index');
     this.domElements.metrics.videoBitrate = document.getElementById('video-bitrate');
+
+    this.domElements.experimentID = document.getElementById('experiment-id');
 }
 
 App.prototype._load = function () {
@@ -151,7 +154,9 @@ App.prototype._load = function () {
         var dataToSend = JSON.stringify({"events": self.events});
         self.events = []
 
-        fetch("http://192.168.1.223:8000"+"/event", {
+        var experimentID = self.domElements.experimentID.value;
+
+        fetch("http://192.168.1.223:8000"+"/event/"+experimentID, {
             credentials: "omit",
             mode: "cors",
             method: "post",
@@ -173,7 +178,7 @@ App.prototype._load = function () {
 
         dataToSend = JSON.stringify({"metric": self.playbackMetric});
         self.playbackMetric = []
-        fetch("http://192.168.1.223:8000"+"/metric", {
+        fetch("http://192.168.1.223:8000"+"/metric/"+experimentID, {
             credentials: "omit",
             mode: "cors",
             method: "post",
@@ -502,6 +507,7 @@ App.prototype._startIntervalHandler = function () {
             
             const metric = {
                 time: d.getFullYear() + "-" + d.getMonth() + "-" + d.getDay() + " " + d.getHours() + ":" + minutes + ":" + seconds + ":" + milliSecond,
+                experimentID: self.domElements.experimentID.value,
                 currentLatency: currentLatency,
                 currentPlaybackRate: currentPlaybackRate,
                 currentBuffer: currentBuffer,
