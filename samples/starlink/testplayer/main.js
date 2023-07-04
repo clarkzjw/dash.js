@@ -23,8 +23,8 @@ var App = function () {
     this.playbackMetric = []
 };
 
-// var statServerUrl = "https://192.168.1.223:8444";
-var statServerUrl = "http://192.168.1.223:8000";
+// var statServerUrl = "https://100.86.124.49:8444";
+var statServerUrl = "http://100.86.124.49:8000";
 
 App.prototype.addEvent = function (e) {
     this.events.push(e)
