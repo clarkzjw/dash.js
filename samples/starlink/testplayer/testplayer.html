@@ -376,6 +376,11 @@
         document.getElementById('experiment-id').value = expID;
     }
 
+    const mpdURL = urlParams.get('mpdURL');
+    if (mpdURL != null) {
+        document.getElementById('manifest').value = mpdURL;
+    }
+
     function showEvent(e)
     {
         app.addEvent(e)
