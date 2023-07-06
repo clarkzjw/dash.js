@@ -480,6 +480,9 @@ App.prototype._startIntervalHandler = function () {
 
             // Wall clock reference time
             var d = new Date();
+            var month = d.getUTCMonth() + 1;
+            var day = d.getUTCDay() + 1;
+
             var milliSecond = d.getMilliseconds();
             self.domElements.metrics.msec.innerHTML = (milliSecond < 10 ? '00': milliSecond < 100 ? '0': '') + milliSecond;
 
@@ -490,7 +493,7 @@ App.prototype._startIntervalHandler = function () {
             self.domElements.metrics.min.innerHTML = (minutes < 10 ? '0' : '') + minutes + ':';
             
             const metric = {
-                time: d.getFullYear() + "-" + d.getMonth() + "-" + d.getDay() + " " + d.getHours() + ":" + minutes + ":" + seconds + ":" + milliSecond,
+                time: d.getFullYear() + "-" + month + "-" + day + " " + d.getHours() + ":" + minutes + ":" + seconds + ":" + milliSecond,
                 experimentID: self.domElements.experimentID.value,
                 currentLatency: currentLatency,
                 currentPlaybackRate: currentPlaybackRate,
