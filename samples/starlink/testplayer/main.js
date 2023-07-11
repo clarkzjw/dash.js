@@ -479,8 +479,7 @@ App.prototype._startIntervalHandler = function () {
             self.domElements.metrics.bufferTag.innerHTML = currentBuffer + ' secs';
 
             // Wall clock reference time
-            var d = new Date();
-            d.toLocaleString('en-US', { timeZone: 'America/Vancouver' })
+            var d = new Date(new Date().toLocaleString('en', {timeZone: 'America/Vancouver'}));
 
             var month = d.getUTCMonth() + 1;
             var day = d.getUTCDate();
