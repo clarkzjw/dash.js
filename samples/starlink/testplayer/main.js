@@ -117,11 +117,27 @@ App.prototype._load = function () {
     this.controlbar.initialize();
     this.video.muted = true;
 
-    this.player.updateSettings({
-        'debug': {
-            'logLevel': dashjs.Debug.LOG_LEVEL_NONE 
-        }
-    });
+    const urlParams = new URLSearchParams(window.location.search);
+    var constantVideoBitrate = urlParams.get('constantVideoBitrate');
+    if (constantVideoBitrate != null) {
+        this.player.updateSettings({
+            'debug': {
+                'logLevel': dashjs.Debug.LOG_LEVEL_NONE
+            },
+            'streaming': {
+                'abr': {
+                    'initialBitrate': { audio: -1, video: constantVideoBitrate },
+                    'autoSwitchBitrate': { audio: true, video: false }
+                }
+            }
+        });
+    } else {
+        this.player.updateSettings({
+            'debug': {
+                'logLevel': dashjs.Debug.LOG_LEVEL_NONE
+            }
+        });
+    }
 
     const events = [
         // "DYNAMIC_TO_STATIC",
