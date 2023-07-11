@@ -480,6 +480,8 @@ App.prototype._startIntervalHandler = function () {
 
             // Wall clock reference time
             var d = new Date();
+            d.toLocaleString('en-US', { timeZone: 'America/Vancouver' })
+
             var month = d.getUTCMonth() + 1;
             var day = d.getUTCDate();
 
