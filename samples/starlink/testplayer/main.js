@@ -119,7 +119,7 @@ App.prototype._load = function () {
 
     const urlParams = new URLSearchParams(window.location.search);
     var constantVideoBitrate = urlParams.get('constantVideoBitrate');
-    if (constantVideoBitrate != null) {
+    if (constantVideoBitrate != null && constantVideoBitrate > 0) {
         this.player.updateSettings({
             'debug': {
                 'logLevel': dashjs.Debug.LOG_LEVEL_NONE
