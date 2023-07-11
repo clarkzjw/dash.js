@@ -69,6 +69,8 @@ App.prototype._setDomElements = function () {
     this.domElements.metrics.videoMaxIndex = document.getElementById('video-max-index');
     this.domElements.metrics.videoIndex = document.getElementById('video-index');
     this.domElements.metrics.videoBitrate = document.getElementById('video-bitrate');
+
+    this.domElements.experimentID = document.getElementById('experiment-id');
 }
 
 async function sendStats(url, type, stat) {
