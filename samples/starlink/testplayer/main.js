@@ -52,7 +52,6 @@ App.prototype._setDomElements = function () {
     this.domElements.settings.abrAdditionalDroppedFramesRule = document.getElementById('abr-additional-dropped');
     this.domElements.settings.abrAdditionalAbandonRequestRule = document.getElementById('abr-additional-abandon');
     this.domElements.settings.abrAdditionalSwitchHistoryRule = document.getElementById('abr-additional-switch');
-    this.domElements.settings.targetLatency = document.getElementById('target-latency');
     this.domElements.settings.exportSettingsUrl = document.getElementById('export-settings-url');
 
     this.domElements.chart.metricChart = document.getElementById('metric-chart');

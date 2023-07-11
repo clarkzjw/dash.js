@@ -381,6 +381,11 @@
         document.getElementById('manifest').value = mpdURL;
     }
 
+    const targetLatency = urlParams.get('targetLatency');
+    if (targetLatency != null) {
+        document.getElementById('target-latency').value = targetLatency;
+    }
+
     function showEvent(e)
     {
         app.addEvent(e)
