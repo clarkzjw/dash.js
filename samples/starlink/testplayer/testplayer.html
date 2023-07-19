@@ -43,7 +43,7 @@
             </header>
             <div class="row">
                 <div class="row mt-4">
-                    <div class="col-md-12">
+                    <div class="col">
                         <div class="input-group mb-3">
                             <span class="input-group-text" id="input-experiment-id">Experiment ID</span>
                             <input type="text" id="experiment-id" class="form-control" value="default">
@@ -56,6 +56,36 @@
                                 aria-label="Username" aria-describedby="basic-addon1">
                             <button type="button" id="load-button" class="btn btn-success">Load stream
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col">
+                        <div class="p-3 border">
+                            <div>
+                                <div><span class="metric-value">Seconds behind live: </span> <span
+                                        id="latency-tag"></span></div>
+                                <div><span class="metric-value">Video Buffer: </span><span id="buffer-tag"></span></div>
+                                <div><span class="metric-value">Video Index Downloading: </span><span
+                                        id="video-index"></span>/<span id="video-max-index"></span></div>
+                                <div><span class="metric-value">Video Bitrate Downloading kbits/s: </span><span
+                                        id="video-bitrate"></span></div>
+                                <div><span class="metric-value"> Playback rate: </span><span
+                                        id="playbackrate-tag"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="p-3 border">
+                            <h5>Wall Clock reference time</h5>
+                            <div class="clock">
+                                <span id="min"></span>
+                                <span id="sec"></span>
+                                <span id="msec"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -271,31 +301,6 @@
                             <h3>Active events</h3>
                             <span id="eventHolder"></span>
                         </div>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="p-5 border rounded-3 mt-1">
-                            <h5>Wall Clock reference time</h5>
-                            <div class="clock">
-                                <span id="min"></span>
-                                <span id="sec"></span>
-                                <span id="msec"></span>
-                            </div>
-                        </div>
-                        <div class="p-5 border rounded-3 mt-1">
-                            <div>
-                                <div><span class="metric-value">Seconds behind live: </span> <span
-                                        id="latency-tag"></span></div>
-                                <div><span class="metric-value">Video Buffer: </span><span id="buffer-tag"></span></div>
-                                <div><span class="metric-value">Video Index Downloading: </span><span
-                                        id="video-index"></span>/<span id="video-max-index"></span></div>
-                                <div><span class="metric-value">Video Bitrate Downloading kbits/s: </span><span
-                                        id="video-bitrate"></span></div>
-                                <div><span class="metric-value"> Playback rate: </span><span
-                                        id="playbackrate-tag"></span>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                     <div class="col-lg-3">
                         <h5>Chart settings</h5>
