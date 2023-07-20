@@ -444,7 +444,7 @@ import Events from './events/Events';
  * @property {boolean} [enableBackgroundSyncAfterSegmentDownloadError=true]
  * Enables or disables the background sync after the player ran into a segment download error.
  *
- * @property {object} [defaultTimingSource={scheme:'urn:mpeg:dash:utc:http-xsdate:2014',value: 'http://time.akamai.com/?iso&ms'}]
+ * @property {object} [defaultTimingSource={scheme:'urn:mpeg:dash:utc:http-xsdate:2014',value: 'http://livesim2:8888/timems'}]
  * The default timing source to be used. The timing sources in the MPD take precedence over this one.
  */
 
@@ -891,7 +891,7 @@ function Settings() {
                 enableBackgroundSyncAfterSegmentDownloadError: true,
                 defaultTimingSource: {
                     scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
-                    value: 'https://time.akamai.com/?iso&ms'
+                    value: 'http://livesim2:8888/timems'
                 }
             },
             scheduling: {

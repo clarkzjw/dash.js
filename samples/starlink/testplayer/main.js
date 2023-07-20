@@ -121,21 +121,40 @@ App.prototype._load = function () {
     var constantVideoBitrate = urlParams.get('constantVideoBitrate');
     if (constantVideoBitrate != null && constantVideoBitrate > 0) {
         this.player.updateSettings({
-            'debug': {
-                'logLevel': dashjs.Debug.LOG_LEVEL_NONE
+            debug: {
+                logLevel: dashjs.Debug.LOG_LEVEL_NONE
             },
-            'streaming': {
-                'abr': {
-                    'initialBitrate': { audio: -1, video: constantVideoBitrate },
-                    'autoSwitchBitrate': { audio: true, video: false }
-                }
-            }
+            streaming: {
+                abr: {
+                    initialBitrate: { audio: -1, video: constantVideoBitrate },
+                    autoSwitchBitrate: { audio: true, video: false }
+                },
+                utcSynchronization: {
+                    enabled: true,
+                    useManifestDateHeaderTimeSource: true,
+                    defaultTimingSource: {
+                        scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
+                        value: 'http://livesim2:8888/timems'
+                    }
+                },
+            },
+            
         });
     } else {
         this.player.updateSettings({
-            'debug': {
-                'logLevel': dashjs.Debug.LOG_LEVEL_NONE
-            }
+            debug: {
+                logLevel: dashjs.Debug.LOG_LEVEL_NONE
+            },
+            streaming: {
+                utcSynchronization: {
+                    enabled: true,
+                    useManifestDateHeaderTimeSource: true,
+                    defaultTimingSource: {
+                        scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
+                        value: 'http://livesim2:8888/timems'
+                    }
+                },
+            },
         });
     }
 
