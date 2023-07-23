@@ -513,12 +513,13 @@ App.prototype._startIntervalHandler = function () {
             self.domElements.metrics.bufferTag.innerHTML = currentBuffer + ' secs';
 
             // Wall clock reference time
+            var dd = new Date();
             var d = new Date(new Date().toLocaleString('en', {timeZone: 'America/Vancouver'}));
 
             var month = d.getUTCMonth() + 1;
             var day = d.getUTCDate();
 
-            var milliSecond = d.getMilliseconds();
+            var milliSecond = dd.getMilliseconds();
             self.domElements.metrics.msec.innerHTML = (milliSecond < 10 ? '00': milliSecond < 100 ? '0': '') + milliSecond;
 
             var seconds = d.getSeconds();
