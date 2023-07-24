@@ -158,12 +158,18 @@ App.prototype._load = function () {
         });
     }
 
+    // http://cdn.dashjs.org/latest/jsdoc/MediaPlayerEvents.html
     const events = [
         // "DYNAMIC_TO_STATIC",
         // "ERROR",
         "LOG",
         // "MANIFEST_LOADED",
         "METRIC_ADDED",
+        "QUALITY_CHANGE_REQUESTED",
+        "QUALITY_CHANGE_RENDERED",
+        "BUFFER_EMPTY",
+        "BUFFER_LEVEL_STATE_CHANGED",
+        "PLAYBACK_STALLED"
         // "METRIC_CHANGED",
         // "METRIC_UPDATED",
         // "METRICS_CHANGED",
