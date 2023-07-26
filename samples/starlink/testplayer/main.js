@@ -158,6 +158,57 @@ App.prototype._load = function () {
     }
 
     // http://cdn.dashjs.org/latest/jsdoc/MediaPlayerEvents.html
+
+    // {
+    //     "state": "bufferStalled",
+    //     "type": "bufferStateChanged",
+    //     "streamId": "P0",
+    //     "mediaType": "video"
+    // }
+
+    // {
+    //     "mediaType": "stream",
+    //     "metric": "ManifestUpdate",
+    //     "value": "...",
+    //     "type": "metricAdded"
+    // }
+
+    // {
+    //     "oldQuality": 0,
+    //     "newQuality": 2,
+    //     "reason": null,
+    //     "streamInfo": ⊖{
+    //     "id": "P0",
+    //         "index": 0,
+    //         "start": 0,
+    //         "duration": null,
+    //         "manifestInfo": ⊖{
+    //         "dvrWindowSize": 60,
+    //             "loadedTime": "2023-07-26T22:23:07.121Z",
+    //             "availableFrom": "1970-01-01T00:00:00.000Z",
+    //             "minBufferTime": 2,
+    //             "duration": null,
+    //             "isDynamic": true,
+    //             "maxFragmentDuration": 2,
+    //             "serviceDescriptions": [],
+    //             "protocol": "DASH"
+    //     },
+    //     "isLast": true
+    // },
+    //     "bitrateInfo": ⊖{
+    //     "mediaType": "video",
+    //         "bitrate": 900000,
+    //         "width": 768,
+    //         "height": 432,
+    //         "scanType": null,
+    //         "qualityIndex": 2
+    // },
+    //     "maxIdx": 7,
+    //     "mediaType": "video",
+    //     "type": "qualityChangeRequested",
+    //     "streamId": "P0"
+    // },
+
     const events = [
         // "DYNAMIC_TO_STATIC",
         // "ERROR",
