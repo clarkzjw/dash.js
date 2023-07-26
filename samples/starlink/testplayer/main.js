@@ -23,8 +23,7 @@ var App = function () {
     this.playbackMetric = []
 };
 
-// var statServerUrl = "https://100.86.124.49:8444";
-var statServerUrl = "http://stat-server:8000";
+let statServerUrl = 'http://stat-server:8000';
 
 App.prototype.addEvent = function (e) {
     this.events.push(e)
@@ -74,25 +73,25 @@ App.prototype._setDomElements = function () {
 
 async function sendStats(url, type, stat) {
     fetch(url, {
-            credentials: "omit",
-            mode: "cors",
-            method: "post",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({type: stat})
+        credentials: 'omit',
+        mode: 'cors',
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({type: stat})
+    })
+        .then(resp => {
+            if (resp.status === 200) {
+                console.log('Sent %d %s', stat.length, type)
+                return resp.json()
+            } else {
+                console.log('Status: ' + resp.status)
+                return Promise.reject('500')
+            }
         })
-            .then(resp => {
-                if (resp.status === 200) {
-                    console.log("Sent %d %s", stat.length, type)
-                    return resp.json()
-                } else {
-                    console.log("Status: " + resp.status)
-                    return Promise.reject("500")
-                }
-            })
-            .catch(err => {
-                if (err === "500") return
-                console.log(err)
-            })
+        .catch(err => {
+            if (err === '500') return
+            console.log(err)
+        })
 }
 
 
@@ -134,11 +133,11 @@ App.prototype._load = function () {
                     useManifestDateHeaderTimeSource: true,
                     defaultTimingSource: {
                         scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
-                        value: 'http://livesim2:8888/timems'
+                        value: 'https://time.akamai.com/?isoms'
                     }
                 },
             },
-            
+
         });
     } else {
         this.player.updateSettings({
@@ -151,7 +150,7 @@ App.prototype._load = function () {
                     useManifestDateHeaderTimeSource: true,
                     defaultTimingSource: {
                         scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
-                        value: 'http://livesim2:8888/timems'
+                        value: 'https://time.akamai.com/?isoms'
                     }
                 },
             },
@@ -162,14 +161,14 @@ App.prototype._load = function () {
     const events = [
         // "DYNAMIC_TO_STATIC",
         // "ERROR",
-        "LOG",
+        'LOG',
         // "MANIFEST_LOADED",
-        "METRIC_ADDED",
-        "QUALITY_CHANGE_REQUESTED",
-        "QUALITY_CHANGE_RENDERED",
-        "BUFFER_EMPTY",
-        "BUFFER_LEVEL_STATE_CHANGED",
-        "PLAYBACK_STALLED"
+        'METRIC_ADDED',
+        'QUALITY_CHANGE_REQUESTED',
+        'QUALITY_CHANGE_RENDERED',
+        'BUFFER_EMPTY',
+        'BUFFER_LEVEL_STATE_CHANGED',
+        'PLAYBACK_STALLED'
         // "METRIC_CHANGED",
         // "METRIC_UPDATED",
         // "METRICS_CHANGED",
@@ -193,22 +192,22 @@ App.prototype._load = function () {
         // "TEXT_TRACKS_ADDED"
     ]
 
-    document.getElementById("eventHolder").innerHTML = "";
-    document.getElementById("trace").innerHTML = "";
+    document.getElementById('eventHolder').innerHTML = '';
+    document.getElementById('trace').innerHTML = '';
 
     for (const e of events) {
         app.player.on(dashjs.MediaPlayer.events[e], showEvent);
 
-        var element = document.createElement("input");
-        element.type = "button";
-        element.className = "btn btn-danger";
+        var element = document.createElement('input');
+        element.type = 'button';
+        element.className = 'btn btn-danger';
         element.id = e;
-        element.value = "Remove " + e;
+        element.value = 'Remove ' + e;
         element.onclick = function() {
-        app.player.off(dashjs.MediaPlayer.events[e], showEvent);
-            document.getElementById("eventHolder").removeChild(element);
+            app.player.off(dashjs.MediaPlayer.events[e], showEvent);
+            document.getElementById('eventHolder').removeChild(element);
         };
-        document.getElementById("eventHolder").appendChild(element);
+        document.getElementById('eventHolder').appendChild(element);
     }
 
     var self = this;
@@ -217,11 +216,11 @@ App.prototype._load = function () {
 
         const sendingEvents = self.events
         self.events = []
-        sendStats(statServerUrl+"/event/"+experimentID, "event", sendingEvents)
+        sendStats(statServerUrl+'/event/'+experimentID, 'event', sendingEvents)
 
         const sendingPlaybackMetric = self.playbackMetric
         self.playbackMetric = []
-        sendStats(statServerUrl+"/metric/"+experimentID, "metric", sendingPlaybackMetric)
+        sendStats(statServerUrl+'/metric/'+experimentID, 'metric', sendingPlaybackMetric)
     }, SEND_STAT_INTERVAL_MS)
 }
 
@@ -533,9 +532,9 @@ App.prototype._startIntervalHandler = function () {
 
             var minutes = d.getMinutes();
             self.domElements.metrics.min.innerHTML = (minutes < 10 ? '0' : '') + minutes + ':';
-            
+
             const metric = {
-                time: d.getFullYear() + "-" + month + "-" + day + " " + d.getHours() + ":" + minutes + ":" + seconds + ":" + milliSecond,
+                time: d.getFullYear() + '-' + month + '-' + day + ' ' + d.getHours() + ':' + minutes + ':' + seconds + ':' + milliSecond,
                 experimentID: self.domElements.experimentID.value,
                 currentLatency: currentLatency,
                 currentPlaybackRate: currentPlaybackRate,

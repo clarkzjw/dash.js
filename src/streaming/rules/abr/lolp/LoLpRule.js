@@ -138,11 +138,23 @@ function LoLPRule(config) {
             /*
              * Select next quality
              */
+
+            /*
+            * If satellite handover period (12, 27, 42, 57) approaches, do not switch to higher bitrate
+            * */
             switchRequest.quality = learningController.getNextQuality(mediaInfo, throughput * 1000, latency, currentBufferLevel, playbackRate, currentQuality, dynamicWeightsSelector);
             switchRequest.reason = { throughput: throughput, latency: latency };
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 
             scheduleController.setTimeToLoadDelay(0);
+
+            // let period = [12, 27, 42, 57];
+            let period = [11, 12, 13, 26, 27, 28, 41, 42, 43, 56, 57, 58];
+            let currentSecond = new Date().getSeconds();
+            if (period.includes(currentSecond) && switchRequest.quality > currentQuality) {
+                switchRequest.quality = currentQuality;
+                console.log('current second: ', currentSecond, ' do not upgrade to higher bitrate');
+            }
 
             if (switchRequest.quality !== currentQuality) {
                 logger.debug('[TgcLearningRule][' + mediaType + '] requesting switch to index: ', switchRequest.quality, 'Average throughput', Math.round(throughput), 'kbps');
