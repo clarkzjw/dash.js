@@ -58,7 +58,7 @@ App.prototype.initPyodide = async function() {
     this.pyodide = await loadPyodide();
 
     console.log("Install requirements...");
-    await pyodide.loadPackage(requirements);
+    await this.pyodide.loadPackage(requirements);
 }
 
 App.prototype.testMAB = function() {
