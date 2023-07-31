@@ -42,6 +42,45 @@ App.prototype.init = function () {
     this._setupLineChart();
 }
 
+App.prototype.initPyodide = async function() {
+    requirements = [
+        "pandas",
+        "matplotlib",
+        "numpy",
+        "Pillow",
+        "scikit-learn",
+        "scipy",
+        "http://192.167.0.109/mabwiser-2.7.0-py3-none-any.whl",
+    ]
+    console.log("Loading Pyodide...");
+    this.pyodide = await loadPyodide();
+
+    console.log("Install requirements...");
+    await pyodide.loadPackage(requirements);
+}
+
+App.prototype.testMAB = function() {
+    result = this.pyodide.runPython(`
+        from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
+
+        # Data
+        arms = ['Arm1', 'Arm2']
+        decisions = ['Arm1', 'Arm1', 'Arm2', 'Arm1']
+        rewards = [20, 17, 25, 9]
+
+        # Model
+        mab = MAB(arms, LearningPolicy.UCB1(alpha=1.25))
+
+        # Train
+        mab.fit(decisions, rewards)
+
+        # Test
+        mab.predict()
+    `);
+
+    console.log(result);
+}
+
 App.prototype._setDomElements = function () {
     this.domElements.settings.targetLatency = document.getElementById('target-latency');
     this.domElements.settings.maxDrift = document.getElementById('max-drift');
@@ -223,6 +262,8 @@ App.prototype._load = function () {
         self.playbackMetric = []
         sendStats(statServerUrl+"/metric/"+experimentID, "metric", sendingPlaybackMetric)
     }, SEND_STAT_INTERVAL_MS)
+
+    this.testMAB();
 }
 
 App.prototype._applyParameters = function () {
