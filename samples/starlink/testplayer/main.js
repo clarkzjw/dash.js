@@ -40,6 +40,7 @@ App.prototype.init = function () {
     this._registerEventHandler();
     this._startIntervalHandler();
     this._setupLineChart();
+    this.initPyodide();
 }
 
 App.prototype.initPyodide = async function() {
