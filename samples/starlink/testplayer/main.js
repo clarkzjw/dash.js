@@ -21,6 +21,7 @@ var App = function () {
     }
     this.events = []
     this.playbackMetric = []
+    this.pyodide = null;
 };
 
 // var statServerUrl = "https://100.86.124.49:8444";
