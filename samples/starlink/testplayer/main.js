@@ -41,24 +41,6 @@ App.prototype.init = function () {
     this._registerEventHandler();
     this._startIntervalHandler();
     this._setupLineChart();
-    this.initPyodide();
-}
-
-App.prototype.initPyodide = async function() {
-    requirements = [
-        "pandas",
-        "matplotlib",
-        "numpy",
-        "Pillow",
-        "scikit-learn",
-        "scipy",
-        "http://192.167.0.109/mabwiser-2.7.0-py3-none-any.whl",
-    ]
-    console.log("Loading Pyodide...");
-    this.pyodide = await loadPyodide();
-
-    console.log("Install requirements...");
-    await this.pyodide.loadPackage(requirements);
 }
 
 App.prototype.testMAB = function() {
@@ -114,26 +96,26 @@ App.prototype._setDomElements = function () {
 }
 
 async function sendStats(url, type, stat) {
-    fetch(url, {
-            credentials: "omit",
-            mode: "cors",
-            method: "post",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({type: stat})
-        })
-            .then(resp => {
-                if (resp.status === 200) {
-                    console.log("Sent %d %s", stat.length, type)
-                    return resp.json()
-                } else {
-                    console.log("Status: " + resp.status)
-                    return Promise.reject("500")
-                }
-            })
-            .catch(err => {
-                if (err === "500") return
-                console.log(err)
-            })
+    // fetch(url, {
+    //         credentials: "omit",
+    //         mode: "cors",
+    //         method: "post",
+    //         headers: { "Content-Type": "application/json" },
+    //         body: JSON.stringify({type: stat})
+    //     })
+    //         .then(resp => {
+    //             if (resp.status === 200) {
+    //                 console.log("Sent %d %s", stat.length, type)
+    //                 return resp.json()
+    //             } else {
+    //                 console.log("Status: " + resp.status)
+    //                 return Promise.reject("500")
+    //             }
+    //         })
+    //         .catch(err => {
+    //             if (err === "500") return
+    //             console.log(err)
+    //         })
 }
 
 
@@ -153,10 +135,6 @@ App.prototype._load = function () {
     this.player = dashjs.MediaPlayer().create();
     this._registerDashEventHandler();
     this._applyParameters();
-    this.player.initialize(this.video, url, true);
-    this.controlbar = new ControlBar(this.player);
-    this.controlbar.initialize();
-    this.video.muted = true;
 
     const urlParams = new URLSearchParams(window.location.search);
     var constantVideoBitrate = urlParams.get('constantVideoBitrate');
@@ -187,6 +165,9 @@ App.prototype._load = function () {
                 logLevel: dashjs.Debug.LOG_LEVEL_NONE
             },
             streaming: {
+                abr: {
+                    useDefaultABRRules: false,
+                },
                 utcSynchronization: {
                     enabled: true,
                     useManifestDateHeaderTimeSource: true,
@@ -198,6 +179,13 @@ App.prototype._load = function () {
             },
         });
     }
+
+    this.player.addABRCustomRule('qualitySwitchRules', 'CMABRule', CMABRule);
+
+    this.player.initialize(this.video, url, true);
+    this.controlbar = new ControlBar(this.player);
+    this.controlbar.initialize();
+    this.video.muted = true;
 
     // http://cdn.dashjs.org/latest/jsdoc/MediaPlayerEvents.html
     const events = [
@@ -265,7 +253,7 @@ App.prototype._load = function () {
         sendStats(statServerUrl+"/metric/"+experimentID, "metric", sendingPlaybackMetric)
     }, SEND_STAT_INTERVAL_MS)
 
-    this.testMAB();
+    // this.testMAB();
 }
 
 App.prototype._applyParameters = function () {

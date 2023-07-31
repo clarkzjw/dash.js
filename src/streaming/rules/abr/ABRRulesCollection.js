@@ -28,6 +28,8 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  */
+import 'regenerator-runtime/runtime'
+
 import ThroughputRule from './ThroughputRule';
 import InsufficientBufferRule from './InsufficientBufferRule';
 import AbandonRequestsRule from './AbandonRequestsRule';
@@ -39,6 +41,8 @@ import LoLPRule from './lolp/LoLpRule.js';
 import FactoryMaker from '../../../core/FactoryMaker';
 import SwitchRequest from '../SwitchRequest';
 import Constants from '../../constants/Constants';
+
+const { loadPyodide } = require("pyodide");
 
 const QUALITY_SWITCH_RULES = 'qualitySwitchRules';
 const ABANDON_FRAGMENT_RULES = 'abandonFragmentRules';
@@ -59,6 +63,9 @@ function ABRRulesCollection(config) {
         abandonFragmentRules;
 
     function initialize() {
+        // TODO: is there a timeout for ABRRulesCollection initialize function?
+        console.log('ABRRulesCollection initialize started', new Date());
+
         qualitySwitchRules = [];
         abandonFragmentRules = [];
 
@@ -134,7 +141,33 @@ function ABRRulesCollection(config) {
         const customRules = customParametersModel.getAbrCustomRules();
         customRules.forEach(function (rule) {
             if (rule.type === QUALITY_SWITCH_RULES) {
-                qualitySwitchRules.push(rule.rule(context).create());
+                console.log(rule.rulename);
+                if (rule.rulename === "CMABRule") {
+                    async function hello_python() {
+                        console.log("Loading Pyodide...");
+                        let pyodide = await loadPyodide({indexURL: 'http://127.0.0.1'});
+                        let requirements = [
+                            "pandas",
+                            "matplotlib",
+                            "numpy",
+                            "Pillow",
+                            "scikit-learn",
+                            "scipy",
+                            "http://127.0.0.1/mabwiser-2.7.0-py3-none-any.whl",
+                        ]
+                        await pyodide.loadPackage(requirements);
+                        return pyodide;
+                    }
+                      
+                    hello_python().then((result) => {
+                        qualitySwitchRules.push(rule.rule(context).create({
+                            pyodide: result,
+                        }));
+                        console.log(new Date());
+                    });                    
+                } else {
+                    qualitySwitchRules.push(rule.rule(context).create());
+                }
             }
 
             if (rule.type === ABANDON_FRAGMENT_RULES) {
