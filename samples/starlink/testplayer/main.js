@@ -166,7 +166,7 @@ App.prototype._load = function () {
             },
             streaming: {
                 abr: {
-                    useDefaultABRRules: false,
+                    useDefaultABRRules: true,
                 },
                 utcSynchronization: {
                     enabled: true,
@@ -179,8 +179,6 @@ App.prototype._load = function () {
             },
         });
     }
-
-    this.player.addABRCustomRule('qualitySwitchRules', 'CMABRule', CMABRule);
 
     this.player.initialize(this.video, url, true);
     this.controlbar = new ControlBar(this.player);

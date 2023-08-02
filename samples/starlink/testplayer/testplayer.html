@@ -17,7 +17,6 @@
     <script src="../../../contrib/akamai/controlbar/ControlBar.js"></script>
     <script src="../../lib/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="http://127.0.0.1/pyodide.js"></script>
-    <script src="cmab.js"></script>
 
     <style>
         .btn {
@@ -170,7 +169,14 @@
                                     <h6>ABR - General</h6>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="abr-general"
-                                            value="abrDynamic" id="abrDynamic" checked>
+                                               value="abrCMAB" id="abrCMAB" checked>
+                                        <label class="form-check-label" for="abrCMAB">
+                                            CMAB
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="abr-general"
+                                            value="abrDynamic" id="abrDynamic">
                                         <label class="form-check-label" for="abrDynamic">
                                             Dynamic
                                         </label>

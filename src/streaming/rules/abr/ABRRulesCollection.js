@@ -35,6 +35,7 @@ import InsufficientBufferRule from './InsufficientBufferRule';
 import AbandonRequestsRule from './AbandonRequestsRule';
 import DroppedFramesRule from './DroppedFramesRule';
 import SwitchHistoryRule from './SwitchHistoryRule';
+import CMABRule from './cmab/CMABRule.js';
 import BolaRule from './BolaRule';
 import L2ARule from './L2ARule.js';
 import LoLPRule from './lolp/LoLpRule.js';
@@ -42,7 +43,6 @@ import FactoryMaker from '../../../core/FactoryMaker';
 import SwitchRequest from '../SwitchRequest';
 import Constants from '../../constants/Constants';
 
-const { loadPyodide } = require('pyodide');
 
 const QUALITY_SWITCH_RULES = 'qualitySwitchRules';
 const ABANDON_FRAGMENT_RULES = 'abandonFragmentRules';
@@ -63,9 +63,6 @@ function ABRRulesCollection(config) {
         abandonFragmentRules;
 
     function initialize() {
-        // TODO: is there a timeout for ABRRulesCollection initialize function?
-        console.log('ABRRulesCollection initialize started', new Date());
-
         qualitySwitchRules = [];
         abandonFragmentRules = [];
 
@@ -77,6 +74,14 @@ function ABRRulesCollection(config) {
                     L2ARule(context).create({
                         dashMetrics: dashMetrics,
                         settings: settings
+                    })
+                );
+            }
+            // If CMAB is used we only need this one rule
+            else if (settings.get().streaming.abr.ABRStrategy === Constants.ABR_STRATEGY_CMAB) {
+                qualitySwitchRules.push(
+                    CMABRule(context).create({
+                        dashMetrics: dashMetrics,
                     })
                 );
             }
@@ -141,35 +146,7 @@ function ABRRulesCollection(config) {
         const customRules = customParametersModel.getAbrCustomRules();
         customRules.forEach(function (rule) {
             if (rule.type === QUALITY_SWITCH_RULES) {
-                console.log(rule.rulename);
-                if (rule.rulename === 'CMABRule') {
-                    async function hello_python() {
-                        console.log('Loading Pyodide...');
-                        let pyodide = await loadPyodide({indexURL: 'http://127.0.0.1'});
-                        let requirements = [
-                            'pandas',
-                            'matplotlib',
-                            'numpy',
-                            'Pillow',
-                            'scikit-learn',
-                            'scipy',
-                            'http://127.0.0.1/mabwiser-2.7.0-py3-none-any.whl',
-                        ]
-                        await pyodide.loadPackage(requirements);
-                        return pyodide;
-                    }
-
-                    hello_python().then((result) => {
-                        qualitySwitchRules.push(rule.rule(context).create({
-                            pyodide: result,
-                            arms: null,
-                            context: null,
-                        }));
-                        console.log(new Date());
-                    });
-                } else {
-                    qualitySwitchRules.push(rule.rule(context).create());
-                }
+                qualitySwitchRules.push(rule.rule(context).create());
             }
 
             if (rule.type === ABANDON_FRAGMENT_RULES) {

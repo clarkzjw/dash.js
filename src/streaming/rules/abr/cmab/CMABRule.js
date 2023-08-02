@@ -34,13 +34,15 @@
  * Jinwei Zhao | University of Victoria | clarkzjw@uvic.ca, clarkzjw@gmail.com
  */
 
-let CMABRule;
+import FactoryMaker from '../../../../core/FactoryMaker';
+import Constants from '../../../constants/Constants';
 
-// Rule that selects the lowest possible bitrate
-function CMABRuleClass(config) {
+const { loadPyodide } = require('pyodide');
 
+function CMABRule(config) {
     config = config || {};
 
+    let dashMetrics = config.dashMetrics;
     let factory = dashjs.FactoryMaker;
     let SwitchRequest = factory.getClassFactoryByName('SwitchRequest');
     let MetricsModel = factory.getSingletonFactoryByName('MetricsModel');
@@ -48,21 +50,42 @@ function CMABRuleClass(config) {
     let context = this.context;
     let instance;
 
-    let pyodide = config.pyodide;
-    let cmabArms = config.arms;
-    let cmabContext = config.context;
+    let cmabArms = null;
+    let cmabContext = null;
+    let pyodide = null;
+    let pyodide_init_done = false;
 
-    var result;
+    let selectedArm;
 
     const setup = async () => {
-        console.log('CMAB Rule Setup Done', new Date());
+        async function init_pyodide() {
+            console.log('Loading Pyodide...');
+            let pyodide = await loadPyodide({indexURL: 'http://127.0.0.1'});
+            let requirements = [
+                'pandas',
+                'matplotlib',
+                'numpy',
+                'Pillow',
+                'scikit-learn',
+                'scipy',
+                'http://127.0.0.1/mabwiser-2.7.0-py3-none-any.whl',
+            ]
+            await pyodide.loadPackage(requirements);
+            return pyodide;
+        }
+
+        init_pyodide().then((pyodide_context) => {
+            pyodide = pyodide_context;
+            pyodide_init_done = true;
+            console.log('CMAB Rule Setup Done', new Date());
+        });
     }
 
     function getMaxIndex(rulesContext) {
         try {
             let switchRequest = SwitchRequest(context).create();
-            let mediaType = rulesContext.getMediaInfo().type;
-            if (mediaType === 'audio') {
+            const mediaType = rulesContext.getMediaInfo().type;
+            if (mediaType === Constants.AUDIO || pyodide_init_done === false) {
                 return switchRequest;
             }
 
@@ -80,9 +103,18 @@ function CMABRuleClass(config) {
                 console.log('cmabContext is null');
             }
 
-            console.log('from CMABRuleClass getMaxIndex', new Date());
 
-            result = pyodide.runPython(`
+
+            // QoE parameters
+
+            // Learning rule pre-calculations
+
+            // Dynamic Weights Selector (step 1/2: initialization)
+            
+            // Select next quality
+
+
+            selectedArm = pyodide.runPython(`
                 from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
 
                 # Data
@@ -100,11 +132,11 @@ function CMABRuleClass(config) {
                 mab.predict()
             `);
 
-            console.log(result, new Date());
+            console.log(selectedArm, new Date());
 
             // here you can get some information about metrics for example, to implement the rule
             let metricsModel = MetricsModel(context).getInstance();
-            var metrics = metricsModel.getMetricsFor(mediaType, true);
+            let metrics = metricsModel.getMetricsFor(mediaType, true);
 
             // A smarter (real) rule could need analyze playback metrics to take
             // bitrate switching decision. Printing metrics here as a reference
@@ -141,5 +173,5 @@ function CMABRuleClass(config) {
     return instance;
 }
 
-CMABRuleClass.__dashjs_factory_name = 'CMABRule';
-CMABRule = dashjs.FactoryMaker.getClassFactory(CMABRuleClass);
+CMABRule.__dashjs_factory_name = 'CMABRule';
+export default FactoryMaker.getClassFactory(CMABRule);
