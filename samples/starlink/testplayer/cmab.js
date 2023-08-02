@@ -29,7 +29,12 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-var CMABRule;
+/**
+ * Authors:
+ * Jinwei Zhao | University of Victoria | clarkzjw@uvic.ca, clarkzjw@gmail.com
+ */
+
+let CMABRule;
 
 // Rule that selects the lowest possible bitrate
 function CMABRuleClass(config) {
@@ -42,62 +47,89 @@ function CMABRuleClass(config) {
     let StreamController = factory.getSingletonFactoryByName('StreamController');
     let context = this.context;
     let instance;
-    
+
     let pyodide = config.pyodide;
+    let cmabArms = config.arms;
+    let cmabContext = config.context;
+
+    var result;
 
     const setup = async () => {
         console.log('CMAB Rule Setup Done', new Date());
     }
 
-    // Always use lowest bitrate
     function getMaxIndex(rulesContext) {
-        console.log("from CMABRuleClass getMaxIndex", new Date());
+        try {
+            let switchRequest = SwitchRequest(context).create();
+            let mediaType = rulesContext.getMediaInfo().type;
+            if (mediaType === 'audio') {
+                return switchRequest;
+            }
 
-        result = pyodide.runPython(`
-            from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
+            const mediaInfo = rulesContext.getMediaInfo();
+            let bitrateList = mediaInfo.bitrateList; // [{bandwidth: 200000, width: 640, height: 360}, ...]
+            console.log(bitrateList);
+            console.log('number of arms', bitrateList.length);
+            if (cmabArms == null) {
+                console.log('cmabArms is null');
+                cmabArms = Array.apply(null, Array(bitrateList.length)).map(function (x, i) { return "arm"+i; })
+            } else {
+                console.log('cmabArms: ', cmabArms);
+            }
+            if (cmabContext == null) {
+                console.log('cmabContext is null');
+            }
 
-            # Data
-            arms = ['Arm1', 'Arm2']
-            decisions = ['Arm1', 'Arm1', 'Arm2', 'Arm1']
-            rewards = [20, 17, 25, 9]
+            console.log('from CMABRuleClass getMaxIndex', new Date());
 
-            # Model 
-            mab = MAB(arms, LearningPolicy.UCB1(alpha=1.25))
+            result = pyodide.runPython(`
+                from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
 
-            # Train
-            mab.fit(decisions, rewards)
+                # Data
+                arms = ['Arm1', 'Arm2']
+                decisions = ['Arm1', 'Arm1', 'Arm2', 'Arm1']
+                rewards = [20, 17, 25, 9]
 
-            # Test
-            mab.predict()
-        `);
+                # Model
+                mab = MAB(arms, LearningPolicy.UCB1(alpha=1.25))
 
-        console.log(result, new Date());
+                # Train
+                mab.fit(decisions, rewards)
 
-        // here you can get some informations aboit metrics for example, to implement the rule
-        let metricsModel = MetricsModel(context).getInstance();
-        var mediaType = rulesContext.getMediaInfo().type;
-        var metrics = metricsModel.getMetricsFor(mediaType, true);
+                # Test
+                mab.predict()
+            `);
 
-        // A smarter (real) rule could need analyze playback metrics to take
-        // bitrate switching decision. Printing metrics here as a reference
-        // console.log(metrics);
+            console.log(result, new Date());
 
-        // Get current bitrate
-        let streamController = StreamController(context).getInstance();
-        let abrController = rulesContext.getAbrController();
-        let current = abrController.getQualityFor(mediaType, streamController.getActiveStreamInfo().id);
+            // here you can get some information about metrics for example, to implement the rule
+            let metricsModel = MetricsModel(context).getInstance();
+            var metrics = metricsModel.getMetricsFor(mediaType, true);
 
-        // If already in lowest bitrate, don't do anything
-        if (current === 0) {
-            return SwitchRequest(context).create();
+            // A smarter (real) rule could need analyze playback metrics to take
+            // bitrate switching decision. Printing metrics here as a reference
+            // console.log(metrics);
+
+            // Get current bitrate
+            let streamController = StreamController(context).getInstance();
+            let abrController = rulesContext.getAbrController();
+            let current = abrController.getQualityFor(mediaType, streamController.getActiveStreamInfo().id);
+
+            // If already in lowest bitrate, don't do anything
+            if (current === 0) {
+                return SwitchRequest(context).create();
+            }
+
+            // Ask to switch to the lowest bitrate
+            switchRequest.quality = 0;
+            switchRequest.reason = 'Switch bitrate based on CMAB';
+            switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
+            return switchRequest;
+
+        } catch (e) {
+            throw e;
         }
 
-        // Ask to switch to the lowest bitrate
-        let switchRequest = SwitchRequest(context).create();
-        switchRequest.quality = 0;
-        switchRequest.reason = 'Switch bitrate based on CMAB';
-        switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
-        return switchRequest;
     }
 
     instance = {

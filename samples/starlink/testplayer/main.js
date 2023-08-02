@@ -25,7 +25,7 @@ var App = function () {
 };
 
 // var statServerUrl = "https://100.86.124.49:8444";
-var statServerUrl = "http://stat-server:8000";
+const statServerUrl = 'http://stat-server:8000';
 
 App.prototype.addEvent = function (e) {
     this.events.push(e)
@@ -43,27 +43,27 @@ App.prototype.init = function () {
     this._setupLineChart();
 }
 
-App.prototype.testMAB = function() {
-    result = this.pyodide.runPython(`
-        from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
-
-        # Data
-        arms = ['Arm1', 'Arm2']
-        decisions = ['Arm1', 'Arm1', 'Arm2', 'Arm1']
-        rewards = [20, 17, 25, 9]
-
-        # Model
-        mab = MAB(arms, LearningPolicy.UCB1(alpha=1.25))
-
-        # Train
-        mab.fit(decisions, rewards)
-
-        # Test
-        mab.predict()
-    `);
-
-    console.log(result);
-}
+// App.prototype.testMAB = function() {
+//     result = this.pyodide.runPython(`
+//         from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
+//
+//         # Data
+//         arms = ['Arm1', 'Arm2']
+//         decisions = ['Arm1', 'Arm1', 'Arm2', 'Arm1']
+//         rewards = [20, 17, 25, 9]
+//
+//         # Model
+//         mab = MAB(arms, LearningPolicy.UCB1(alpha=1.25))
+//
+//         # Train
+//         mab.fit(decisions, rewards)
+//
+//         # Test
+//         mab.predict()
+//     `);
+//
+//     console.log(result);
+// }
 
 App.prototype._setDomElements = function () {
     this.domElements.settings.targetLatency = document.getElementById('target-latency');
@@ -120,7 +120,7 @@ async function sendStats(url, type, stat) {
 
 
 App.prototype._load = function () {
-    var url;
+    let url;
 
     if (this.player) {
         this.player.reset();
@@ -157,7 +157,7 @@ App.prototype._load = function () {
                     }
                 },
             },
-            
+
         });
     } else {
         this.player.updateSettings({
@@ -191,14 +191,14 @@ App.prototype._load = function () {
     const events = [
         // "DYNAMIC_TO_STATIC",
         // "ERROR",
-        "LOG",
+        'LOG',
         // "MANIFEST_LOADED",
-        "METRIC_ADDED",
-        "QUALITY_CHANGE_REQUESTED",
-        "QUALITY_CHANGE_RENDERED",
-        "BUFFER_EMPTY",
-        "BUFFER_LEVEL_STATE_CHANGED",
-        "PLAYBACK_STALLED"
+        'METRIC_ADDED',
+        'QUALITY_CHANGE_REQUESTED',
+        'QUALITY_CHANGE_RENDERED',
+        'BUFFER_EMPTY',
+        'BUFFER_LEVEL_STATE_CHANGED',
+        'PLAYBACK_STALLED'
         // "METRIC_CHANGED",
         // "METRIC_UPDATED",
         // "METRICS_CHANGED",
@@ -222,22 +222,22 @@ App.prototype._load = function () {
         // "TEXT_TRACKS_ADDED"
     ]
 
-    document.getElementById("eventHolder").innerHTML = "";
-    document.getElementById("trace").innerHTML = "";
+    document.getElementById('eventHolder').innerHTML = '';
+    document.getElementById('trace').innerHTML = '';
 
     for (const e of events) {
         app.player.on(dashjs.MediaPlayer.events[e], showEvent);
 
-        var element = document.createElement("input");
-        element.type = "button";
-        element.className = "btn btn-danger";
+        var element = document.createElement('input');
+        element.type = 'button';
+        element.className = 'btn btn-danger';
         element.id = e;
-        element.value = "Remove " + e;
+        element.value = 'Remove ' + e;
         element.onclick = function() {
-        app.player.off(dashjs.MediaPlayer.events[e], showEvent);
-            document.getElementById("eventHolder").removeChild(element);
+            app.player.off(dashjs.MediaPlayer.events[e], showEvent);
+            document.getElementById('eventHolder').removeChild(element);
         };
-        document.getElementById("eventHolder").appendChild(element);
+        document.getElementById('eventHolder').appendChild(element);
     }
 
     var self = this;
@@ -246,18 +246,15 @@ App.prototype._load = function () {
 
         const sendingEvents = self.events
         self.events = []
-        sendStats(statServerUrl+"/event/"+experimentID, "event", sendingEvents)
+        sendStats(statServerUrl+'/event/'+experimentID, 'event', sendingEvents)
 
         const sendingPlaybackMetric = self.playbackMetric
         self.playbackMetric = []
-        sendStats(statServerUrl+"/metric/"+experimentID, "metric", sendingPlaybackMetric)
+        sendStats(statServerUrl+'/metric/'+experimentID, 'metric', sendingPlaybackMetric)
     }, SEND_STAT_INTERVAL_MS)
-
-    // this.testMAB();
 }
 
 App.prototype._applyParameters = function () {
-
     if (!this.player) {
         return;
     }
@@ -365,18 +362,18 @@ App.prototype._adjustSettingsByUrlParameters = function () {
 }
 
 App.prototype._getCurrentSettings = function () {
-    var targetLatency = parseFloat(this.domElements.settings.targetLatency.value, 10);
-    var maxDrift = parseFloat(this.domElements.settings.maxDrift.value, 10);
-    var minCatchupPlaybackRate = parseFloat(this.domElements.settings.minCatchupPlaybackRate.value, 10);
-    var maxCatchupPlaybackRate = parseFloat(this.domElements.settings.maxCatchupPlaybackRate.value, 10);
-    var abrAdditionalInsufficientBufferRule = this.domElements.settings.abrAdditionalInsufficientBufferRule.checked;
-    var abrAdditionalDroppedFramesRule = this.domElements.settings.abrAdditionalDroppedFramesRule.checked;
-    var abrAdditionalAbandonRequestRule = this.domElements.settings.abrAdditionalAbandonRequestRule.checked;
-    var abrAdditionalSwitchHistoryRule = this.domElements.settings.abrAdditionalSwitchHistoryRule.checked;
-    var catchupEnabled = this.domElements.settings.catchupEnabled.checked;
-    var abrGeneral = document.querySelector('input[name="abr-general"]:checked').value;
-    var catchupMechanism = document.querySelector('input[name="catchup"]:checked').value;
-    var throughputCalculation = document.querySelector('input[name="throughput-calc"]:checked').value;
+    let targetLatency = parseFloat(this.domElements.settings.targetLatency.value, 10);
+    let maxDrift = parseFloat(this.domElements.settings.maxDrift.value, 10);
+    let minCatchupPlaybackRate = parseFloat(this.domElements.settings.minCatchupPlaybackRate.value, 10);
+    let maxCatchupPlaybackRate = parseFloat(this.domElements.settings.maxCatchupPlaybackRate.value, 10);
+    let abrAdditionalInsufficientBufferRule = this.domElements.settings.abrAdditionalInsufficientBufferRule.checked;
+    let abrAdditionalDroppedFramesRule = this.domElements.settings.abrAdditionalDroppedFramesRule.checked;
+    let abrAdditionalAbandonRequestRule = this.domElements.settings.abrAdditionalAbandonRequestRule.checked;
+    let abrAdditionalSwitchHistoryRule = this.domElements.settings.abrAdditionalSwitchHistoryRule.checked;
+    let catchupEnabled = this.domElements.settings.catchupEnabled.checked;
+    let abrGeneral = document.querySelector('input[name="abr-general"]:checked').value;
+    let catchupMechanism = document.querySelector('input[name="catchup"]:checked').value;
+    let throughputCalculation = document.querySelector('input[name="throughput-calc"]:checked').value;
 
     return {
         targetLatency,
@@ -532,7 +529,6 @@ App.prototype._adjustChartSettings = function () {
     this._enableChart(this.domElements.chart.enabled.checked);
 }
 
-
 App.prototype._startIntervalHandler = function () {
     var self = this;
     setInterval(function () {
@@ -564,9 +560,9 @@ App.prototype._startIntervalHandler = function () {
 
             var minutes = d.getMinutes();
             self.domElements.metrics.min.innerHTML = (minutes < 10 ? '0' : '') + minutes + ':';
-            
+
             const metric = {
-                time: d.getFullYear() + "-" + month + "-" + day + " " + d.getHours() + ":" + minutes + ":" + seconds + ":" + milliSecond,
+                time: d.getFullYear() + '-' + month + '-' + day + ' ' + d.getHours() + ':' + minutes + ':' + seconds + ':' + milliSecond,
                 experimentID: self.domElements.experimentID.value,
                 currentLatency: currentLatency,
                 currentPlaybackRate: currentPlaybackRate,
@@ -626,10 +622,9 @@ App.prototype._onRepresentationSwitch = function (e) {
         if (e.mediaType === 'video') {
             this.domElements.metrics.videoMaxIndex.innerHTML = e.numberOfRepresentations
             this.domElements.metrics.videoIndex.innerHTML = e.currentRepresentation.index + 1;
-            var bitrate = Math.round(e.currentRepresentation.bandwidth / 1000);
-            this.domElements.metrics.videoBitrate.innerHTML = bitrate;
+            this.domElements.metrics.videoBitrate.innerHTML = Math.round(e.currentRepresentation.bandwidth / 1000);
         }
     } catch (e) {
-
+        throw e;
     }
 }

@@ -42,7 +42,7 @@ import FactoryMaker from '../../../core/FactoryMaker';
 import SwitchRequest from '../SwitchRequest';
 import Constants from '../../constants/Constants';
 
-const { loadPyodide } = require("pyodide");
+const { loadPyodide } = require('pyodide');
 
 const QUALITY_SWITCH_RULES = 'qualitySwitchRules';
 const ABANDON_FRAGMENT_RULES = 'abandonFragmentRules';
@@ -142,29 +142,31 @@ function ABRRulesCollection(config) {
         customRules.forEach(function (rule) {
             if (rule.type === QUALITY_SWITCH_RULES) {
                 console.log(rule.rulename);
-                if (rule.rulename === "CMABRule") {
+                if (rule.rulename === 'CMABRule') {
                     async function hello_python() {
-                        console.log("Loading Pyodide...");
+                        console.log('Loading Pyodide...');
                         let pyodide = await loadPyodide({indexURL: 'http://127.0.0.1'});
                         let requirements = [
-                            "pandas",
-                            "matplotlib",
-                            "numpy",
-                            "Pillow",
-                            "scikit-learn",
-                            "scipy",
-                            "http://127.0.0.1/mabwiser-2.7.0-py3-none-any.whl",
+                            'pandas',
+                            'matplotlib',
+                            'numpy',
+                            'Pillow',
+                            'scikit-learn',
+                            'scipy',
+                            'http://127.0.0.1/mabwiser-2.7.0-py3-none-any.whl',
                         ]
                         await pyodide.loadPackage(requirements);
                         return pyodide;
                     }
-                      
+
                     hello_python().then((result) => {
                         qualitySwitchRules.push(rule.rule(context).create({
                             pyodide: result,
+                            arms: null,
+                            context: null,
                         }));
                         console.log(new Date());
-                    });                    
+                    });
                 } else {
                     qualitySwitchRules.push(rule.rule(context).create());
                 }
