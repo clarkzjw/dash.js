@@ -54,7 +54,6 @@ function CMABRule(config) {
 
     let instance;
     let cmabArms = null;
-    let cmabContext = null;
     let pyodide = null;
     let pyodide_init_done = false;
 
@@ -123,10 +122,9 @@ function CMABRule(config) {
             const mediaInfo = rulesContext.getMediaInfo();
             let bitrateList = mediaInfo.bitrateList; // [{bandwidth: 200000, width: 640, height: 360}, ...]
             if (cmabArms == null) {
-                cmabArms = Array.apply(null, Array(bitrateList.length)).map(function (x, i) { return 'arm'+i; })
-            }
-            if (cmabContext == null) {
-                console.log('cmabContext is null');
+                cmabArms = Array.apply(null, Array(bitrateList.length)).map(function (x, i) {
+                    return 'Arm' + (i + 1);
+                })
             }
 
             // QoE parameters
@@ -137,7 +135,7 @@ function CMABRule(config) {
 
             // Select next quality
 
-            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, cmabContext, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics);
+            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics);
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 
