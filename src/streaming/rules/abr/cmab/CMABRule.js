@@ -39,7 +39,6 @@ import Constants from '../../../constants/Constants';
 import MetricsConstants from '../../../constants/MetricsConstants';
 import CMABQoeEvaluator from './CMABQoEEvaluator';
 import CMABAbrController from './CMABAbrController';
-import SwitchRequest from '../../SwitchRequest';
 
 const { loadPyodide } = require('pyodide');
 
@@ -52,14 +51,13 @@ function CMABRule(config) {
     let MetricsModel = factory.getSingletonFactoryByName('MetricsModel');
     let StreamController = factory.getSingletonFactoryByName('StreamController');
     let context = this.context;
-    let instance;
 
+    let instance;
     let cmabArms = null;
     let cmabContext = null;
     let pyodide = null;
     let pyodide_init_done = false;
 
-    let selectedArm;
     let qoeEvaluator;
     let CMABController;
 
@@ -85,6 +83,7 @@ function CMABRule(config) {
 
         init_pyodide().then((pyodide_context) => {
             pyodide = pyodide_context;
+            pyodide.runPython(`from mabwiser.mab import MAB`);
             pyodide_init_done = true;
             console.log('CMAB Rule Setup Done', new Date());
         });
@@ -101,41 +100,33 @@ function CMABRule(config) {
             const isDynamic = streamInfo && streamInfo.manifestInfo ? streamInfo.manifestInfo.isDynamic : null;
             const mediaType = rulesContext.getMediaInfo().type;
             const bufferStateVO = dashMetrics.getCurrentBufferState(mediaType);
+            const playbackRate = playbackController.getPlaybackRate();
+            const throughputHistory = abrController.getThroughputHistory();
+            const throughput = throughputHistory.getSafeAverageThroughput(mediaType, isDynamic);
+            let currentLatency = playbackController.getCurrentLiveLatency();
+            let metricsModel = MetricsModel(context).getInstance();
+            let metrics = metricsModel.getMetricsFor(mediaType, true);
+            let currentQualityLevel = abrController.getQualityFor(mediaType, streamController.getActiveStreamInfo().id);
 
-            if (mediaType === Constants.AUDIO || pyodide_init_done === false) {
+            if (!currentLatency) {
+                currentLatency = 0;
+            }
+
+            if (isNaN(throughput) ||
+                !bufferStateVO ||
+                mediaType === Constants.AUDIO ||
+                pyodide_init_done === false ||
+                abrController.getAbandonmentStateFor(streamInfo.id, mediaType) === MetricsConstants.ABANDON_LOAD) {
                 return switchRequest;
             }
 
             const mediaInfo = rulesContext.getMediaInfo();
             let bitrateList = mediaInfo.bitrateList; // [{bandwidth: 200000, width: 640, height: 360}, ...]
-            console.log(bitrateList);
-            console.log('number of arms', bitrateList.length);
             if (cmabArms == null) {
-                console.log('cmabArms is null');
                 cmabArms = Array.apply(null, Array(bitrateList.length)).map(function (x, i) { return 'arm'+i; })
-            } else {
-                console.log('cmabArms: ', cmabArms);
             }
             if (cmabContext == null) {
                 console.log('cmabContext is null');
-            }
-
-            const playbackRate = playbackController.getPlaybackRate();
-            const throughputHistory = abrController.getThroughputHistory();
-            const throughput = throughputHistory.getSafeAverageThroughput(mediaType, isDynamic);
-
-            let currentLatency = playbackController.getCurrentLiveLatency();
-            if (!currentLatency) {
-                currentLatency = 0;
-            }
-
-            console.log(`Throughput ${Math.round(throughput)} kbps, playback rate ${playbackRate}, current latency ${currentLatency}`);
-
-            if (isNaN(throughput) || !bufferStateVO) {
-                return switchRequest;
-            }
-            if (abrController.getAbandonmentStateFor(streamInfo.id, mediaType) === MetricsConstants.ABANDON_LOAD) {
-                return switchRequest;
             }
 
             // QoE parameters
@@ -146,39 +137,7 @@ function CMABRule(config) {
 
             // Select next quality
 
-            selectedArm = 'arm2';
-            // selectedArm = pyodide.runPython(`
-            //     from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
-            //
-            //     # Data
-            //     arms = ['Arm1', 'Arm2']
-            //     decisions = ['Arm1', 'Arm1', 'Arm2', 'Arm1']
-            //     rewards = [20, 17, 25, 9]
-            //
-            //     # Model
-            //     mab = MAB(arms, LearningPolicy.UCB1(alpha=1.25))
-            //
-            //     # Train
-            //     mab.fit(decisions, rewards)
-            //
-            //     # Test
-            //     mab.predict()
-            // `);
-
-            console.log(selectedArm, new Date());
-
-            let metricsModel = MetricsModel(context).getInstance();
-            let metrics = metricsModel.getMetricsFor(mediaType, true);
-
-
-
-            let current = abrController.getQualityFor(mediaType, streamController.getActiveStreamInfo().id);
-            // If already in lowest bitrate, don't do anything
-            if (current === 0) {
-                return SwitchRequest(context).create();
-            }
-
-            switchRequest.quality = CMABController.getNextQuality();
+            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, cmabContext, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics);
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 
