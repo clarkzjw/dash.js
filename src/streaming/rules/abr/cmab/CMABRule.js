@@ -36,6 +36,10 @@
 
 import FactoryMaker from '../../../../core/FactoryMaker';
 import Constants from '../../../constants/Constants';
+import MetricsConstants from '../../../constants/MetricsConstants';
+import CMABQoeEvaluator from './CMABQoEEvaluator';
+import CMABAbrController from './CMABAbrController';
+import SwitchRequest from '../../SwitchRequest';
 
 const { loadPyodide } = require('pyodide');
 
@@ -56,8 +60,13 @@ function CMABRule(config) {
     let pyodide_init_done = false;
 
     let selectedArm;
+    let qoeEvaluator;
+    let CMABController;
 
     const setup = async () => {
+        qoeEvaluator = CMABQoeEvaluator(context).create();
+        CMABController = CMABAbrController(context).create();
+
         async function init_pyodide() {
             console.log('Loading Pyodide...');
             let pyodide = await loadPyodide({indexURL: 'http://127.0.0.1'});
@@ -84,7 +93,15 @@ function CMABRule(config) {
     function getMaxIndex(rulesContext) {
         try {
             let switchRequest = SwitchRequest(context).create();
+            const abrController = rulesContext.getAbrController();
+            const streamInfo = rulesContext.getStreamInfo();
+            const streamController = StreamController(context).getInstance();
+            const scheduleController = rulesContext.getScheduleController();
+            const playbackController = scheduleController.getPlaybackController();
+            const isDynamic = streamInfo && streamInfo.manifestInfo ? streamInfo.manifestInfo.isDynamic : null;
             const mediaType = rulesContext.getMediaInfo().type;
+            const bufferStateVO = dashMetrics.getCurrentBufferState(mediaType);
+
             if (mediaType === Constants.AUDIO || pyodide_init_done === false) {
                 return switchRequest;
             }
@@ -95,7 +112,7 @@ function CMABRule(config) {
             console.log('number of arms', bitrateList.length);
             if (cmabArms == null) {
                 console.log('cmabArms is null');
-                cmabArms = Array.apply(null, Array(bitrateList.length)).map(function (x, i) { return "arm"+i; })
+                cmabArms = Array.apply(null, Array(bitrateList.length)).map(function (x, i) { return 'arm'+i; })
             } else {
                 console.log('cmabArms: ', cmabArms);
             }
@@ -103,65 +120,76 @@ function CMABRule(config) {
                 console.log('cmabContext is null');
             }
 
+            const playbackRate = playbackController.getPlaybackRate();
+            const throughputHistory = abrController.getThroughputHistory();
+            const throughput = throughputHistory.getSafeAverageThroughput(mediaType, isDynamic);
 
+            let currentLatency = playbackController.getCurrentLiveLatency();
+            if (!currentLatency) {
+                currentLatency = 0;
+            }
+
+            console.log(`Throughput ${Math.round(throughput)} kbps, playback rate ${playbackRate}, current latency ${currentLatency}`);
+
+            if (isNaN(throughput) || !bufferStateVO) {
+                return switchRequest;
+            }
+            if (abrController.getAbandonmentStateFor(streamInfo.id, mediaType) === MetricsConstants.ABANDON_LOAD) {
+                return switchRequest;
+            }
 
             // QoE parameters
 
             // Learning rule pre-calculations
 
             // Dynamic Weights Selector (step 1/2: initialization)
-            
+
             // Select next quality
 
-
-            selectedArm = pyodide.runPython(`
-                from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
-
-                # Data
-                arms = ['Arm1', 'Arm2']
-                decisions = ['Arm1', 'Arm1', 'Arm2', 'Arm1']
-                rewards = [20, 17, 25, 9]
-
-                # Model
-                mab = MAB(arms, LearningPolicy.UCB1(alpha=1.25))
-
-                # Train
-                mab.fit(decisions, rewards)
-
-                # Test
-                mab.predict()
-            `);
+            selectedArm = 'arm2';
+            // selectedArm = pyodide.runPython(`
+            //     from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
+            //
+            //     # Data
+            //     arms = ['Arm1', 'Arm2']
+            //     decisions = ['Arm1', 'Arm1', 'Arm2', 'Arm1']
+            //     rewards = [20, 17, 25, 9]
+            //
+            //     # Model
+            //     mab = MAB(arms, LearningPolicy.UCB1(alpha=1.25))
+            //
+            //     # Train
+            //     mab.fit(decisions, rewards)
+            //
+            //     # Test
+            //     mab.predict()
+            // `);
 
             console.log(selectedArm, new Date());
 
-            // here you can get some information about metrics for example, to implement the rule
             let metricsModel = MetricsModel(context).getInstance();
             let metrics = metricsModel.getMetricsFor(mediaType, true);
 
-            // A smarter (real) rule could need analyze playback metrics to take
-            // bitrate switching decision. Printing metrics here as a reference
-            // console.log(metrics);
 
-            // Get current bitrate
-            let streamController = StreamController(context).getInstance();
-            let abrController = rulesContext.getAbrController();
+
             let current = abrController.getQualityFor(mediaType, streamController.getActiveStreamInfo().id);
-
             // If already in lowest bitrate, don't do anything
             if (current === 0) {
                 return SwitchRequest(context).create();
             }
 
-            // Ask to switch to the lowest bitrate
-            switchRequest.quality = 0;
+            switchRequest.quality = CMABController.getNextQuality();
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
+
+            scheduleController.setTimeToLoadDelay(0);
+
             return switchRequest;
 
         } catch (e) {
+            console.log(e);
             throw e;
         }
-
     }
 
     instance = {
