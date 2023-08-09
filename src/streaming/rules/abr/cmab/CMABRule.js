@@ -75,6 +75,7 @@ function CMABRule(config) {
                 'scikit-learn',
                 'scipy',
                 'http://127.0.0.1/mabwiser-2.7.0-py3-none-any.whl',
+                'http://127.0.0.1/itu_p1203-1.9.5-py3-none-any.whl',
             ]
             await pyodide.loadPackage(requirements);
             return pyodide;
