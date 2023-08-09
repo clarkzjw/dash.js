@@ -60,6 +60,9 @@ function CMABRule(config) {
     let qoeEvaluator;
     let CMABController;
 
+    let audio_codec = 'aaclc';
+    let audio_bitrate = -1;
+
     const setup = async () => {
         qoeEvaluator = CMABQoeEvaluator(context).create();
         CMABController = CMABAbrController(context).create();
@@ -106,10 +109,20 @@ function CMABRule(config) {
             let currentLatency = playbackController.getCurrentLiveLatency();
             let metricsModel = MetricsModel(context).getInstance();
             let metrics = metricsModel.getMetricsFor(mediaType, true);
-            let currentQualityLevel = abrController.getQualityFor(mediaType, streamController.getActiveStreamInfo().id);
+            let activeStream = streamController.getActiveStreamInfo();
+            let currentQualityLevel = -1;
+            if (activeStream !== null) {
+                currentQualityLevel = abrController.getQualityFor(mediaType, streamController.getActiveStreamInfo().id);
+            }
+            const mediaInfo = rulesContext.getMediaInfo();
 
             if (!currentLatency) {
                 currentLatency = 0;
+            }
+
+            if (mediaType === Constants.AUDIO) {
+                audio_codec = mediaInfo.codec.split(';')[1].split('=')[1].replace(/['"]+/g, '');
+                audio_bitrate = mediaInfo.bitrateList[0].bandwidth / 1000.0;
             }
 
             if (isNaN(throughput) ||
@@ -117,26 +130,27 @@ function CMABRule(config) {
                 mediaType === Constants.AUDIO ||
                 pyodide_init_done === false ||
                 abrController.getAbandonmentStateFor(streamInfo.id, mediaType) === MetricsConstants.ABANDON_LOAD) {
-                return switchRequest;
+                
+                    return switchRequest;
             }
 
-            const mediaInfo = rulesContext.getMediaInfo();
+            let context = {
+                video_codec: mediaInfo.codec.split(';')[1].split('=')[1].replace(/['"]+/g, ''),
+                stream_id: streamInfo.index,
+                seg_duration: streamInfo.manifestInfo.maxFragmentDuration,
+                audio_codec: audio_codec,
+                audio_bitrate: audio_bitrate,
+            };
+
+
             let bitrateList = mediaInfo.bitrateList; // [{bandwidth: 200000, width: 640, height: 360}, ...]
             if (cmabArms == null) {
                 cmabArms = Array.apply(null, Array(bitrateList.length)).map(function (x, i) {
-                    return 'Arm' + (i + 1);
+                    return i;
                 })
             }
 
-            // QoE parameters
-
-            // Learning rule pre-calculations
-
-            // Dynamic Weights Selector (step 1/2: initialization)
-
-            // Select next quality
-
-            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics);
+            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics);
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 

@@ -55,10 +55,11 @@ function CMABAbrController() {
     from js import js_itup1203inputjson
 
     input_json = js_itup1203inputjson.to_py()
+    print(input_json);
 
-    input = json.loads(input_json)
+    input = json.loads(json.dumps(input_json))
     res = P1203Standalone(input).calculate_complete()
-    print(res["O46"])
+    res["O46"]
     `;
 
     let instance;
@@ -77,18 +78,103 @@ function CMABAbrController() {
         return (toc - tic) / 1000.0;
     }
 
-    // TODO
     // calculate reward using QoE ITU-T Rec. P.1203: https://github.com/itu-p1203/itu-p1203
-    function calculateReward(currentLatency, throughput, playbackRate) {
-        let itu_p1203_input_json = generateITUP1203InputJSON();
-        return calculateITUP1203QoE(itu_p1203_input_json);
+    function calculateReward(pyodide, context, currentLatency, throughput, playbackRate) {
+        let itu_p1203_input_json = generateITUP1203InputJSON(context);
+        console.log('calculateReward context', context);
+
+        let qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
+        console.log("ITU P1203 QoE:", qoe);
+
+        return qoe;
     }
 
-    // TODO
-    // generate ITU P1203 input json, mode0
+    // generate ITU P1203 input json, using mode 0
     // https://github.com/itu-p1203/itu-p1203/blob/master/examples/mode0.json
-    function generateITUP1203InputJSON() {
-        return {};
+    function generateITUP1203InputJSON(context) {
+        // example input json
+        // {
+        //     "I11": {
+        //         "segments": [
+        //             {
+        //                 "bitrate": 331.46,
+        //                 "codec": "aaclc",
+        //                 "duration": 1,
+        //                 "start": 10
+        //             }
+        //         ],
+        //         "streamId": 42
+        //     },
+        //     "I13": {
+        //         "segments": [
+        //             {
+        //                 "bitrate": 691.72,
+        //                 "codec": "h264",
+        //                 "duration": 1,
+        //                 "fps": 24.0,
+        //                 "resolution": "1920x1080",
+        //                 "start": 10
+        //             }
+        //         ],
+        //         "streamId": 42
+        //     },
+        //     "I23": {
+        //         "stalling": [],
+        //         "streamId": 42
+        //     },
+        //     "IGen": {
+        //         "device": "pc",
+        //         "displaySize": "1920x1080",
+        //         "viewingDistance": "150cm"
+        //     }
+        // }
+
+        let audio_bitrate = context.audio_bitrate;
+        let audio_codec = context.audio_codec.includes('mp4a') ? 'aaclc' : context.audio_codec;
+        let seg_duration = context.seg_duration;
+        let stream_id = context.stream_id;
+
+        let start = 0;
+        let fps = 24.0;
+        let video_bitrate = context.video_bitrate;
+        let video_codec = context.video_codec.includes('avc') ? 'h264' : context.video_codec;
+        let resolution = context.resolution;
+
+        return {
+            "I11": {
+                "segments": [
+                    {
+                        "bitrate": audio_bitrate,
+                        "codec": audio_codec,
+                        "duration": seg_duration,
+                        "start": start
+                    }
+                ],
+                "streamId": stream_id
+            },
+            "I13": {
+                "segments": [
+                    {
+                        "bitrate": video_bitrate,
+                        "codec": video_codec,
+                        "duration": seg_duration,
+                        "fps": fps,
+                        "resolution": resolution,
+                        "start": start
+                    }
+                ],
+                "streamId": stream_id
+            },
+            "I23": {
+                "stalling": [],
+                "streamId": stream_id
+            },
+            "IGen": {
+                "device": "pc",
+                "displaySize": resolution,
+                "viewingDistance": "150cm"
+            }
+        };
     }
 
     // calculate ITU P1203 O46 QoE value
@@ -98,7 +184,8 @@ function CMABAbrController() {
         return pyodide.runPython(itu_p1203_calculate_o46);
     }
 
-    function getCMABNextQuality(pyodide, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics) {
+    function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics) {
+
         let tic = new Date();
 
         console.log('getCMABNextQuality', tic);
@@ -108,10 +195,10 @@ function CMABAbrController() {
         _throughput_array.push(throughput);
         _playback_rate_array.push(playbackRate);
 
-        console.log('_selected_arms', _selected_arms);
+        let selectedArm = 0;
+        
         if (rounds === 0) {
-            _selected_arms.push(cmabArms[0]);
-            _rewards_array.push(calculateReward(currentLatency, throughput, playbackRate));
+            selectedArm = 0;
         } else {
             window.js_cmabArms = cmabArms;
             window.js_live_latencies = _live_latency_array;
@@ -121,16 +208,20 @@ function CMABAbrController() {
             window.js_playback_rates = _playback_rate_array;
 
             selectedArm = pyodide.runPython(mabwiser_select_arm);
-            _selected_arms.push(selectedArm);
-            _rewards_array.push(calculateReward(currentLatency, throughput, playbackRate));
         }
+        _selected_arms.push(selectedArm);
+            
+        context.video_bitrate = bitrateList[selectedArm].bandwidth / 1000.0;
+        context.resolution = `${bitrateList[selectedArm].height}x${bitrateList[selectedArm].width}`;
+
+        _rewards_array.push(calculateReward(pyodide, context, currentLatency, throughput, playbackRate));
 
         let toc = new Date();
         rounds = rounds + 1;
 
-        console.log(selectedArm, 'time used' , timediff(tic, toc), 'seconds');
+        console.log('selected arm', selectedArm, 'time used' , timediff(tic, toc), 'seconds');
 
-        return 0;
+        return selectedArm;
     }
 
     instance = {
