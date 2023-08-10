@@ -20,22 +20,21 @@ function CMABAbrController() {
     # selected_arms == bitrate level in each round
     previous_rounds = len(live_latency) - 1
 
+    length = len(selected_arms) // 2
     train_df = pd.DataFrame({
-                             'selected_arms': selected_arms,
-                             'reward': rewards,
-                             'bitrate': bitrate,
-                             'live_latency': live_latency[:previous_rounds],
-                             'throughput': throughput[:previous_rounds],
-                             'playback_rate': playback_rate[:previous_rounds]
+                             'selected_arms': selected_arms[length:],
+                             'reward': rewards[length:],
+                             'bitrate': bitrate[length:],
+                             'live_latency': live_latency[length:previous_rounds],
+                             'throughput': throughput[length:previous_rounds],
+                             'playback_rate': playback_rate[length:previous_rounds]
                              })
 
     pprint(train_df)
 
     scaler = StandardScaler()
     train = scaler.fit_transform(train_df[[
-        #'live_latency', 
-        'bitrate', 
-        'throughput', 
+        'throughput',
         'playback_rate'
     ]])
 
@@ -55,8 +54,6 @@ function CMABAbrController() {
 
     # Test
     test_df = pd.DataFrame({
-                            #'live_latency': [live_latency[-1]],
-                            'bitrate': [bitrate[-1]],
                             'throughput': [throughput[-1]],
                             'playback_rate': [playback_rate[-1]]
                             })
@@ -98,11 +95,13 @@ function CMABAbrController() {
     // calculate reward using QoE ITU-T Rec. P.1203: https://github.com/itu-p1203/itu-p1203
     function calculateReward(pyodide, context, currentLatency, throughput, playbackRate) {
         let itu_p1203_input_json = generateITUP1203InputJSON(context);
-        console.log('calculateReward context', context);
+        console.log('calculateReward context', context, 'target live delay', context.target_latency);
 
-        let qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
-        console.log("ITU P1203 QoE:", qoe);
+        let itu_qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
 
+        let qoe = itu_qoe * (context.target_latency / currentLatency);
+
+        console.log(`ITU P1203 QoE: ${itu_qoe}, qoe: ${qoe}, current latency: ${currentLatency}`);
         return qoe;
     }
 
@@ -208,6 +207,8 @@ function CMABAbrController() {
         console.log('getCMABNextQuality', tic);
         console.log(`Throughput ${throughput} kbps, playback rate ${playbackRate}, current latency ${currentLatency}`);
 
+        throughput = throughput / 1000.0;
+
         _live_latency_array.push(currentLatency);
         _throughput_array.push(throughput);
         _playback_rate_array.push(playbackRate);
@@ -230,7 +231,7 @@ function CMABAbrController() {
         _selected_arms.push(selectedArm);
 
         context.video_bitrate = bitrateList[selectedArm].bandwidth / 1000.0;
-        context.resolution = `${bitrateList[selectedArm].height}x${bitrateList[selectedArm].width}`;
+        context.resolution = `${bitrateList[selectedArm].width}x${bitrateList[selectedArm].height}`;
 
         _bitrate_array.push(context.video_bitrate);
         _rewards_array.push(calculateReward(pyodide, context, currentLatency, throughput, playbackRate));

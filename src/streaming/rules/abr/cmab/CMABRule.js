@@ -111,6 +111,8 @@ function CMABRule(config) {
             let metrics = metricsModel.getMetricsFor(mediaType, true);
             let activeStream = streamController.getActiveStreamInfo();
             let currentQualityLevel = -1;
+            let targetLiveDelay = playbackController.getLiveDelay();
+
             if (activeStream !== null) {
                 currentQualityLevel = abrController.getQualityFor(mediaType, streamController.getActiveStreamInfo().id);
             }
@@ -130,7 +132,7 @@ function CMABRule(config) {
                 mediaType === Constants.AUDIO ||
                 pyodide_init_done === false ||
                 abrController.getAbandonmentStateFor(streamInfo.id, mediaType) === MetricsConstants.ABANDON_LOAD) {
-                
+
                     return switchRequest;
             }
 
@@ -140,6 +142,7 @@ function CMABRule(config) {
                 seg_duration: streamInfo.manifestInfo.maxFragmentDuration,
                 audio_codec: audio_codec,
                 audio_bitrate: audio_bitrate,
+                target_latency: targetLiveDelay,
             };
 
 
@@ -154,7 +157,7 @@ function CMABRule(config) {
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 
-            // scheduleController.setTimeToLoadDelay(0);
+            scheduleController.setTimeToLoadDelay(1.0);
 
             return switchRequest;
 
