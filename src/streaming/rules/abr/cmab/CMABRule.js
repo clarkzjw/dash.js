@@ -154,7 +154,7 @@ function CMABRule(config) {
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 
-            scheduleController.setTimeToLoadDelay(0);
+            // scheduleController.setTimeToLoadDelay(0);
 
             return switchRequest;
 

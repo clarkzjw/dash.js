@@ -7,7 +7,7 @@ function CMABAbrController() {
     from sklearn.preprocessing import StandardScaler
     from pprint import pprint
 
-    from js import js_cmabArms, js_rewards, js_selected_arms, js_live_latencies, js_throughput, js_playback_rates
+    from js import js_cmabArms, js_rewards, js_selected_arms, js_live_latencies, js_throughput, js_playback_rates, js_bitrate
 
     arms = js_cmabArms.to_py()
     rewards = js_rewards.to_py()
@@ -15,6 +15,7 @@ function CMABAbrController() {
     live_latency = js_live_latencies.to_py()
     throughput = js_throughput.to_py()
     playback_rate = js_playback_rates.to_py()
+    bitrate = js_bitrate.to_py()
 
     # selected_arms == bitrate level in each round
     previous_rounds = len(live_latency) - 1
@@ -22,6 +23,7 @@ function CMABAbrController() {
     train_df = pd.DataFrame({
                              'selected_arms': selected_arms,
                              'reward': rewards,
+                             'bitrate': bitrate,
                              'live_latency': live_latency[:previous_rounds],
                              'throughput': throughput[:previous_rounds],
                              'playback_rate': playback_rate[:previous_rounds]
@@ -30,17 +32,31 @@ function CMABAbrController() {
     pprint(train_df)
 
     scaler = StandardScaler()
-    train = scaler.fit_transform(train_df[['live_latency', 'throughput', 'playback_rate']])
+    train = scaler.fit_transform(train_df[[
+        #'live_latency', 
+        'bitrate', 
+        'throughput', 
+        'playback_rate'
+    ]])
 
     # Model
-    mab = MAB(arms=arms, learning_policy=LearningPolicy.LinUCB(alpha=1.25, l2_lambda=1))
 
-    # Train
+    # LinUCB
+    # mab = MAB(arms=arms, learning_policy=LearningPolicy.LinUCB(alpha=1.25, l2_lambda=1))
+    # mab.fit(decisions=train_df['selected_arms'], rewards=train_df['reward'], contexts=train)
+
+    # EpsilonGreedy
+    # mab = MAB(arms=arms, learning_policy=LearningPolicy.EpsilonGreedy(epsilon=0.25))
+    # mab.fit(decisions=train_df['selected_arms'], rewards=train_df['reward'])
+
+    # LinTS
+    mab = MAB(arms=arms, learning_policy=LearningPolicy.LinTS(alpha=0.25))
     mab.fit(decisions=train_df['selected_arms'], rewards=train_df['reward'], contexts=train)
 
     # Test
     test_df = pd.DataFrame({
-                            'live_latency': [live_latency[-1]],
+                            #'live_latency': [live_latency[-1]],
+                            'bitrate': [bitrate[-1]],
                             'throughput': [throughput[-1]],
                             'playback_rate': [playback_rate[-1]]
                             })
@@ -69,6 +85,7 @@ function CMABAbrController() {
     let _rewards_array = [];
     let _selected_arms = [];
     let _live_latency_array = [];
+    let _bitrate_array = [];
     let _throughput_array = [];
     let _playback_rate_array = [];
 
@@ -196,9 +213,9 @@ function CMABAbrController() {
         _playback_rate_array.push(playbackRate);
 
         let selectedArm = 0;
-        
-        if (rounds === 0) {
-            selectedArm = 0;
+
+        if (rounds < cmabArms.length) {
+            selectedArm = rounds;
         } else {
             window.js_cmabArms = cmabArms;
             window.js_live_latencies = _live_latency_array;
@@ -206,14 +223,16 @@ function CMABAbrController() {
             window.js_rewards = _rewards_array;
             window.js_selected_arms = _selected_arms;
             window.js_playback_rates = _playback_rate_array;
+            window.js_bitrate = _bitrate_array;
 
             selectedArm = pyodide.runPython(mabwiser_select_arm);
         }
         _selected_arms.push(selectedArm);
-            
+
         context.video_bitrate = bitrateList[selectedArm].bandwidth / 1000.0;
         context.resolution = `${bitrateList[selectedArm].height}x${bitrateList[selectedArm].width}`;
 
+        _bitrate_array.push(context.video_bitrate);
         _rewards_array.push(calculateReward(pyodide, context, currentLatency, throughput, playbackRate));
 
         let toc = new Date();
