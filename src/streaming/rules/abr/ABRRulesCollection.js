@@ -28,17 +28,21 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  */
+import 'regenerator-runtime/runtime'
+
 import ThroughputRule from './ThroughputRule';
 import InsufficientBufferRule from './InsufficientBufferRule';
 import AbandonRequestsRule from './AbandonRequestsRule';
 import DroppedFramesRule from './DroppedFramesRule';
 import SwitchHistoryRule from './SwitchHistoryRule';
+import CMABRule from './cmab/CMABRule.js';
 import BolaRule from './BolaRule';
 import L2ARule from './L2ARule.js';
 import LoLPRule from './lolp/LoLpRule.js';
 import FactoryMaker from '../../../core/FactoryMaker';
 import SwitchRequest from '../SwitchRequest';
 import Constants from '../../constants/Constants';
+
 
 const QUALITY_SWITCH_RULES = 'qualitySwitchRules';
 const ABANDON_FRAGMENT_RULES = 'abandonFragmentRules';
@@ -70,6 +74,14 @@ function ABRRulesCollection(config) {
                     L2ARule(context).create({
                         dashMetrics: dashMetrics,
                         settings: settings
+                    })
+                );
+            }
+            // If CMAB is used we only need this one rule
+            else if (settings.get().streaming.abr.ABRStrategy === Constants.ABR_STRATEGY_CMAB) {
+                qualitySwitchRules.push(
+                    CMABRule(context).create({
+                        dashMetrics: dashMetrics,
                     })
                 );
             }

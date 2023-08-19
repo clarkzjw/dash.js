@@ -123,6 +123,13 @@ class Constants {
         this.ABR_STRATEGY_DYNAMIC = 'abrDynamic';
 
         /**
+         *  @constant {string} ABR_STRATEGY_CMAB Adaptive bitrate algorithm based on CMAB (Contextual multi-armed bandit)
+         *  @memberof Constants#
+         *  @static
+         */
+        this.ABR_STRATEGY_CMAB = 'abrCMAB';
+
+        /**
          *  @constant {string} ABR_STRATEGY_BOLA Adaptive bitrate algorithm based on Bola (buffer level)
          *  @memberof Constants#
          *  @static
