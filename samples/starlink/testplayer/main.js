@@ -43,28 +43,6 @@ App.prototype.init = function () {
     this._setupLineChart();
 }
 
-// App.prototype.testMAB = function() {
-//     result = this.pyodide.runPython(`
-//         from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
-//
-//         # Data
-//         arms = ['Arm1', 'Arm2']
-//         decisions = ['Arm1', 'Arm1', 'Arm2', 'Arm1']
-//         rewards = [20, 17, 25, 9]
-//
-//         # Model
-//         mab = MAB(arms, LearningPolicy.UCB1(alpha=1.25))
-//
-//         # Train
-//         mab.fit(decisions, rewards)
-//
-//         # Test
-//         mab.predict()
-//     `);
-//
-//     console.log(result);
-// }
-
 App.prototype._setDomElements = function () {
     this.domElements.settings.targetLatency = document.getElementById('target-latency');
     this.domElements.settings.maxDrift = document.getElementById('max-drift');
@@ -96,26 +74,26 @@ App.prototype._setDomElements = function () {
 }
 
 async function sendStats(url, type, stat) {
-    // fetch(url, {
-    //         credentials: "omit",
-    //         mode: "cors",
-    //         method: "post",
-    //         headers: { "Content-Type": "application/json" },
-    //         body: JSON.stringify({type: stat})
-    //     })
-    //         .then(resp => {
-    //             if (resp.status === 200) {
-    //                 console.log("Sent %d %s", stat.length, type)
-    //                 return resp.json()
-    //             } else {
-    //                 console.log("Status: " + resp.status)
-    //                 return Promise.reject("500")
-    //             }
-    //         })
-    //         .catch(err => {
-    //             if (err === "500") return
-    //             console.log(err)
-    //         })
+    fetch(url, {
+            credentials: "omit",
+            mode: "cors",
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({type: stat})
+        })
+            .then(resp => {
+                if (resp.status === 200) {
+                    console.log("Sent %d %s", stat.length, type)
+                    return resp.json()
+                } else {
+                    console.log("Status: " + resp.status)
+                    return Promise.reject("500")
+                }
+            })
+            .catch(err => {
+                if (err === "500") return
+                console.log(err)
+            })
 }
 
 
