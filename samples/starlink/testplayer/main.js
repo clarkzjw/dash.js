@@ -1,7 +1,7 @@
-var METRIC_INTERVAL_MS = 100; // 0.1s
-var SEND_STAT_INTERVAL_MS = 5000; // 5s
+const METRIC_INTERVAL_MS = 100; // 0.1s
+const SEND_STAT_INTERVAL_MS = 5000; // 5s
 
-var App = function () {
+let App = function () {
     this.player = null;
     this.controlbar = null;
     this.video = null;
@@ -24,7 +24,6 @@ var App = function () {
     this.pyodide = null;
 };
 
-// var statServerUrl = "https://100.86.124.49:8444";
 const statServerUrl = 'http://stat-server:8000';
 
 App.prototype.addEvent = function (e) {
@@ -75,25 +74,25 @@ App.prototype._setDomElements = function () {
 
 async function sendStats(url, type, stat) {
     fetch(url, {
-            credentials: "omit",
-            mode: "cors",
-            method: "post",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({type: stat})
+        credentials: 'omit',
+        mode: 'cors',
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({type: stat})
+    })
+        .then(resp => {
+            if (resp.status === 200) {
+                console.log('Sent %d %s', stat.length, type)
+                return resp.json()
+            } else {
+                console.log('Status: ' + resp.status)
+                return Promise.reject('500')
+            }
         })
-            .then(resp => {
-                if (resp.status === 200) {
-                    console.log("Sent %d %s", stat.length, type)
-                    return resp.json()
-                } else {
-                    console.log("Status: " + resp.status)
-                    return Promise.reject("500")
-                }
-            })
-            .catch(err => {
-                if (err === "500") return
-                console.log(err)
-            })
+        .catch(err => {
+            if (err === '500') return
+            console.log(err)
+        })
 }
 
 
@@ -204,7 +203,7 @@ App.prototype._load = function () {
     for (const e of events) {
         app.player.on(dashjs.MediaPlayer.events[e], showEvent);
 
-        var element = document.createElement('input');
+        let element = document.createElement('input');
         element.type = 'button';
         element.className = 'btn btn-danger';
         element.id = e;
@@ -216,9 +215,9 @@ App.prototype._load = function () {
         document.getElementById('eventHolder').appendChild(element);
     }
 
-    var self = this;
+    let self = this;
     setInterval(function() {
-        var experimentID = self.domElements.experimentID.value;
+        let experimentID = self.domElements.experimentID.value;
 
         const sendingEvents = self.events
         self.events = []
@@ -235,7 +234,7 @@ App.prototype._applyParameters = function () {
         return;
     }
 
-    var settings = this._getCurrentSettings();
+    let settings = this._getCurrentSettings();
 
     this.player.updateSettings({
         streaming: {
@@ -266,12 +265,12 @@ App.prototype._applyParameters = function () {
 }
 
 App.prototype._exportSettings = function () {
-    var settings = this._getCurrentSettings();
-    var url = document.location.origin + document.location.pathname;
+    let settings = this._getCurrentSettings();
+    let url = document.location.origin + document.location.pathname;
 
     url += '?';
 
-    for (var [key, value] of Object.entries(settings)) {
+    for (let [key, value] of Object.entries(settings)) {
         url += '&' + key + '=' + value
     }
 
@@ -293,8 +292,8 @@ App.prototype._exportSettings = function () {
 }
 
 App.prototype._adjustSettingsByUrlParameters = function () {
-    var urlSearchParams = new URLSearchParams(window.location.search);
-    var params = Object.fromEntries(urlSearchParams.entries());
+    let urlSearchParams = new URLSearchParams(window.location.search);
+    let params = Object.fromEntries(urlSearchParams.entries());
 
     if (params) {
         if (params.targetLatency !== undefined) {
@@ -368,7 +367,7 @@ App.prototype._getCurrentSettings = function () {
 }
 
 App.prototype._setupLineChart = function () {
-    var data = {
+    let data = {
         datasets: [
             {
                 label: 'Live delay',
@@ -386,7 +385,7 @@ App.prototype._setupLineChart = function () {
                 backgroundColor: '#3cb043',
             }]
     };
-    var config = {
+    let config = {
         type: 'line',
         data: data,
         options: {
@@ -453,7 +452,7 @@ App.prototype._enableChart = function (enabled) {
 }
 
 App.prototype._updateChartData = function () {
-    var self = this;
+    let self = this;
 
     this.chartTimeout = setTimeout(function () {
         if (self.player && self.player.isReady()) {
@@ -506,35 +505,34 @@ App.prototype._adjustChartSettings = function () {
 }
 
 App.prototype._startIntervalHandler = function () {
-    var self = this;
+    let self = this;
     setInterval(function () {
         if (self.player && self.player.isReady()) {
-            var dashMetrics = self.player.getDashMetrics();
-            var settings = self.player.getSettings();
+            let dashMetrics = self.player.getDashMetrics();
 
-            var currentLatency = parseFloat(self.player.getCurrentLiveLatency(), 10);
+            let currentLatency = parseFloat(self.player.getCurrentLiveLatency(), 10);
             self.domElements.metrics.latencyTag.innerHTML = currentLatency + ' secs';
 
-            var currentPlaybackRate = self.player.getPlaybackRate();
+            let currentPlaybackRate = self.player.getPlaybackRate();
             self.domElements.metrics.playbackrateTag.innerHTML = Math.round(currentPlaybackRate * 1000) / 1000;
 
-            var currentBuffer = dashMetrics.getCurrentBufferLevel('video');
+            let currentBuffer = dashMetrics.getCurrentBufferLevel('video');
             self.domElements.metrics.bufferTag.innerHTML = currentBuffer + ' secs';
 
             // Wall clock reference time
-            var dd = new Date();
-            var d = new Date(new Date().toLocaleString('en', {timeZone: 'America/Vancouver'}));
+            let dd = new Date();
+            let d = new Date(new Date().toLocaleString('en', {timeZone: 'America/Vancouver'}));
 
-            var month = d.getUTCMonth() + 1;
-            var day = d.getUTCDate();
+            let month = d.getUTCMonth() + 1;
+            let day = d.getUTCDate();
 
-            var milliSecond = dd.getMilliseconds();
+            let milliSecond = dd.getMilliseconds();
             self.domElements.metrics.msec.innerHTML = (milliSecond < 10 ? '00': milliSecond < 100 ? '0': '') + milliSecond;
 
-            var seconds = d.getSeconds();
+            let seconds = d.getSeconds();
             self.domElements.metrics.sec.innerHTML = (seconds < 10 ? '0' : '') + seconds + ':';
 
-            var minutes = d.getMinutes();
+            let minutes = d.getMinutes();
             self.domElements.metrics.min.innerHTML = (minutes < 10 ? '0' : '') + minutes + ':';
 
             const metric = {
@@ -552,7 +550,7 @@ App.prototype._startIntervalHandler = function () {
 }
 
 App.prototype._registerEventHandler = function () {
-    var self = this;
+    let self = this;
 
     document.getElementById('apply-settings-button').addEventListener('click', function () {
         self._applyParameters();

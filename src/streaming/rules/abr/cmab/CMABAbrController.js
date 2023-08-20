@@ -157,38 +157,38 @@ function CMABAbrController() {
         let resolution = context.resolution;
 
         return {
-            "I11": {
-                "segments": [
+            'I11': {
+                'segments': [
                     {
-                        "bitrate": audio_bitrate,
-                        "codec": audio_codec,
-                        "duration": seg_duration,
-                        "start": start
+                        'bitrate': audio_bitrate,
+                        'codec': audio_codec,
+                        'duration': seg_duration,
+                        'start': start
                     }
                 ],
-                "streamId": stream_id
+                'streamId': stream_id
             },
-            "I13": {
-                "segments": [
+            'I13': {
+                'segments': [
                     {
-                        "bitrate": video_bitrate,
-                        "codec": video_codec,
-                        "duration": seg_duration,
-                        "fps": fps,
-                        "resolution": resolution,
-                        "start": start
+                        'bitrate': video_bitrate,
+                        'codec': video_codec,
+                        'duration': seg_duration,
+                        'fps': fps,
+                        'resolution': resolution,
+                        'start': start
                     }
                 ],
-                "streamId": stream_id
+                'streamId': stream_id
             },
-            "I23": {
-                "stalling": [],
-                "streamId": stream_id
+            'I23': {
+                'stalling': [],
+                'streamId': stream_id
             },
-            "IGen": {
-                "device": "pc",
-                "displaySize": resolution,
-                "viewingDistance": "150cm"
+            'IGen': {
+                'device': 'pc',
+                'displaySize': resolution,
+                'viewingDistance': '150cm'
             }
         };
     }

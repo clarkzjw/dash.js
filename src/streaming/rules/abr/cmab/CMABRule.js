@@ -133,7 +133,7 @@ function CMABRule(config) {
                 pyodide_init_done === false ||
                 abrController.getAbandonmentStateFor(streamInfo.id, mediaType) === MetricsConstants.ABANDON_LOAD) {
 
-                    return switchRequest;
+                return switchRequest;
             }
 
             let context = {

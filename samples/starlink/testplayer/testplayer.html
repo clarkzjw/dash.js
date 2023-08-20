@@ -3,14 +3,13 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Starlink Low latency streaming - Testplayer</title>
+    <title>Low Latency Live Streaming Over Starlink - Testplayer</title>
 
-    <!-- Bootstrap core CSS -->
-    <link href="../../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../lib/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="../../../contrib/bootstrap-icons.css">
     <link rel="stylesheet" href="../../../contrib/akamai/controlbar/controlbar.css">
-    <link href="../../lib/main.css" rel="stylesheet">
-    <link href="main.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../lib/main.css">
+    <link rel="stylesheet" href="main.css">
 
     <script src="../../../dist/dash.all.debug.js"></script>
     <script src="../../../contrib/chart.min.js"></script>
@@ -372,25 +371,6 @@
 
         function showEvent(e) {
             app.addEvent(e)
-
-            // log("Event received: " + e.type);
-            // for (var name in e)
-            // {
-            //     if (typeof e[name] != 'object') {
-            //         log("    " + name + ": " + e[name]);
-            //     }
-            // }
-            // for (name in e)
-            // {
-            //     if (typeof e[name] == 'object' )
-            //     {
-            //         log("    " + name + ":");
-            //         for (name2 in e[name])
-            //         {
-            //             log("        " + name2 + ": " + JSON.stringify(e[name][name2]));
-            //         }
-            //     }
-            // }
         }
 
         function log(msg) {
@@ -416,5 +396,4 @@
 
     </script>
 </body>
-
 </html>
