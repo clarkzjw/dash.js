@@ -73,26 +73,26 @@ App.prototype._setDomElements = function () {
 }
 
 async function sendStats(url, type, stat) {
-    fetch(url, {
-        credentials: 'omit',
-        mode: 'cors',
-        method: 'post',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({type: stat})
-    })
-        .then(resp => {
-            if (resp.status === 200) {
-                console.log('Sent %d %s', stat.length, type)
-                return resp.json()
-            } else {
-                console.log('Status: ' + resp.status)
-                return Promise.reject('500')
-            }
-        })
-        .catch(err => {
-            if (err === '500') return
-            console.log(err)
-        })
+    // fetch(url, {
+    //     credentials: 'omit',
+    //     mode: 'cors',
+    //     method: 'post',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({type: stat})
+    // })
+    //     .then(resp => {
+    //         if (resp.status === 200) {
+    //             console.log('Sent %d %s', stat.length, type)
+    //             return resp.json()
+    //         } else {
+    //             console.log('Status: ' + resp.status)
+    //             return Promise.reject('500')
+    //         }
+    //     })
+    //     .catch(err => {
+    //         if (err === '500') return
+    //         console.log(err)
+    //     })
 }
 
 

@@ -79,11 +79,17 @@ function CMABAbrController() {
     let selectedArm;
     let _mab_model;
 
+    let starlink_timeslot_count = 0;
+
     let _rewards_array = [];
     let _selected_arms = [];
     let _live_latency_array = [];
     let _bitrate_array = [];
+
     let _throughput_array = [];
+    let _throughput_dict = new Map();
+
+
     let _playback_rate_array = [];
 
     let rounds = 0;
@@ -200,6 +206,51 @@ function CMABAbrController() {
         return pyodide.runPython(itu_p1203_calculate_o46);
     }
 
+    function isSameSatelliteTimeSlot(t1, t2) {
+        // 12, 27, 42, 57
+
+        // if the difference between two timestamps > 15 seconds,
+        // they definitely belong to different satellite timeslots
+        if ((t2 - t1) / 1000.0 > 15) {
+            return false
+        }
+        let t1_minute = t1.getMinutes();
+        let t2_minute = t2.getMinutes();
+
+        // if their minute difference > 1,
+        // they definitely belong to different satellite timeslots
+        if (t2_minute - t1_minute > 1) {
+            return false
+        }
+
+        let t1_second = t1.getSeconds();
+        let t2_second = t2.getSeconds();
+
+        // if they are in adjacent minutes,
+        // and t1 > 57, t2 < 12, they belong to the same timeslot
+        if ((t2_minute - t1_minute === 1) && (t1_second > 57 && t2_second <= 12)) {
+            return true
+        }
+
+        // if they are in the same minute
+        if (t1_minute === t2_minute) {
+            if (t1_second <= 12 && t2_second <= 12) {
+                return true
+            }
+            if ((t1_second > 12 && t1_second <= 27) && (t2_second > 12 && t2_second <= 27)) {
+                return true
+            }
+            if ((t1_second > 27 && t1_second <= 42) && (t2_second > 27 && t2_second <= 42)) {
+                return true
+            }
+            if ((t1_second > 42 && t1_second <= 57) && (t2_second > 42 && t2_second <= 57)) {
+                return true
+            }
+        }
+
+        return false
+    }
+
     function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics) {
 
         let tic = new Date();
@@ -208,6 +259,31 @@ function CMABAbrController() {
         console.log(`Throughput ${throughput} kbps, playback rate ${playbackRate}, current latency ${currentLatency}`);
 
         throughput = throughput / 1000.0;
+
+        console.log(_throughput_dict.get(starlink_timeslot_count))
+        console.log(_throughput_dict.get(starlink_timeslot_count) === undefined)
+
+        if (_throughput_dict.get(starlink_timeslot_count) === undefined) {
+            _throughput_dict.set(starlink_timeslot_count, {
+                'start': tic,
+                'history': []
+            });
+        } else {
+            let last_timeslot_started_at = _throughput_dict.get(starlink_timeslot_count)['start']
+            let same_timeslot = isSameSatelliteTimeSlot(last_timeslot_started_at, tic);
+            console.log(last_timeslot_started_at, tic, same_timeslot);
+
+            if (!same_timeslot) {
+                starlink_timeslot_count += 1
+                _throughput_dict.set(starlink_timeslot_count, {
+                    'start': tic,
+                    'history': []
+                });
+            }
+        }
+        
+        _throughput_dict.get(starlink_timeslot_count)['history'].push({tic: tic, throughput: throughput});
+        console.log(_throughput_dict)
 
         _live_latency_array.push(currentLatency);
         _throughput_array.push(throughput);

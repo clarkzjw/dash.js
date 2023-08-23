@@ -18,7 +18,7 @@ const config = merge(common, {
         static: {
             directory: path.join(__dirname, '../'),
         },
-        allowedHosts: "all",
+        allowedHosts: 'all',
         open: ['samples/index.html'],
         hot: true,
         compress: true,
