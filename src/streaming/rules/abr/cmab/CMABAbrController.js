@@ -28,7 +28,7 @@ function CMABAbrController() {
     selected_arms = js_selected_arms.to_py()
     bitrate = js_bitrate.to_py()
     history = js_history.to_py()
-    print(history)
+    #print(history)
 
     length = len(history)
 
@@ -40,11 +40,11 @@ function CMABAbrController() {
     network_latency = [x['network_latency'] for x in history]
     live_latency = [x['live_latency'] for x in history]
 
-    print('history length', length)
-    print('selected_arms length', len(selected_arms))
-    print('rewards length', len(rewards))
-    print('bitrate length', len(bitrate))
-    print('throughput length', len(throughput))
+    #print('history length', length)
+    #print('selected_arms length', len(selected_arms))
+    #print('rewards length', len(rewards))
+    #print('bitrate length', len(bitrate))
+    #print('throughput length', len(throughput))
 
     train_df = pd.DataFrame({
                              'selected_arms': selected_arms,
@@ -59,7 +59,7 @@ function CMABAbrController() {
                             #  'playback_rate': playback_rate[length:previous_rounds]
                              })
 
-    pprint(train_df)
+    #pprint(train_df)
 
     scaler = StandardScaler()
     train = scaler.fit_transform(train_df[[
@@ -99,7 +99,6 @@ function CMABAbrController() {
     from js import js_itup1203inputjson
 
     input_json = js_itup1203inputjson.to_py()
-    print(input_json);
 
     input = json.loads(json.dumps(input_json))
     res = P1203Standalone(input).calculate_complete()
@@ -280,13 +279,10 @@ function CMABAbrController() {
     function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics) {
         let tic = new Date();
 
-        console.log('getCMABNextQuality', tic);
+        console.log('\n\ngetCMABNextQuality', tic);
         console.log(`Throughput ${throughput} kbps, playback rate ${playbackRate}, current latency ${currentLatency}`);
 
         throughput = throughput / 1000.0;
-
-        console.log(_throughput_dict.get(starlink_timeslot_count))
-        console.log(_throughput_dict.get(starlink_timeslot_count) === undefined)
 
         if (_throughput_dict.get(starlink_timeslot_count) === undefined) {
             _throughput_dict.set(starlink_timeslot_count, {
@@ -296,7 +292,6 @@ function CMABAbrController() {
         } else {
             let last_timeslot_started_at = _throughput_dict.get(starlink_timeslot_count)['start']
             let same_timeslot = isSameSatelliteTimeSlot(last_timeslot_started_at, tic);
-            console.log(last_timeslot_started_at, tic, same_timeslot);
 
             if (!same_timeslot) {
                 starlink_timeslot_count += 1
@@ -321,8 +316,6 @@ function CMABAbrController() {
             playback_rate: playbackRate
         });
         console.log('network latency:', network_latency);
-        console.log(_throughput_dict);
-        console.log('current timeslot count', starlink_timeslot_count);
 
         window.js_cmabArms = cmabArms;
         window.js_rewards = _rewards_array;
