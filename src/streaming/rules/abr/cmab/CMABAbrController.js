@@ -1,3 +1,39 @@
+/**
+ * The copyright in this software is being made available under the BSD License,
+ * included below. This software may be subject to other third party and contributor
+ * rights, including patent rights, and no such rights are granted under this license.
+ *
+ * Copyright (c) 2013, Dash Industry Forum.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *  this list of conditions and the following disclaimer in the documentation and/or
+ *  other materials provided with the distribution.
+ *  * Neither the name of Dash Industry Forum nor the names of its
+ *  contributors may be used to endorse or promote products derived from this software
+ *  without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS AS IS AND ANY
+ *  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ *  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ *  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ *  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * Authors:
+ * Jinwei Zhao | University of Victoria | clarkzjw@uvic.ca, clarkzjw@gmail.com
+ */
+
 import FactoryMaker from '../../../../core/FactoryMaker';
 
 function getLatestNetworkLatency() {
@@ -106,8 +142,6 @@ function CMABAbrController() {
     `;
 
     let instance;
-    let selectedArm;
-    let _mab_model;
 
     let starlink_timeslot_count = 0;
 
@@ -124,7 +158,7 @@ function CMABAbrController() {
     }
 
     // calculate reward using QoE ITU-T Rec. P.1203: https://github.com/itu-p1203/itu-p1203
-    function calculateReward(pyodide, context, currentLatency, throughput, playbackRate) {
+    function calculateReward(pyodide, context, currentLatency) {
         let itu_p1203_input_json = generateITUP1203InputJSON(context);
         console.log('calculateReward context', context, 'target live delay', context.target_latency);
 
@@ -276,7 +310,7 @@ function CMABAbrController() {
         return false
     }
 
-    function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics) {
+    function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput) {
         let tic = new Date();
 
         console.log('\n\ngetCMABNextQuality', tic);
@@ -335,7 +369,7 @@ function CMABAbrController() {
         context.resolution = `${bitrateList[selectedArm].width}x${bitrateList[selectedArm].height}`;
 
         _bitrate_array.push(context.video_bitrate);
-        _rewards_array.push(calculateReward(pyodide, context, currentLatency, throughput, playbackRate));
+        _rewards_array.push(calculateReward(pyodide, context, currentLatency));
 
         rounds = rounds + 1;
 
