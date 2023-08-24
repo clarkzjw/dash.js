@@ -1,5 +1,19 @@
 import FactoryMaker from '../../../../core/FactoryMaker';
 
+async function getNetworkLatency() {
+    const statServerUrl = 'http://192.168.1.223:8000';
+    let LatencySidecarURL = statServerUrl+'/ping';
+
+    const response = await fetch(LatencySidecarURL, {
+        credentials: 'omit',
+        mode: 'cors',
+        method: 'get',
+        headers: { 'Content-Type': 'application/json' },
+    });
+
+    return await response.json();
+}
+
 function CMABAbrController() {
     let mabwiser_select_arm = `
     import pandas as pd
@@ -110,33 +124,6 @@ function CMABAbrController() {
         console.log(`ITU P1203 QoE: ${itu_qoe}, qoe: ${qoe}, current latency: ${currentLatency}`);
         return qoe;
     }
-
-    function getNetworkLatency(host) {
-        // fetch(url, {
-        //     credentials: 'omit',
-        //     mode: 'cors',
-        //     method: 'post',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({type: stat})
-        // })
-        //     .then(resp => {
-        //         if (resp.status === 200) {
-        //             console.log('Sent %d %s', stat.length, type)
-        //             return resp.json()
-        //         } else {
-        //             console.log('Status: ' + resp.status)
-        //             return Promise.reject('500')
-        //         }
-        //     })
-        //     .catch(err => {
-        //         if (err === '500') return
-        //         console.log(err)
-        //     })
-        return 0;
-    }
-
-
-
 
     // generate ITU P1203 input json, using mode 0
     // https://github.com/itu-p1203/itu-p1203/blob/master/examples/mode0.json
@@ -309,11 +296,14 @@ function CMABAbrController() {
             }
         }
 
-        let network_latency = getNetworkLatency();
-        _throughput_dict.get(starlink_timeslot_count)['history'].push({
-            tic: tic,
-            throughput: throughput,
-            network_latency: network_latency,
+        // let network_latency;
+        getNetworkLatency().then(network_latency => {
+            console.log('network latency:', network_latency);
+            _throughput_dict.get(starlink_timeslot_count)['history'].push({
+                tic: tic,
+                throughput: throughput,
+                network_latency: network_latency,
+            });
         });
 
         console.log(_throughput_dict)

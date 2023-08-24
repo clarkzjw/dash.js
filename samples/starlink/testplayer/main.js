@@ -186,9 +186,8 @@ App.prototype._load = function () {
     this.controlbar.initialize();
     this.video.muted = true;
 
-    // TODO
-    // set hostname from mpd file, not window.location.hostname
-    setNetworkLatencyHost(window.location.hostname).then(r => console.log('ping latency test set', r));
+    let mpd_url = new URL(url)
+    setNetworkLatencyHost(mpd_url.hostname).then(r => console.log('ping latency test set', r));
 
     // http://cdn.dashjs.org/latest/jsdoc/MediaPlayerEvents.html
     const events = [
