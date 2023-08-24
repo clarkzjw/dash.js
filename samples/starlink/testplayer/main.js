@@ -187,7 +187,7 @@ App.prototype._load = function () {
     this.video.muted = true;
 
     let mpd_url = new URL(url)
-    setNetworkLatencyHost(mpd_url.hostname).then(r => console.log('ping latency test set', r));
+    setNetworkLatencyHost(mpd_url.hostname);
 
     // http://cdn.dashjs.org/latest/jsdoc/MediaPlayerEvents.html
     const events = [

@@ -224,6 +224,10 @@ function CatchupController() {
                     // Custom playback control: Based on buffer level
                     const playbackBufferMin = settings.get().streaming.liveCatchup.playbackBufferMin;
                     newRate = _calculateNewPlaybackRateLolP(liveCatchupPlaybackRates, currentLiveLatency, targetLiveDelay, playbackBufferMin, bufferLevel);
+                } else if (_getCatchupMode() === Constants.LIVE_CATCHUP_MODE_CMAB) {
+                    // Custom playback control: Based on CMAB and satellite handover pattern
+                    const playbackBufferMin = settings.get().streaming.liveCatchup.playbackBufferMin;
+                    newRate = _calculateNewPlaybackRateCMAB(liveCatchupPlaybackRates, currentLiveLatency, targetLiveDelay, playbackBufferMin, bufferLevel, currentPlaybackRate);
                 } else {
                     // Default playback control: Based on target and current latency
                     newRate = _calculateNewPlaybackRateDefault(liveCatchupPlaybackRates, currentLiveLatency, targetLiveDelay, bufferLevel);
@@ -288,8 +292,16 @@ function CatchupController() {
      */
     function _getCatchupMode() {
         const playbackBufferMin = settings.get().streaming.liveCatchup.playbackBufferMin;
+        const mode = settings.get().streaming.liveCatchup.mode;
 
-        return settings.get().streaming.liveCatchup.mode === Constants.LIVE_CATCHUP_MODE_LOLP && playbackBufferMin !== null && !isNaN(playbackBufferMin) ? Constants.LIVE_CATCHUP_MODE_LOLP : Constants.LIVE_CATCHUP_MODE_DEFAULT;
+        // return settings.get().streaming.liveCatchup.mode === Constants.LIVE_CATCHUP_MODE_LOLP && playbackBufferMin !== null && !isNaN(playbackBufferMin) ? Constants.LIVE_CATCHUP_MODE_LOLP : Constants.LIVE_CATCHUP_MODE_DEFAULT;
+        if (mode === Constants.LIVE_CATCHUP_MODE_LOLP && playbackBufferMin !== null && !isNaN(playbackBufferMin)) {
+            return Constants.LIVE_CATCHUP_MODE_LOLP;
+        } else if (mode === Constants.LIVE_CATCHUP_MODE_CMAB) {
+            return Constants.LIVE_CATCHUP_MODE_CMAB;
+        } else {
+            return Constants.LIVE_CATCHUP_MODE_DEFAULT;
+        }
     }
 
     /**
@@ -413,6 +425,34 @@ function CatchupController() {
         }
 
         return newRate
+    }
+
+    /**
+     * Calculate the new playback rate based on CMAB and satellite handover pattern
+     * @param {object} liveCatchUpPlaybackRates
+     * @param {number} liveCatchUpPlaybackRates.min - minimum playback rate decrease limit
+     * @param {number} liveCatchUpPlaybackRates.max - maximum playback rate increase limit
+     * @param {number} currentLiveLatency
+     * @param {number} targetLiveLatency
+     * @param {number} playbackBufferMin
+     * @param {number} bufferLevel
+     * @param {number} currentPlaybackRate
+     * @return {number}
+     * @private
+     */
+    function _calculateNewPlaybackRateCMAB(liveCatchUpPlaybackRates, currentLiveLatency, targetLiveLatency, playbackBufferMin, bufferLevel, currentPlaybackRate) {
+        console.log('_calculateNewPlaybackRateCMAB');
+        console.log('playback rate decrease limit:', liveCatchUpPlaybackRates.min);
+        console.log('playback rate increase limit:', liveCatchUpPlaybackRates.max);
+        console.log('currentLiveLatency:', currentLiveLatency);
+        console.log('targetLiveLatency:', targetLiveLatency);
+        console.log('playbackBufferMin:', playbackBufferMin);
+        console.log('bufferLevel:', bufferLevel);
+
+        // TODO
+        // dynamically set playback rate based on satellite handover pattern
+
+        return 1.0
     }
 
     function _checkPlaybackRates() {
