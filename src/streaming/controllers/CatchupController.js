@@ -441,18 +441,71 @@ function CatchupController() {
      * @private
      */
     function _calculateNewPlaybackRateCMAB(liveCatchUpPlaybackRates, currentLiveLatency, targetLiveLatency, playbackBufferMin, bufferLevel, currentPlaybackRate) {
-        console.log('_calculateNewPlaybackRateCMAB');
-        console.log('playback rate decrease limit:', liveCatchUpPlaybackRates.min);
-        console.log('playback rate increase limit:', liveCatchUpPlaybackRates.max);
-        console.log('currentLiveLatency:', currentLiveLatency);
-        console.log('targetLiveLatency:', targetLiveLatency);
-        console.log('playbackBufferMin:', playbackBufferMin);
-        console.log('bufferLevel:', bufferLevel);
+        // console.log('_calculateNewPlaybackRateCMAB');
+        // console.log('playback rate decrease limit:', liveCatchUpPlaybackRates.min);
+        // console.log('playback rate increase limit:', liveCatchUpPlaybackRates.max);
+        // console.log('currentLiveLatency:', currentLiveLatency);
+        // console.log('targetLiveLatency:', targetLiveLatency);
+        // console.log('playbackBufferMin:', playbackBufferMin);
+        // console.log('bufferLevel:', bufferLevel);
+
+        function isHandoverPeriod(second) {
+            return second === 12 || second === 27 || second === 42 || second === 57;
+        }
 
         // TODO
         // dynamically set playback rate based on satellite handover pattern
+        let tic = new Date();
+        let second = tic.getSeconds();
+        let newRate;
 
-        return 1.0
+        // Hybrid: Buffer-based
+        if (bufferLevel < playbackBufferMin) {
+            // Buffer in danger, slow down
+            const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
+            const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
+            const d = deltaBuffer * 5;
+
+            // Playback rate must be between (1 - cpr) - (1 + cpr)
+            // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
+            const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+            newRate = (1 - cpr) + s;
+
+            logger.debug('[LoL+ playback control_buffer-based] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
+        } else if (isHandoverPeriod(second)) {
+            let cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
+            const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
+            const d = deltaBuffer * 5;
+
+            // Playback rate must be between (1 - cpr) - (1 + cpr)
+            // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
+            const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+            newRate = (1 - cpr) + s;
+
+            console.log('slow down playback because of satellite handover');
+        } else {
+            // Hybrid: Latency-based
+            // Buffer is safe, vary playback rate based on latency
+            const cpr = liveCatchUpPlaybackRates.max;
+            // Check if latency is within range of target latency
+            const minDifference = 0.02;
+            if (Math.abs(currentLiveLatency - targetLiveLatency) <= (minDifference * targetLiveLatency)) {
+                newRate = 1;
+            } else {
+                const deltaLatency = currentLiveLatency - targetLiveLatency;
+                const d = deltaLatency * 5;
+
+                // Playback rate must be between (1 - cpr) - (1 + cpr)
+                // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
+                const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+                newRate = (1 - cpr) + s;
+            }
+
+            logger.debug('[LoL+ playback control_latency-based] latency: ' + currentLiveLatency + ', newRate: ' + newRate);
+        }
+
+
+        return newRate;
     }
 
     function _checkPlaybackRates() {
