@@ -24,7 +24,8 @@ let App = function () {
     this.pyodide = null;
 };
 
-const statServerUrl = 'http://stat-server:8000';
+// const statServerUrl = 'http://stat-server:8000';
+const statServerUrl = 'http://192.168.1.223:8000';
 
 App.prototype.addEvent = function (e) {
     this.events.push(e)
@@ -95,6 +96,29 @@ async function sendStats(url, type, stat) {
     //     })
 }
 
+async function setNetworkLatencyHost(host) {
+    let LatencySidecarURL = statServerUrl+'/ping/'+host;
+
+    fetch(LatencySidecarURL, {
+        credentials: 'omit',
+        mode: 'cors',
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({host: host})
+    })
+        .then(resp => {
+            if (resp.status === 200) {
+                return resp.json()
+            } else {
+                console.log('Status: ' + resp.status)
+                return Promise.reject('500')
+            }
+        })
+        .catch(err => {
+            if (err === '500') return
+            console.log(err)
+        })
+}
 
 App.prototype._load = function () {
     let url;
@@ -161,6 +185,10 @@ App.prototype._load = function () {
     this.controlbar = new ControlBar(this.player);
     this.controlbar.initialize();
     this.video.muted = true;
+
+    // TODO
+    // set hostname from mpd file, not window.location.hostname
+    setNetworkLatencyHost(window.location.hostname).then(r => console.log('ping latency test set', r));
 
     // http://cdn.dashjs.org/latest/jsdoc/MediaPlayerEvents.html
     const events = [

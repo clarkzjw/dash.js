@@ -111,6 +111,33 @@ function CMABAbrController() {
         return qoe;
     }
 
+    function getNetworkLatency(host) {
+        // fetch(url, {
+        //     credentials: 'omit',
+        //     mode: 'cors',
+        //     method: 'post',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({type: stat})
+        // })
+        //     .then(resp => {
+        //         if (resp.status === 200) {
+        //             console.log('Sent %d %s', stat.length, type)
+        //             return resp.json()
+        //         } else {
+        //             console.log('Status: ' + resp.status)
+        //             return Promise.reject('500')
+        //         }
+        //     })
+        //     .catch(err => {
+        //         if (err === '500') return
+        //         console.log(err)
+        //     })
+        return 0;
+    }
+
+
+
+
     // generate ITU P1203 input json, using mode 0
     // https://github.com/itu-p1203/itu-p1203/blob/master/examples/mode0.json
     function generateITUP1203InputJSON(context) {
@@ -281,8 +308,14 @@ function CMABAbrController() {
                 });
             }
         }
-        
-        _throughput_dict.get(starlink_timeslot_count)['history'].push({tic: tic, throughput: throughput});
+
+        let network_latency = getNetworkLatency();
+        _throughput_dict.get(starlink_timeslot_count)['history'].push({
+            tic: tic,
+            throughput: throughput,
+            network_latency: network_latency,
+        });
+
         console.log(_throughput_dict)
 
         _live_latency_array.push(currentLatency);

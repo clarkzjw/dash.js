@@ -63,6 +63,9 @@ function CMABRule(config) {
     let audio_codec = 'aaclc';
     let audio_bitrate = -1;
 
+
+
+
     const setup = async () => {
         qoeEvaluator = CMABQoeEvaluator(context).create();
         CMABController = CMABAbrController(context).create();
