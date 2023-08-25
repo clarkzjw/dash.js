@@ -194,7 +194,7 @@ function CatchupController() {
      */
     function _startPlaybackCatchUp() {
 
-        // we are seeking dont do anything for now
+        // we are seeking don't do anything for now
         if (isCatchupSeekInProgress) {
             return;
         }
@@ -449,30 +449,22 @@ function CatchupController() {
         // console.log('playbackBufferMin:', playbackBufferMin);
         // console.log('bufferLevel:', bufferLevel);
 
-        function isHandoverPeriod(second) {
-            return second === 12 || second === 27 || second === 42 || second === 57;
-        }
-
         // TODO
         // dynamically set playback rate based on satellite handover pattern
-        let tic = new Date();
-        let second = tic.getSeconds();
+        // consider video segment playback duration and filesize and estimated throughput
         let newRate;
+        let tic = new Date();
+        // also consider adjacent seconds to the exact handover second
+        function isHandoverPeriod(second) {
+            return second === 11 || second === 12 || second === 13
+                || second === 26 || second === 27 || second === 28
+                || second === 41 || second === 42 || second === 43
+                || second === 56 || second === 57 || second === 58;
+        }
 
         // Hybrid: Buffer-based
-        if (bufferLevel < playbackBufferMin) {
+        if (isHandoverPeriod(tic.getSeconds())) {
             // Buffer in danger, slow down
-            const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
-            const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
-            const d = deltaBuffer * 5;
-
-            // Playback rate must be between (1 - cpr) - (1 + cpr)
-            // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
-            const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
-            newRate = (1 - cpr) + s;
-
-            logger.debug('[LoL+ playback control_buffer-based] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
-        } else if (isHandoverPeriod(second)) {
             let cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
             const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
             const d = deltaBuffer * 5;
@@ -482,7 +474,7 @@ function CatchupController() {
             const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
             newRate = (1 - cpr) + s;
 
-            console.log('slow down playback because of satellite handover');
+            console.log('slow down because of satellite handover');
         } else {
             // Hybrid: Latency-based
             // Buffer is safe, vary playback rate based on latency
@@ -500,8 +492,6 @@ function CatchupController() {
                 const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
                 newRate = (1 - cpr) + s;
             }
-
-            logger.debug('[LoL+ playback control_latency-based] latency: ' + currentLiveLatency + ', newRate: ' + newRate);
         }
 
 
