@@ -465,14 +465,18 @@ function CatchupController() {
         // Hybrid: Buffer-based
         if (isHandoverPeriod(tic.getSeconds())) {
             // Buffer in danger, slow down
-            let cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
-            const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
-            const d = deltaBuffer * 5;
+            // let cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
+            // const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
+            // const d = deltaBuffer * 5;
+            //
+            // // Playback rate must be between (1 - cpr) - (1 + cpr)
+            // // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
+            // const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+            // newRate = (1 - cpr) + s;
 
-            // Playback rate must be between (1 - cpr) - (1 + cpr)
-            // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
-            const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
-            newRate = (1 - cpr) + s;
+            // TODO
+            // add algorithm to slow down playback
+            newRate = 0.8;
 
             console.log('slow down because of satellite handover');
         } else {

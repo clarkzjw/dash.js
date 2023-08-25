@@ -357,7 +357,8 @@ function CMABAbrController() {
         window.js_bitrate = _bitrate_array;
         window.js_history = _throughput_dict.get(starlink_timeslot_count).history;
 
-        if (_selected_arms.length === 0) {
+        // just recovered from satellite handover
+        if (_selected_arms.length < cmabArms.length - 1) {
             selectedArm = cmabArms.length - 1
         } else {
             selectedArm = pyodide.runPython(mabwiser_select_arm);
