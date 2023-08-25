@@ -193,6 +193,13 @@ class Constants {
         this.LIVE_CATCHUP_MODE_LOLP = 'liveCatchupModeLoLP';
 
         /**
+         *  @constant {string} LIVE_CATCHUP_MODE_CMAB Playback rate calculation based on CMAB
+         *  @memberof Constants#
+         *  @static
+         */
+        this.LIVE_CATCHUP_MODE_CMAB = 'liveCatchupModeCMAB';
+
+        /**
          *  @constant {string} MOVING_AVERAGE_SLIDING_WINDOW Moving average sliding window
          *  @memberof Constants#
          *  @static

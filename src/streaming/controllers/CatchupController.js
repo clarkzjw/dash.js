@@ -194,7 +194,7 @@ function CatchupController() {
      */
     function _startPlaybackCatchUp() {
 
-        // we are seeking dont do anything for now
+        // we are seeking don't do anything for now
         if (isCatchupSeekInProgress) {
             return;
         }
@@ -224,6 +224,10 @@ function CatchupController() {
                     // Custom playback control: Based on buffer level
                     const playbackBufferMin = settings.get().streaming.liveCatchup.playbackBufferMin;
                     newRate = _calculateNewPlaybackRateLolP(liveCatchupPlaybackRates, currentLiveLatency, targetLiveDelay, playbackBufferMin, bufferLevel);
+                } else if (_getCatchupMode() === Constants.LIVE_CATCHUP_MODE_CMAB) {
+                    // Custom playback control: Based on CMAB and satellite handover pattern
+                    const playbackBufferMin = settings.get().streaming.liveCatchup.playbackBufferMin;
+                    newRate = _calculateNewPlaybackRateCMAB(liveCatchupPlaybackRates, currentLiveLatency, targetLiveDelay, playbackBufferMin, bufferLevel, currentPlaybackRate);
                 } else {
                     // Default playback control: Based on target and current latency
                     newRate = _calculateNewPlaybackRateDefault(liveCatchupPlaybackRates, currentLiveLatency, targetLiveDelay, bufferLevel);
@@ -288,8 +292,16 @@ function CatchupController() {
      */
     function _getCatchupMode() {
         const playbackBufferMin = settings.get().streaming.liveCatchup.playbackBufferMin;
+        const mode = settings.get().streaming.liveCatchup.mode;
 
-        return settings.get().streaming.liveCatchup.mode === Constants.LIVE_CATCHUP_MODE_LOLP && playbackBufferMin !== null && !isNaN(playbackBufferMin) ? Constants.LIVE_CATCHUP_MODE_LOLP : Constants.LIVE_CATCHUP_MODE_DEFAULT;
+        // return settings.get().streaming.liveCatchup.mode === Constants.LIVE_CATCHUP_MODE_LOLP && playbackBufferMin !== null && !isNaN(playbackBufferMin) ? Constants.LIVE_CATCHUP_MODE_LOLP : Constants.LIVE_CATCHUP_MODE_DEFAULT;
+        if (mode === Constants.LIVE_CATCHUP_MODE_LOLP && playbackBufferMin !== null && !isNaN(playbackBufferMin)) {
+            return Constants.LIVE_CATCHUP_MODE_LOLP;
+        } else if (mode === Constants.LIVE_CATCHUP_MODE_CMAB) {
+            return Constants.LIVE_CATCHUP_MODE_CMAB;
+        } else {
+            return Constants.LIVE_CATCHUP_MODE_DEFAULT;
+        }
     }
 
     /**
@@ -413,6 +425,81 @@ function CatchupController() {
         }
 
         return newRate
+    }
+
+    /**
+     * Calculate the new playback rate based on CMAB and satellite handover pattern
+     * @param {object} liveCatchUpPlaybackRates
+     * @param {number} liveCatchUpPlaybackRates.min - minimum playback rate decrease limit
+     * @param {number} liveCatchUpPlaybackRates.max - maximum playback rate increase limit
+     * @param {number} currentLiveLatency
+     * @param {number} targetLiveLatency
+     * @param {number} playbackBufferMin
+     * @param {number} bufferLevel
+     * @param {number} currentPlaybackRate
+     * @return {number}
+     * @private
+     */
+    function _calculateNewPlaybackRateCMAB(liveCatchUpPlaybackRates, currentLiveLatency, targetLiveLatency, playbackBufferMin, bufferLevel, currentPlaybackRate) {
+        // console.log('_calculateNewPlaybackRateCMAB');
+        // console.log('playback rate decrease limit:', liveCatchUpPlaybackRates.min);
+        // console.log('playback rate increase limit:', liveCatchUpPlaybackRates.max);
+        // console.log('currentLiveLatency:', currentLiveLatency);
+        // console.log('targetLiveLatency:', targetLiveLatency);
+        // console.log('playbackBufferMin:', playbackBufferMin);
+        // console.log('bufferLevel:', bufferLevel);
+
+        // TODO
+        // dynamically set playback rate based on satellite handover pattern
+        // consider video segment playback duration and filesize and estimated throughput
+        let newRate;
+        let tic = new Date();
+        // also consider adjacent seconds to the exact handover second
+        function isHandoverPeriod(second) {
+            return second === 11 || second === 12 || second === 13
+                || second === 26 || second === 27 || second === 28
+                || second === 41 || second === 42 || second === 43
+                || second === 56 || second === 57 || second === 58;
+        }
+
+        // Hybrid: Buffer-based
+        if (isHandoverPeriod(tic.getSeconds())) {
+            // Buffer in danger, slow down
+            // let cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
+            // const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
+            // const d = deltaBuffer * 5;
+            //
+            // // Playback rate must be between (1 - cpr) - (1 + cpr)
+            // // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
+            // const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+            // newRate = (1 - cpr) + s;
+
+            // TODO
+            // add algorithm to slow down playback
+            newRate = 0.8;
+
+            console.log('slow down because of satellite handover');
+        } else {
+            // Hybrid: Latency-based
+            // Buffer is safe, vary playback rate based on latency
+            const cpr = liveCatchUpPlaybackRates.max;
+            // Check if latency is within range of target latency
+            const minDifference = 0.02;
+            if (Math.abs(currentLiveLatency - targetLiveLatency) <= (minDifference * targetLiveLatency)) {
+                newRate = 1;
+            } else {
+                const deltaLatency = currentLiveLatency - targetLiveLatency;
+                const d = deltaLatency * 5;
+
+                // Playback rate must be between (1 - cpr) - (1 + cpr)
+                // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
+                const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+                newRate = (1 - cpr) + s;
+            }
+        }
+
+
+        return newRate;
     }
 
     function _checkPlaybackRates() {

@@ -37,7 +37,6 @@
 import FactoryMaker from '../../../../core/FactoryMaker';
 import Constants from '../../../constants/Constants';
 import MetricsConstants from '../../../constants/MetricsConstants';
-import CMABQoeEvaluator from './CMABQoEEvaluator';
 import CMABAbrController from './CMABAbrController';
 
 const { loadPyodide } = require('pyodide');
@@ -48,7 +47,6 @@ function CMABRule(config) {
     let dashMetrics = config.dashMetrics;
     let factory = dashjs.FactoryMaker;
     let SwitchRequest = factory.getClassFactoryByName('SwitchRequest');
-    let MetricsModel = factory.getSingletonFactoryByName('MetricsModel');
     let StreamController = factory.getSingletonFactoryByName('StreamController');
     let context = this.context;
 
@@ -57,22 +55,17 @@ function CMABRule(config) {
     let pyodide = null;
     let pyodide_init_done = false;
 
-    let qoeEvaluator;
     let CMABController;
 
     let audio_codec = 'aaclc';
     let audio_bitrate = -1;
 
-
-
-
     const setup = async () => {
-        qoeEvaluator = CMABQoeEvaluator(context).create();
         CMABController = CMABAbrController(context).create();
 
         async function init_pyodide() {
             console.log('Loading Pyodide...');
-            let pyodide = await loadPyodide({indexURL: 'http://127.0.0.1'});
+            let pyodide = await loadPyodide({indexURL: 'http://pyodide'});
             let requirements = [
                 'pandas',
                 'matplotlib',
@@ -80,8 +73,8 @@ function CMABRule(config) {
                 'Pillow',
                 'scikit-learn',
                 'scipy',
-                'http://127.0.0.1/mabwiser-2.7.0-py3-none-any.whl',
-                'http://127.0.0.1/itu_p1203-1.9.5-py3-none-any.whl',
+                'http://pyodide/mabwiser-2.7.0-py3-none-any.whl',
+                'http://pyodide/itu_p1203-1.9.5-py3-none-any.whl',
             ]
             await pyodide.loadPackage(requirements);
             return pyodide;
@@ -110,8 +103,6 @@ function CMABRule(config) {
             const throughputHistory = abrController.getThroughputHistory();
             const throughput = throughputHistory.getSafeAverageThroughput(mediaType, isDynamic);
             let currentLatency = playbackController.getCurrentLiveLatency();
-            let metricsModel = MetricsModel(context).getInstance();
-            let metrics = metricsModel.getMetricsFor(mediaType, true);
             let activeStream = streamController.getActiveStreamInfo();
             let currentQualityLevel = -1;
             let targetLiveDelay = playbackController.getLiveDelay();
@@ -156,7 +147,7 @@ function CMABRule(config) {
                 })
             }
 
-            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput, metrics);
+            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput);
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 

@@ -1,6 +1,8 @@
-Forked from v4.7.1, commit: https://github.com/Dash-Industry-Forum/dash.js/tree/8cceecf7364c89dc2c5f8655e2e9df8150f6da6a
+Forked from v4.7.1, commit [8cceecf7364c89dc2c5f8655e2e9df8150f6da6a](https://github.com/Dash-Industry-Forum/dash.js/tree/8cceecf7364c89dc2c5f8655e2e9df8150f6da6a)
 
-===
+[Updated files and commits list](https://github.com/Dash-Industry-Forum/dash.js/compare/development...clarkzjw:dash.js:starlink?diff=split)
+
+------
 
 <img src="https://cloud.githubusercontent.com/assets/2762250/7824984/985c3e76-03bc-11e5-807b-1402bde4fe56.png" width="400">
 
