@@ -65,7 +65,7 @@ function CMABRule(config) {
 
         async function init_pyodide() {
             console.log('Loading Pyodide...');
-            let pyodide = await loadPyodide({indexURL: 'http://pyodide'});
+            let pyodide = await loadPyodide({indexURL: 'http://pyodide/pyodide/'});
             let requirements = [
                 'pandas',
                 'matplotlib',
@@ -73,8 +73,8 @@ function CMABRule(config) {
                 'Pillow',
                 'scikit-learn',
                 'scipy',
-                'http://pyodide/mabwiser-2.7.0-py3-none-any.whl',
-                'http://pyodide/itu_p1203-1.9.5-py3-none-any.whl',
+                'http://pyodide/pyodide/mabwiser-2.7.0-py3-none-any.whl',
+                'http://pyodide/pyodide/itu_p1203-1.9.5-py3-none-any.whl',
             ]
             await pyodide.loadPackage(requirements);
             return pyodide;

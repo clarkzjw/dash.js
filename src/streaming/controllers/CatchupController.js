@@ -478,7 +478,7 @@ function CatchupController() {
             // add algorithm to slow down playback
             newRate = 0.8;
 
-            console.log('slow down because of satellite handover');
+            // console.log('slow down because of satellite handover');
         } else {
             // Hybrid: Latency-based
             // Buffer is safe, vary playback rate based on latency

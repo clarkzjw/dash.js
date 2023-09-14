@@ -37,7 +37,7 @@
 import FactoryMaker from '../../../../core/FactoryMaker';
 
 function getLatestNetworkLatency() {
-    const statServerUrl = 'http://192.168.1.223:8000';
+    const statServerUrl = 'http://stat-server:8000';
     let LatencySidecarURL = statServerUrl+'/ping';
 
     const xhr = new XMLHttpRequest();
