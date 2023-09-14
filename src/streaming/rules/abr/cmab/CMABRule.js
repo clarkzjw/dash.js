@@ -45,6 +45,7 @@ function CMABRule(config) {
     config = config || {};
 
     let dashMetrics = config.dashMetrics;
+    let dashAdapter = config.dashAdapter;
     let factory = dashjs.FactoryMaker;
     let SwitchRequest = factory.getClassFactoryByName('SwitchRequest');
     let StreamController = factory.getSingletonFactoryByName('StreamController');
@@ -53,12 +54,12 @@ function CMABRule(config) {
     let instance;
     let cmabArms = null;
     let pyodide = null;
-    let pyodide_init_done = false;
+    let pyodideInitDone = false;
 
     let CMABController;
 
-    let audio_codec = 'aaclc';
-    let audio_bitrate = -1;
+    let audioCodec = 'aaclc';
+    let audioBitrate = -1;
 
     const setup = async () => {
         CMABController = CMABAbrController(context).create();
@@ -83,7 +84,7 @@ function CMABRule(config) {
         init_pyodide().then((pyodide_context) => {
             pyodide = pyodide_context;
             pyodide.runPython(`from mabwiser.mab import MAB`);
-            pyodide_init_done = true;
+            pyodideInitDone = true;
             console.log('CMAB Rule Setup Done', new Date());
         });
     }
@@ -102,29 +103,24 @@ function CMABRule(config) {
             const playbackRate = playbackController.getPlaybackRate();
             const throughputHistory = abrController.getThroughputHistory();
             const throughput = throughputHistory.getSafeAverageThroughput(mediaType, isDynamic);
-            let currentLatency = playbackController.getCurrentLiveLatency();
+            let currentLiveLatency = playbackController.getCurrentLiveLatency();
             let activeStream = streamController.getActiveStreamInfo();
-            let currentQualityLevel = -1;
-            let targetLiveDelay = playbackController.getLiveDelay();
-
-            if (activeStream !== null) {
-                currentQualityLevel = abrController.getQualityFor(mediaType, streamController.getActiveStreamInfo().id);
-            }
+            let latencyTarget = playbackController.getLiveDelay();
             const mediaInfo = rulesContext.getMediaInfo();
 
-            if (!currentLatency) {
-                currentLatency = 0;
+            if (!currentLiveLatency) {
+                currentLiveLatency = 0;
             }
 
             if (mediaType === Constants.AUDIO) {
-                audio_codec = mediaInfo.codec.split(';')[1].split('=')[1].replace(/['"]+/g, '');
-                audio_bitrate = mediaInfo.bitrateList[0].bandwidth / 1000.0;
+                audioCodec = mediaInfo.codec.split(';')[1].split('=')[1].replace(/['"]+/g, '');
+                audioBitrate = mediaInfo.bitrateList[0].bandwidth / 1000.0;
             }
 
             if (isNaN(throughput) ||
                 !bufferStateVO ||
                 mediaType === Constants.AUDIO ||
-                pyodide_init_done === false ||
+                pyodideInitDone === false ||
                 abrController.getAbandonmentStateFor(streamInfo.id, mediaType) === MetricsConstants.ABANDON_LOAD) {
 
                 return switchRequest;
@@ -134,9 +130,9 @@ function CMABRule(config) {
                 video_codec: mediaInfo.codec.split(';')[1].split('=')[1].replace(/['"]+/g, ''),
                 stream_id: streamInfo.index,
                 seg_duration: streamInfo.manifestInfo.maxFragmentDuration,
-                audio_codec: audio_codec,
-                audio_bitrate: audio_bitrate,
-                target_latency: targetLiveDelay,
+                audio_codec: audioCodec,
+                audio_bitrate: audioBitrate,
+                target_latency: latencyTarget,
             };
 
 
@@ -146,8 +142,12 @@ function CMABRule(config) {
                     return i;
                 })
             }
+            let currentQualityLevel = abrController.getQualityFor(mediaType, streamInfo.id);
+            let currentBitrate = bitrateList[currentQualityLevel].bandwidth;
+            let currentBitrateKbps = currentBitrate / 1000.0;
+            let maxBitrateKbps = bitrateList[bitrateList.length-1].bandwidth / 1000.0;
 
-            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput);
+            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput);
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 

@@ -51,7 +51,7 @@ function getLatestNetworkLatency() {
 }
 
 function CMABAbrController() {
-    let mabwiser_select_arm = `
+    let _py_mabwiser_select_arm = `
     import pandas as pd
     from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
     from sklearn.preprocessing import StandardScaler
@@ -129,7 +129,7 @@ function CMABAbrController() {
     mab.predict(test)
     `;
 
-    let itu_p1203_calculate_o46 = `
+    let _py_itu_p1203_calculate_o46 = `
     import json
     from itu_p1203 import P1203Standalone
     from js import js_itup1203inputjson
@@ -143,13 +143,13 @@ function CMABAbrController() {
 
     let instance;
 
-    let starlink_timeslot_count = 0;
+    let starlinkTimeslotCount = 0;
 
-    let _rewards_array = [];
-    let _selected_arms = [];
-    let _bitrate_array = [];
+    let _rewardsArray = [];
+    let _selectedAarmsArray = [];
+    let _bitrateArray = [];
 
-    let _throughput_dict = new Map();
+    let _throughputDict = new Map();
 
     let rounds = 0;
 
@@ -262,7 +262,7 @@ function CMABAbrController() {
     function calculateITUP1203QoE(pyodide, itup1203_input_json) {
         window.js_itup1203inputjson = itup1203_input_json;
 
-        return pyodide.runPython(itu_p1203_calculate_o46);
+        return pyodide.runPython(_py_itu_p1203_calculate_o46);
     }
 
     function isSameSatelliteTimeSlot(t1, t2) {
@@ -310,67 +310,67 @@ function CMABAbrController() {
         return false
     }
 
-    function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentLatency, playbackRate, throughput) {
+    function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput) {
         let tic = new Date();
 
         console.log('\n\ngetCMABNextQuality', tic);
-        console.log(`Throughput ${throughput} kbps, playback rate ${playbackRate}, current latency ${currentLatency}`);
+        console.log(`Throughput ${throughput} kbps, playbackSpeed ${playbackRate}, currentLatency ${currentLiveLatency}, currentBitrate ${currentBitrateKbps}, maxBitrate ${maxBitrateKbps}, currentQualityLevel ${currentQualityLevel}`);
 
         throughput = throughput / 1000.0;
 
-        if (_throughput_dict.get(starlink_timeslot_count) === undefined) {
-            _throughput_dict.set(starlink_timeslot_count, {
+        if (_throughputDict.get(starlinkTimeslotCount) === undefined) {
+            _throughputDict.set(starlinkTimeslotCount, {
                 'start': tic,
                 'history': []
             });
         } else {
-            let last_timeslot_started_at = _throughput_dict.get(starlink_timeslot_count)['start']
+            let last_timeslot_started_at = _throughputDict.get(starlinkTimeslotCount)['start']
             let same_timeslot = isSameSatelliteTimeSlot(last_timeslot_started_at, tic);
 
             if (!same_timeslot) {
-                starlink_timeslot_count += 1
-                _throughput_dict.set(starlink_timeslot_count, {
+                starlinkTimeslotCount += 1
+                _throughputDict.set(starlinkTimeslotCount, {
                     'start': tic,
                     'history': [],
                 });
-                _selected_arms = [];
-                _rewards_array = [];
-                _bitrate_array = [];
+                _selectedAarmsArray = [];
+                _rewardsArray = [];
+                _bitrateArray = [];
             }
         }
 
         let selectedArm = 0;
-        let network_latency = getLatestNetworkLatency();
+        let networkLatency = getLatestNetworkLatency();
 
-        _throughput_dict.get(starlink_timeslot_count).history.push({
+        _throughputDict.get(starlinkTimeslotCount).history.push({
             tic: tic,
             throughput: throughput,
-            network_latency: network_latency,
-            live_latency: currentLatency,
+            network_latency: networkLatency,
+            live_latency: currentLiveLatency,
             playback_rate: playbackRate
         });
-        console.log('network latency:', network_latency);
+        console.log('network latency:', networkLatency);
 
         window.js_cmabArms = cmabArms;
-        window.js_rewards = _rewards_array;
-        window.js_selected_arms = _selected_arms;
-        window.js_bitrate = _bitrate_array;
-        window.js_history = _throughput_dict.get(starlink_timeslot_count).history;
+        window.js_rewards = _rewardsArray;
+        window.js_selected_arms = _selectedAarmsArray;
+        window.js_bitrate = _bitrateArray;
+        window.js_history = _throughputDict.get(starlinkTimeslotCount).history;
 
         // just recovered from satellite handover
-        if (_selected_arms.length < cmabArms.length - 1) {
+        if (_selectedAarmsArray.length < cmabArms.length - 1) {
             selectedArm = cmabArms.length - 1
         } else {
-            selectedArm = pyodide.runPython(mabwiser_select_arm);
+            selectedArm = pyodide.runPython(_py_mabwiser_select_arm);
         }
 
-        _selected_arms.push(selectedArm);
+        _selectedAarmsArray.push(selectedArm);
 
         context.video_bitrate = bitrateList[selectedArm].bandwidth / 1000.0;
         context.resolution = `${bitrateList[selectedArm].width}x${bitrateList[selectedArm].height}`;
 
-        _bitrate_array.push(context.video_bitrate);
-        _rewards_array.push(calculateReward(pyodide, context, currentLatency));
+        _bitrateArray.push(context.video_bitrate);
+        _rewardsArray.push(calculateReward(pyodide, context, currentLiveLatency));
 
         rounds = rounds + 1;
 
