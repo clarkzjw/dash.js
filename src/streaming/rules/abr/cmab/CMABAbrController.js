@@ -146,25 +146,25 @@ function CMABAbrController() {
     let starlinkTimeslotCount = 0;
 
     let _rewardsArray = [];
-    let _selectedAarmsArray = [];
+    let _selectedArmsArray = [];
     let _bitrateArray = [];
 
     let _throughputDict = new Map();
 
     let rounds = 0;
 
-    function timediff(tic, toc) {
+    function timeDiff(tic, toc) {
         return (toc - tic) / 1000.0;
     }
 
     // calculate reward using QoE ITU-T Rec. P.1203: https://github.com/itu-p1203/itu-p1203
-    function calculateReward(pyodide, context, currentLatency) {
+    function calculateReward(pyodide, context, currentLatency, bitrateRatio) {
         let itu_p1203_input_json = generateITUP1203InputJSON(context);
         console.log('calculateReward context', context, 'target live delay', context.target_latency);
 
         let itu_qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
 
-        let qoe = itu_qoe * (context.target_latency / currentLatency);
+        let qoe = itu_qoe * (context.target_latency / currentLatency) * bitrateRatio;
 
         console.log(`ITU P1203 QoE: ${itu_qoe}, qoe: ${qoe}, current latency: ${currentLatency}`);
         return qoe;
@@ -333,7 +333,7 @@ function CMABAbrController() {
                     'start': tic,
                     'history': [],
                 });
-                _selectedAarmsArray = [];
+                _selectedArmsArray = [];
                 _rewardsArray = [];
                 _bitrateArray = [];
             }
@@ -353,29 +353,31 @@ function CMABAbrController() {
 
         window.js_cmabArms = cmabArms;
         window.js_rewards = _rewardsArray;
-        window.js_selected_arms = _selectedAarmsArray;
+        window.js_selected_arms = _selectedArmsArray;
         window.js_bitrate = _bitrateArray;
         window.js_history = _throughputDict.get(starlinkTimeslotCount).history;
 
         // just recovered from satellite handover
-        if (_selectedAarmsArray.length < cmabArms.length - 1) {
+        if (_selectedArmsArray.length < cmabArms.length - 1) {
             selectedArm = cmabArms.length - 1
         } else {
             selectedArm = pyodide.runPython(_py_mabwiser_select_arm);
         }
 
-        _selectedAarmsArray.push(selectedArm);
+        _selectedArmsArray.push(selectedArm);
 
         context.video_bitrate = bitrateList[selectedArm].bandwidth / 1000.0;
         context.resolution = `${bitrateList[selectedArm].width}x${bitrateList[selectedArm].height}`;
 
+        let bitrateRatio = context.video_bitrate / maxBitrateKbps;
+
         _bitrateArray.push(context.video_bitrate);
-        _rewardsArray.push(calculateReward(pyodide, context, currentLiveLatency));
+        _rewardsArray.push(calculateReward(pyodide, context, currentLiveLatency, bitrateRatio));
 
         rounds = rounds + 1;
 
         let toc = new Date();
-        console.log('selected arm', selectedArm, 'time used' , timediff(tic, toc), 'seconds');
+        console.log('selected arm', selectedArm, 'time used' , timeDiff(tic, toc), 'seconds');
         return selectedArm;
     }
 
