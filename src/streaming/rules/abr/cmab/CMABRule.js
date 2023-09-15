@@ -63,8 +63,8 @@ function CMABRule(config) {
     let audioCodec = 'aaclc';
     let audioBitrate = -1;
     let currentBitrate;
-    let lastStallTime;
-    let rebufferingDurationArray = [];
+    let lastStallTime = null;
+    let rebufferingEvents = new Map();
 
     const setup = async () => {
         CMABController = CMABAbrController(context).create();
@@ -98,25 +98,21 @@ function CMABRule(config) {
     }
 
     function onBufferEmpty(e) {
-        if (e.mediaType === 'video') {
+        if (e.mediaType === 'video' && pyodideInitDone === true) {
             let tic = new Date();
             console.log('===CMAB Buffer Empty:', e, currentBitrate, tic);
-            if (pyodideInitDone === true) {
-                lastStallTime = new Date();
-            }
+            lastStallTime = new Date();
         }
     }
 
     function onBufferLoaded(e) {
-        if (e.mediaType === 'video') {
+        if (e.mediaType === 'video' && pyodideInitDone === true) {
             let tic = new Date();
-            console.log('===CMAB Buffer Loaded:', e, tic);
-            if (pyodideInitDone === true) {
-                if (lastStallTime != null) {
-                    let duration = (tic - lastStallTime) / 1000.0;
-                    rebufferingDurationArray.push(duration);
-                    console.log('rebuffering duration', rebufferingDurationArray);
-                }
+            console.log('===CMAB Buffer Loaded:', e, tic, lastStallTime);
+            if (lastStallTime != null) {
+                let duration = (tic - lastStallTime) / 1000.0;
+                rebufferingEvents.get(currentBitrate).push(duration);
+                console.log('++++rebuffering duration', rebufferingEvents);
             }
         }
     }
@@ -165,13 +161,18 @@ function CMABRule(config) {
                 target_latency: latencyTarget,
             };
 
-
             let bitrateList = mediaInfo.bitrateList; // [{bandwidth: 200000, width: 640, height: 360}, ...]
             if (cmabArms == null) {
                 cmabArms = Array.apply(null, Array(bitrateList.length)).map(function (x, i) {
                     return i;
                 })
             }
+            if (rebufferingEvents.size === 0) {
+                for (let i = 0; i < bitrateList.length; i++ ) {
+                    rebufferingEvents.set(bitrateList[i].bandwidth, []);
+                }
+            }
+
             let currentQualityLevel = abrController.getQualityFor(mediaType, streamInfo.id);
             currentBitrate = bitrateList[currentQualityLevel].bandwidth;
             let currentBitrateKbps = currentBitrate / 1000.0;
@@ -181,7 +182,7 @@ function CMABRule(config) {
                 currentQualityLevel, currentBitrateKbps, maxBitrateKbps,
                 currentLiveLatency, playbackRate,
                 throughput,
-                rebufferingDurationArray);
+                rebufferingEvents);
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 
