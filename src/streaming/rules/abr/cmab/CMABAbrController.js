@@ -62,7 +62,7 @@ async function sendStats(url, type, stat) {
     })
         .then(resp => {
             if (resp.status === 200) {
-                console.log('Sent %d %s', stat.length, type)
+                console.log('Sent %s', type)
                 return resp.json()
             } else {
                 console.log('Status: ' + resp.status)
