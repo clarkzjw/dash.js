@@ -36,6 +36,8 @@
 
 import FactoryMaker from '../../../../core/FactoryMaker';
 
+const statServerUrl = 'http://stat-server:8000';
+
 function getLatestNetworkLatency() {
     const statServerUrl = 'http://stat-server:8000';
     let LatencySidecarURL = statServerUrl+'/ping';
@@ -48,6 +50,29 @@ function getLatestNetworkLatency() {
     } else {
         throw new Error('Request failed: ' + xhr.statusText);
     }
+}
+
+async function sendStats(url, type, stat) {
+    fetch(url, {
+        credentials: 'omit',
+        mode: 'cors',
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({type: stat})
+    })
+        .then(resp => {
+            if (resp.status === 200) {
+                console.log('Sent %d %s', stat.length, type)
+                return resp.json()
+            } else {
+                console.log('Status: ' + resp.status)
+                return Promise.reject('500')
+            }
+        })
+        .catch(err => {
+            if (err === '500') return
+            console.log(err)
+        })
 }
 
 function CMABAbrController() {
@@ -396,9 +421,18 @@ function CMABAbrController() {
         context.resolution = `${bitrateList[selectedArm].width}x${bitrateList[selectedArm].height}`;
 
         let bitrateRatio = context.video_bitrate / maxBitrateKbps;
+        let reward_qoe = calculateReward(pyodide, context, currentLiveLatency, context.video_bitrate, bitrateRatio, rebufferingEvents);
 
         _bitrateArray.push(context.video_bitrate);
-        _rewardsArray.push(calculateReward(pyodide, context, currentLiveLatency, context.video_bitrate, bitrateRatio, rebufferingEvents));
+        _rewardsArray.push(reward_qoe);
+
+        sendStats(statServerUrl+'/qoe/', 'qoe', {
+            reward_qoe: reward_qoe,
+            arm: selectedArm,
+            video_bitrate: context.video_bitrate,
+            bitrateRatio: bitrateRatio,
+            currentLiveLatency: currentLiveLatency,
+        });
 
         rounds = rounds + 1;
 
