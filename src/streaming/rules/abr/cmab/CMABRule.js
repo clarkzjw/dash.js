@@ -63,6 +63,7 @@ function CMABRule(config) {
     let audioCodec = 'aaclc';
     let audioBitrate = -1;
     let currentBitrate;
+    let currentBitrateKbps;
     let lastStallTime = null;
     let rebufferingEvents = new Map();
 
@@ -111,7 +112,7 @@ function CMABRule(config) {
             console.log('===CMAB Buffer Loaded:', e, tic, lastStallTime);
             if (lastStallTime != null) {
                 let duration = (tic - lastStallTime) / 1000.0;
-                rebufferingEvents.get(currentBitrate).push(duration);
+                rebufferingEvents.get(currentBitrateKbps).push(duration);
                 console.log('++++rebuffering duration', rebufferingEvents);
             }
         }
@@ -169,13 +170,13 @@ function CMABRule(config) {
             }
             if (rebufferingEvents.size === 0) {
                 for (let i = 0; i < bitrateList.length; i++ ) {
-                    rebufferingEvents.set(bitrateList[i].bandwidth, []);
+                    rebufferingEvents.set(bitrateList[i].bandwidth / 1000.0, []);
                 }
             }
 
             let currentQualityLevel = abrController.getQualityFor(mediaType, streamInfo.id);
             currentBitrate = bitrateList[currentQualityLevel].bandwidth;
-            let currentBitrateKbps = currentBitrate / 1000.0;
+            currentBitrateKbps = currentBitrate / 1000.0;
             let maxBitrateKbps = bitrateList[bitrateList.length-1].bandwidth / 1000.0;
 
             switchRequest.quality = CMABController.getCMABNextQuality(pyodide, context, bitrateList, cmabArms,
@@ -186,7 +187,7 @@ function CMABRule(config) {
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 
-            scheduleController.setTimeToLoadDelay(1.0);
+            scheduleController.setTimeToLoadDelay(0);
 
             return switchRequest;
 

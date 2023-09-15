@@ -159,13 +159,35 @@ function CMABAbrController() {
     }
 
     // calculate reward using QoE ITU-T Rec. P.1203: https://github.com/itu-p1203/itu-p1203
-    function calculateReward(pyodide, context, currentLatency, bitrateRatio) {
+    function calculateReward(pyodide, context, currentLatency, selectedBitrate, bitrateRatio, rebufferingEvents) {
         let itu_p1203_input_json = generateITUP1203InputJSON(context);
         console.log('calculateReward context', context, 'target live delay', context.target_latency);
 
-        let itu_qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
+        let total_rebuffering_time = 0;
+        let selected_bitrate_rebuffering_time = 0;
+        let rebuffering_ratio = 0;
 
-        let qoe = itu_qoe * (context.target_latency / currentLatency) * bitrateRatio;
+        for (const entry of rebufferingEvents.entries()) {
+            let bitrate = entry[0];
+            let event = entry[1];
+            let sum = 0;
+            if (event.length > 0) {
+                sum = event.reduce((a,b)=>a+b);
+            }
+            if (bitrate === selectedBitrate) {
+                selected_bitrate_rebuffering_time = sum;
+            }
+            total_rebuffering_time = total_rebuffering_time + sum;
+            console.log(`entry ${entry}, sum ${sum}, bitrate ${bitrate}`);
+        }
+
+        if (total_rebuffering_time > 0) {
+            rebuffering_ratio = selected_bitrate_rebuffering_time / total_rebuffering_time;
+        }
+        console.log(`total rebuffering ${total_rebuffering_time}, selected rebuffering ${selected_bitrate_rebuffering_time}, ratio ${rebuffering_ratio}`);
+
+        let itu_qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
+        let qoe = itu_qoe * (context.target_latency / currentLatency) * bitrateRatio - rebuffering_ratio;
 
         console.log(`ITU P1203 QoE: ${itu_qoe}, qoe: ${qoe}, current latency: ${currentLatency}`);
         return qoe;
@@ -376,7 +398,7 @@ function CMABAbrController() {
         let bitrateRatio = context.video_bitrate / maxBitrateKbps;
 
         _bitrateArray.push(context.video_bitrate);
-        _rewardsArray.push(calculateReward(pyodide, context, currentLiveLatency, bitrateRatio));
+        _rewardsArray.push(calculateReward(pyodide, context, currentLiveLatency, context.video_bitrate, bitrateRatio, rebufferingEvents));
 
         rounds = rounds + 1;
 
