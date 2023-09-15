@@ -150,11 +150,11 @@ App.prototype._load = function () {
                 },
                 utcSynchronization: {
                     enabled: true,
-                    useManifestDateHeaderTimeSource: true,
-                    defaultTimingSource: {
-                        scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
-                        value: 'http://livesim2:8888/timems'
-                    }
+                    // useManifestDateHeaderTimeSource: true,
+                    // defaultTimingSource: {
+                    //     scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
+                    //     value: 'http://livesim2:8888/timems'
+                    // }
                 },
             },
 
@@ -170,11 +170,11 @@ App.prototype._load = function () {
                 },
                 utcSynchronization: {
                     enabled: true,
-                    useManifestDateHeaderTimeSource: true,
-                    defaultTimingSource: {
-                        scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
-                        value: 'http://livesim2:8888/timems'
-                    }
+                    // useManifestDateHeaderTimeSource: true,
+                    // defaultTimingSource: {
+                    //     scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
+                    //     value: 'http://livesim2:8888/timems'
+                    // }
                 },
             },
         });
