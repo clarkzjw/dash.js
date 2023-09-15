@@ -38,6 +38,8 @@ import FactoryMaker from '../../../../core/FactoryMaker';
 import Constants from '../../../constants/Constants';
 import MetricsConstants from '../../../constants/MetricsConstants';
 import CMABAbrController from './CMABAbrController';
+import MediaPlayerEvents from '../../../MediaPlayerEvents';
+import EventBus from '../../../../core/EventBus';
 
 const { loadPyodide } = require('pyodide');
 
@@ -45,11 +47,11 @@ function CMABRule(config) {
     config = config || {};
 
     let dashMetrics = config.dashMetrics;
-    let dashAdapter = config.dashAdapter;
     let factory = dashjs.FactoryMaker;
     let SwitchRequest = factory.getClassFactoryByName('SwitchRequest');
-    let StreamController = factory.getSingletonFactoryByName('StreamController');
     let context = this.context;
+
+    const eventBus = EventBus(context).getInstance();
 
     let instance;
     let cmabArms = null;
@@ -60,6 +62,9 @@ function CMABRule(config) {
 
     let audioCodec = 'aaclc';
     let audioBitrate = -1;
+    let currentBitrate;
+    let lastStallTime;
+    let rebufferingDurationArray = [];
 
     const setup = async () => {
         CMABController = CMABAbrController(context).create();
@@ -87,6 +92,33 @@ function CMABRule(config) {
             pyodideInitDone = true;
             console.log('CMAB Rule Setup Done', new Date());
         });
+
+        eventBus.on(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);
+        eventBus.on(MediaPlayerEvents.BUFFER_EMPTY, onBufferEmpty, instance);
+    }
+
+    function onBufferEmpty(e) {
+        if (e.mediaType === 'video') {
+            let tic = new Date();
+            console.log('===CMAB Buffer Empty:', e, currentBitrate, tic);
+            if (pyodideInitDone === true) {
+                lastStallTime = new Date();
+            }
+        }
+    }
+
+    function onBufferLoaded(e) {
+        if (e.mediaType === 'video') {
+            let tic = new Date();
+            console.log('===CMAB Buffer Loaded:', e, tic);
+            if (pyodideInitDone === true) {
+                if (lastStallTime != null) {
+                    let duration = (tic - lastStallTime) / 1000.0;
+                    rebufferingDurationArray.push(duration);
+                    console.log('rebuffering duration', rebufferingDurationArray);
+                }
+            }
+        }
     }
 
     function getMaxIndex(rulesContext) {
@@ -94,7 +126,6 @@ function CMABRule(config) {
             let switchRequest = SwitchRequest(context).create();
             const abrController = rulesContext.getAbrController();
             const streamInfo = rulesContext.getStreamInfo();
-            const streamController = StreamController(context).getInstance();
             const scheduleController = rulesContext.getScheduleController();
             const playbackController = scheduleController.getPlaybackController();
             const isDynamic = streamInfo && streamInfo.manifestInfo ? streamInfo.manifestInfo.isDynamic : null;
@@ -104,7 +135,6 @@ function CMABRule(config) {
             const throughputHistory = abrController.getThroughputHistory();
             const throughput = throughputHistory.getSafeAverageThroughput(mediaType, isDynamic);
             let currentLiveLatency = playbackController.getCurrentLiveLatency();
-            let activeStream = streamController.getActiveStreamInfo();
             let latencyTarget = playbackController.getLiveDelay();
             const mediaInfo = rulesContext.getMediaInfo();
 
@@ -143,11 +173,15 @@ function CMABRule(config) {
                 })
             }
             let currentQualityLevel = abrController.getQualityFor(mediaType, streamInfo.id);
-            let currentBitrate = bitrateList[currentQualityLevel].bandwidth;
+            currentBitrate = bitrateList[currentQualityLevel].bandwidth;
             let currentBitrateKbps = currentBitrate / 1000.0;
             let maxBitrateKbps = bitrateList[bitrateList.length-1].bandwidth / 1000.0;
 
-            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput);
+            switchRequest.quality = CMABController.getCMABNextQuality(pyodide, context, bitrateList, cmabArms,
+                currentQualityLevel, currentBitrateKbps, maxBitrateKbps,
+                currentLiveLatency, playbackRate,
+                throughput,
+                rebufferingDurationArray);
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 
@@ -161,8 +195,15 @@ function CMABRule(config) {
         }
     }
 
+    function reset() {
+        eventBus.off(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);
+        eventBus.off(MediaPlayerEvents.BUFFER_EMPTY, onBufferEmpty, instance);
+    }
+
+
     instance = {
-        getMaxIndex: getMaxIndex
+        getMaxIndex: getMaxIndex,
+        reset: reset
     };
 
     setup();

@@ -57,13 +57,14 @@ function CMABAbrController() {
     from sklearn.preprocessing import StandardScaler
     from pprint import pprint
 
-    from js import js_cmabArms, js_rewards, js_selected_arms, js_bitrate, js_history
+    from js import js_cmabArms, js_rewards, js_selected_arms, js_bitrate, js_history, js_rebuffer_duration
 
     arms = js_cmabArms.to_py()
     rewards = js_rewards.to_py()
     selected_arms = js_selected_arms.to_py()
     bitrate = js_bitrate.to_py()
     history = js_history.to_py()
+    rebuffering_duration = js_rebuffer_duration.to_py()
     #print(history)
 
     length = len(history)
@@ -310,7 +311,9 @@ function CMABAbrController() {
         return false
     }
 
-    function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput) {
+    function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel,
+        currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput,
+        rebufferingDurationArray) {
         let tic = new Date();
 
         console.log('\n\ngetCMABNextQuality', tic);
@@ -356,6 +359,7 @@ function CMABAbrController() {
         window.js_selected_arms = _selectedArmsArray;
         window.js_bitrate = _bitrateArray;
         window.js_history = _throughputDict.get(starlinkTimeslotCount).history;
+        window.js_rebuffer_duration = rebufferingDurationArray;
 
         // just recovered from satellite handover
         if (_selectedArmsArray.length < cmabArms.length - 1) {
