@@ -891,7 +891,7 @@ function Settings() {
                 enableBackgroundSyncAfterSegmentDownloadError: true,
                 defaultTimingSource: {
                     scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
-                    value: 'http://livesim2:8888/timems'
+                    value: 'https://time.akamai.com/?iso&ms'
                 }
             },
             scheduling: {
@@ -961,6 +961,9 @@ function Settings() {
                 lowLatencyMultiplyFactor: 5
             },
             abr: {
+                cmab: {
+                    alpha: 0.5,
+                },
                 movingAverageMethod: Constants.MOVING_AVERAGE_SLIDING_WINDOW,
                 ABRStrategy: Constants.ABR_STRATEGY_DYNAMIC,
                 additionalAbrRules: {

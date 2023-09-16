@@ -7,7 +7,9 @@ let App = function () {
     this.video = null;
     this.chart = null;
     this.domElements = {
-        settings: {},
+        settings: {
+            cmabAlpha: 0.2,
+        },
         metrics: {},
         chart: {},
         experimentID: {}
@@ -277,6 +279,9 @@ App.prototype._applyParameters = function () {
                 mode: settings.catchupMechanism
             },
             abr: {
+                cmab: {
+                    alpha: settings.cmabAlpha,
+                },
                 ABRStrategy: settings.abrGeneral,
                 additionalAbrRules: {
                     insufficientBufferRule: settings.abrAdditionalInsufficientBufferRule,
@@ -322,6 +327,9 @@ App.prototype._adjustSettingsByUrlParameters = function () {
     let params = Object.fromEntries(urlSearchParams.entries());
 
     if (params) {
+        if (params.cmabAlpha !== undefined) {
+            this.domElements.settings.cmabAlpha = parseFloat(params.cmabAlpha);
+        }
         if (params.targetLatency !== undefined) {
             this.domElements.settings.targetLatency.value = parseFloat(params.targetLatency).toFixed(1);
         }
@@ -375,8 +383,10 @@ App.prototype._getCurrentSettings = function () {
     let abrGeneral = document.querySelector('input[name="abr-general"]:checked').value;
     let catchupMechanism = document.querySelector('input[name="catchup"]:checked').value;
     let throughputCalculation = document.querySelector('input[name="throughput-calc"]:checked').value;
+    let cmabAlpha = parseFloat(this.domElements.settings.cmabAlpha);
 
     return {
+        cmabAlpha,
         targetLatency,
         maxDrift,
         minCatchupPlaybackRate,

@@ -82,7 +82,7 @@ function CMABAbrController() {
     from sklearn.preprocessing import StandardScaler
     from pprint import pprint
 
-    from js import js_cmabArms, js_rewards, js_selected_arms, js_bitrate, js_history, js_rebuffer_events
+    from js import js_cmabArms, js_rewards, js_selected_arms, js_bitrate, js_history, js_rebuffer_events, js_cmabAlpha
 
     arms = js_cmabArms.to_py()
     rewards = js_rewards.to_py()
@@ -90,6 +90,8 @@ function CMABAbrController() {
     bitrate = js_bitrate.to_py()
     history = js_history.to_py()
     rebuffering_events = js_rebuffer_events.to_py()
+    cmab_alpha = js_cmabAlpha
+    print("cmab_alpha from pyodide", cmab_alpha)
     #print(history)
 
     length = len(history)
@@ -141,7 +143,7 @@ function CMABAbrController() {
     # mab.fit(decisions=train_df['selected_arms'], rewards=train_df['reward'])
 
     # LinTS
-    mab = MAB(arms=arms, learning_policy=LearningPolicy.LinTS(alpha=0.25))
+    mab = MAB(arms=arms, learning_policy=LearningPolicy.LinTS(alpha=cmab_alpha))
     mab.fit(decisions=train_df['selected_arms'], rewards=train_df['reward'], contexts=train)
 
     # Test
@@ -360,7 +362,7 @@ function CMABAbrController() {
 
     function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel,
         currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput,
-        rebufferingEvents) {
+        rebufferingEvents, cmabAlpha) {
         let tic = new Date();
 
         console.log('\n\ngetCMABNextQuality', tic);
@@ -407,6 +409,7 @@ function CMABAbrController() {
         window.js_bitrate = _bitrateArray;
         window.js_history = _throughputDict.get(starlinkTimeslotCount).history;
         window.js_rebuffer_events = rebufferingEvents;
+        window.js_cmabAlpha = cmabAlpha;
 
         // just recovered from satellite handover
         if (_selectedArmsArray.length < cmabArms.length - 1) {

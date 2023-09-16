@@ -40,6 +40,7 @@ import MetricsConstants from '../../../constants/MetricsConstants';
 import CMABAbrController from './CMABAbrController';
 import MediaPlayerEvents from '../../../MediaPlayerEvents';
 import EventBus from '../../../../core/EventBus';
+import Settings from '../../../../core/Settings';
 
 const { loadPyodide } = require('pyodide');
 
@@ -59,6 +60,7 @@ function CMABRule(config) {
     let pyodideInitDone = false;
 
     let CMABController;
+    let player_settings;
 
     let audioCodec = 'aaclc';
     let audioBitrate = -1;
@@ -66,9 +68,13 @@ function CMABRule(config) {
     let currentBitrateKbps;
     let lastStallTime = null;
     let rebufferingEvents = new Map();
+    let cmabAlpha = null;
 
     const setup = async () => {
         CMABController = CMABAbrController(context).create();
+        player_settings = Settings(context).getInstance()
+        cmabAlpha = player_settings.get().streaming.abr.cmab.alpha;
+        console.log('!!!!!!cmab alpha:', cmabAlpha);
 
         async function init_pyodide() {
             console.log('Loading Pyodide...');
@@ -183,7 +189,8 @@ function CMABRule(config) {
                 currentQualityLevel, currentBitrateKbps, maxBitrateKbps,
                 currentLiveLatency, playbackRate,
                 throughput,
-                rebufferingEvents);
+                rebufferingEvents,
+                cmabAlpha);
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 

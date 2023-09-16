@@ -144,6 +144,11 @@
                                 <div class="col-md-6">
                                     <h6>General</h6>
                                     <div class="input-group input-group-sm mb-3">
+                                        <span class="input-group-text">CMAB Alpha</span>
+                                        <input type="number" id="cmab-alpha" class="form-control" value="0.5"
+                                               step="0.1">
+                                    </div>
+                                    <div class="input-group input-group-sm mb-3">
                                         <span class="input-group-text">Target latency (sec)</span>
                                         <input type="number" id="target-latency" class="form-control" value="3"
                                             step="0.5">
@@ -374,6 +379,11 @@
         const targetLatency = urlParams.get('targetLatency');
         if (targetLatency != null) {
             document.getElementById('target-latency').value = targetLatency;
+        }
+
+        const cmabAlpha = urlParams.get('cmabAlpha');
+        if (cmabAlpha != null) {
+            document.getElementById('cmab-alpha').value = cmabAlpha;
         }
 
         function showEvent(e) {
