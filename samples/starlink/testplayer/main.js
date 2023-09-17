@@ -150,13 +150,11 @@ App.prototype._load = function () {
                     initialBitrate: { audio: -1, video: constantVideoBitrate },
                     autoSwitchBitrate: { audio: true, video: false }
                 },
+                buffer: {
+                    fastSwitchEnabled: false,
+                },
                 utcSynchronization: {
                     enabled: true,
-                    // useManifestDateHeaderTimeSource: true,
-                    // defaultTimingSource: {
-                    //     scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
-                    //     value: 'http://livesim2:8888/timems'
-                    // }
                 },
             },
 
@@ -170,13 +168,11 @@ App.prototype._load = function () {
                 abr: {
                     useDefaultABRRules: true,
                 },
+                buffer: {
+                    fastSwitchEnabled: false,
+                },
                 utcSynchronization: {
                     enabled: true,
-                    // useManifestDateHeaderTimeSource: true,
-                    // defaultTimingSource: {
-                    //     scheme: 'urn:mpeg:dash:utc:http-xsdate:2014',
-                    //     value: 'http://livesim2:8888/timems'
-                    // }
                 },
             },
         });
@@ -200,6 +196,7 @@ App.prototype._load = function () {
         'QUALITY_CHANGE_REQUESTED',
         'QUALITY_CHANGE_RENDERED',
         'BUFFER_EMPTY',
+        'BUFFER_LOADED',
         'BUFFER_LEVEL_STATE_CHANGED',
         'PLAYBACK_STALLED'
         // "METRIC_CHANGED",
@@ -281,6 +278,9 @@ App.prototype._applyParameters = function () {
             abr: {
                 cmab: {
                     alpha: settings.cmabAlpha,
+                },
+                buffer: {
+                    fastSwitchEnabled: false,
                 },
                 ABRStrategy: settings.abrGeneral,
                 additionalAbrRules: {
