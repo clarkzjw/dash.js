@@ -441,17 +441,6 @@ function CatchupController() {
      * @private
      */
     function _calculateNewPlaybackRateCMAB(liveCatchUpPlaybackRates, currentLiveLatency, targetLiveLatency, playbackBufferMin, bufferLevel, currentPlaybackRate) {
-        // console.log('_calculateNewPlaybackRateCMAB');
-        // console.log('playback rate decrease limit:', liveCatchUpPlaybackRates.min);
-        // console.log('playback rate increase limit:', liveCatchUpPlaybackRates.max);
-        // console.log('currentLiveLatency:', currentLiveLatency);
-        // console.log('targetLiveLatency:', targetLiveLatency);
-        // console.log('playbackBufferMin:', playbackBufferMin);
-        // console.log('bufferLevel:', bufferLevel);
-
-        // TODO
-        // dynamically set playback rate based on satellite handover pattern
-        // consider video segment playback duration and filesize and estimated throughput
         let newRate;
         let tic = new Date();
         // also consider adjacent seconds to the exact handover second
@@ -463,22 +452,19 @@ function CatchupController() {
         }
 
         // Hybrid: Buffer-based
-        if (isHandoverPeriod(tic.getSeconds())) {
-            // Buffer in danger, slow down
-            // let cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
-            // const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
-            // const d = deltaBuffer * 5;
-            //
-            // // Playback rate must be between (1 - cpr) - (1 + cpr)
-            // // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
-            // const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
-            // newRate = (1 - cpr) + s;
-
-            // TODO
-            // add algorithm to slow down playback
-            newRate = 0.8;
-
-            // console.log('slow down because of satellite handover');
+        if (isHandoverPeriod(tic.getSeconds()) || bufferLevel < playbackBufferMin) {
+            // 1. Buffer in danger, slow down
+            // 2. Satellite handover period, slow down
+             const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
+             const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
+             const d = deltaBuffer * 5;
+ 
+             // Playback rate must be between (1 - cpr) - (1 + cpr)
+             // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
+             const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+             newRate = (1 - cpr) + s;
+ 
+             logger.debug('[CMAB playback control_buffer-based] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
         } else {
             // Hybrid: Latency-based
             // Buffer is safe, vary playback rate based on latency
