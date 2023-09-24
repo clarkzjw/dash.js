@@ -452,7 +452,7 @@ function CatchupController() {
         }
 
         // Hybrid: Buffer-based
-        if (isHandoverPeriod(tic.getSeconds()) || bufferLevel < playbackBufferMin) {
+        if (bufferLevel < playbackBufferMin) {
             // 1. Buffer in danger, slow down
             // 2. Satellite handover period, slow down
              const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
