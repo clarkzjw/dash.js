@@ -214,7 +214,7 @@ function CMABAbrController() {
         console.log(`total rebuffering ${total_rebuffering_time}, selected rebuffering ${selected_bitrate_rebuffering_time}, ratio ${rebuffering_ratio}`);
 
         let itu_qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
-        let qoe = itu_qoe * (context.target_latency / currentLatency) * bitrateRatio - rebuffering_ratio;
+        let qoe = itu_qoe * (context.target_latency / currentLatency) - rebuffering_ratio;
 
         console.log(`ITU P1203 QoE: ${itu_qoe}, qoe: ${qoe}, current latency: ${currentLatency}`);
         return qoe;
