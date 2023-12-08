@@ -452,8 +452,17 @@ function CatchupController() {
         }
 
         // Hybrid: Buffer-based
-        if (isHandoverPeriod(tic.getSeconds()) || bufferLevel < playbackBufferMin) {
-            // 1. Buffer in danger, slow down
+        if (isHandoverPeriod(tic.getSeconds())) {
+            // 1. Satellite handover period, slow down
+             const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
+             const deltaBuffer = -1 * Math.abs(bufferLevel - playbackBufferMin); // -ve value
+             const d = deltaBuffer * 5;
+ 
+             const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+             newRate = (1 - cpr) + s;
+ 
+             logger.debug('[CMAB playback control_satellite handover period] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
+        } else if (bufferLevel < playbackBufferMin) {
             // 2. Satellite handover period, slow down
              const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
              const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
