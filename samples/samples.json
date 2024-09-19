@@ -183,6 +183,19 @@
                     "Video",
                     "Audio"
                 ]
+            },
+            {
+                "title": "Starlink Low latency testplayer",
+                "description": "Starlink low latency scheduling test",
+                "href": "starlink/testplayer/testplayer.html",
+                "image": "lib/img/akamai-ll-4.jpg",
+                "labels": [
+                    "Live",
+                    "Low Latency",
+                    "Settings",
+                    "Video",
+                    "Audio"
+                ]
             }
         ]
     },

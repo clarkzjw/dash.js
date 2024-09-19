@@ -123,6 +123,13 @@ class Constants {
         this.ABR_STRATEGY_DYNAMIC = 'abrDynamic';
 
         /**
+         *  @constant {string} ABR_STRATEGY_CMAB Adaptive bitrate algorithm based on CMAB (Contextual multi-armed bandit)
+         *  @memberof Constants#
+         *  @static
+         */
+        this.ABR_STRATEGY_CMAB = 'abrCMAB';
+
+        /**
          *  @constant {string} ABR_STRATEGY_BOLA Adaptive bitrate algorithm based on Bola (buffer level)
          *  @memberof Constants#
          *  @static
@@ -184,6 +191,13 @@ class Constants {
          *  @static
          */
         this.LIVE_CATCHUP_MODE_LOLP = 'liveCatchupModeLoLP';
+
+        /**
+         *  @constant {string} LIVE_CATCHUP_MODE_CMAB Playback rate calculation based on CMAB
+         *  @memberof Constants#
+         *  @static
+         */
+        this.LIVE_CATCHUP_MODE_CMAB = 'liveCatchupModeCMAB';
 
         /**
          *  @constant {string} MOVING_AVERAGE_SLIDING_WINDOW Moving average sliding window

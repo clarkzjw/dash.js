@@ -7,7 +7,9 @@ const config = merge(common, {
     entry: {
         'dash.all': './index.js',
         'dash.mss': './src/mss/index.js',
-        'dash.offline': './src/offline/index.js'
+        'dash.offline': './src/offline/index.js',
+        // https://dev.to/hulyakarakaya/how-to-fix-regeneratorruntime-is-not-defined-doj
+        'regenerator-runtime/runtime.js': './index.js'
     },
     output: {
         filename: '[name].debug.js',
@@ -16,6 +18,7 @@ const config = merge(common, {
         static: {
             directory: path.join(__dirname, '../'),
         },
+        allowedHosts: 'all',
         open: ['samples/index.html'],
         hot: true,
         compress: true,
