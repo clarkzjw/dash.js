@@ -36,10 +36,10 @@
 
 import FactoryMaker from '../../../../core/FactoryMaker';
 
-const statServerUrl = 'http://stat-server:8000';
+// const statServerUrl = 'http://stat-server:8000';
+const statServerUrl = 'http://100.99.201.63/stats';
 
 function getLatestNetworkLatency() {
-    const statServerUrl = 'http://stat-server:8000';
     let LatencySidecarURL = statServerUrl+'/ping';
 
     const xhr = new XMLHttpRequest();

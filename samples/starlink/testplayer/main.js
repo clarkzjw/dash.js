@@ -26,7 +26,8 @@ let App = function () {
     this.pyodide = null;
 };
 
-const statServerUrl = 'http://stat-server:8000';
+// const statServerUrl = 'http://stat-server:8000';
+const statServerUrl = 'http://100.99.201.63/stats';
 
 App.prototype.addEvent = function (e) {
     this.events.push(e)
@@ -98,7 +99,7 @@ async function sendStats(url, type, stat) {
 }
 
 async function setNetworkLatencyHost(host) {
-    let LatencySidecarURL = statServerUrl+'/ping/'+host;
+    let LatencySidecarURL = statServerUrl+'/ping';
 
     fetch(LatencySidecarURL, {
         credentials: 'omit',
@@ -184,7 +185,7 @@ App.prototype._load = function () {
     this.video.muted = true;
 
     let mpd_url = new URL(url)
-    setNetworkLatencyHost(mpd_url.hostname);
+    // setNetworkLatencyHost(mpd_url.hostname);
 
     // http://cdn.dashjs.org/latest/jsdoc/MediaPlayerEvents.html
     const events = [
@@ -312,12 +313,12 @@ App.prototype._applyParameters = function () {
                 },
                 mode: settings.catchupMechanism
             },
+            buffer: {
+                fastSwitchEnabled: false,
+            },
             abr: {
                 cmab: {
                     alpha: settings.cmabAlpha,
-                },
-                buffer: {
-                    fastSwitchEnabled: false,
                 },
                 ABRStrategy: settings.abrGeneral,
                 additionalAbrRules: {
