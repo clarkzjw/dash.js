@@ -362,7 +362,10 @@ function CMABAbrController() {
 
     function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel,
         currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput,
-        rebufferingEvents, cmabAlpha) {
+        rebufferingEvents, cmabAlpha, pyodideInitDone) {
+        if (pyodideInitDone === false) {
+            return 0;
+        }
         let tic = new Date();
 
         console.log('\n\ngetCMABNextQuality', tic);
@@ -430,6 +433,7 @@ function CMABAbrController() {
         _rewardsArray.push(reward_qoe);
 
         sendStats(statServerUrl+'/qoe/', 'qoe', {
+            timestamp: new Date().valueOf(),
             reward_qoe: reward_qoe,
             arm: selectedArm,
             video_bitrate: context.video_bitrate,

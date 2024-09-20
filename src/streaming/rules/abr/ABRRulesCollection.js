@@ -63,11 +63,12 @@ function ABRRulesCollection(config) {
         abandonFragmentRules;
 
     function initialize() {
+        console.log('ABRRulesCollection initialize');
+
         qualitySwitchRules = [];
         abandonFragmentRules = [];
 
         if (settings.get().streaming.abr.useDefaultABRRules) {
-
             // If L2A is used we only need this one rule
             if (settings.get().streaming.abr.ABRStrategy === Constants.ABR_STRATEGY_L2A) {
                 qualitySwitchRules.push(

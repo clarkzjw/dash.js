@@ -44,6 +44,28 @@ import Settings from '../../../../core/Settings';
 
 const { loadPyodide } = require('pyodide');
 
+async function sendStats(url, stat) {
+    fetch(url, {
+        credentials: 'omit',
+        mode: 'cors',
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stat })
+    })
+        .then(resp => {
+            if (resp.status === 200) {
+                return resp.json()
+            } else {
+                console.log('Status: ' + resp.status)
+                return Promise.reject('500')
+            }
+        })
+        .catch(err => {
+            if (err === '500') return
+            console.log(err)
+        })
+}
+
 function CMABRule(config) {
     config = config || {};
 
@@ -70,38 +92,38 @@ function CMABRule(config) {
     let rebufferingEvents = new Map();
     let cmabAlpha = null;
 
-    const setup = async () => {
-        CMABController = CMABAbrController(context).create();
+    async function init_pyodide() {
+        console.log('Loading Pyodide...');
+        let pyodide = await loadPyodide({ indexURL: 'http://100.99.201.63/pyodide/' });
+        let requirements = [
+            'pandas',
+            'scikit-learn',
+            'http://100.99.201.63/pyodide/mabwiser-2.7.0-py3-none-any.whl',
+            'http://100.99.201.63/pyodide/itu_p1203-1.9.5-py3-none-any.whl',
+        ]
+        await pyodide.loadPackage(requirements);
+        return pyodide;
+    }
+
+    function setup() {
         player_settings = Settings(context).getInstance()
         cmabAlpha = player_settings.get().streaming.abr.cmab.alpha;
         console.log('!!!!!!cmab alpha:', cmabAlpha);
 
-        async function init_pyodide() {
-            console.log('Loading Pyodide...');
-            let pyodide = await loadPyodide({indexURL: 'http://100.99.201.63/pyodide/'});
-            let requirements = [
-                'pandas',
-                'matplotlib',
-                'numpy',
-                'Pillow',
-                'scikit-learn',
-                'scipy',
-                'http://100.99.201.63/pyodide/mabwiser-2.7.0-py3-none-any.whl',
-                'http://100.99.201.63/pyodide/itu_p1203-1.9.5-py3-none-any.whl',
-            ]
-            await pyodide.loadPackage(requirements);
-            return pyodide;
-        }
-
         init_pyodide().then((pyodide_context) => {
             pyodide = pyodide_context;
-            pyodide.runPython(`from mabwiser.mab import MAB`);
-            pyodideInitDone = true;
             console.log('CMAB Rule Setup Done', new Date());
-        });
+            pyodideInitDone = true;
 
-        eventBus.on(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);
-        eventBus.on(MediaPlayerEvents.BUFFER_EMPTY, onBufferEmpty, instance);
+            sendStats(statServerUrl + '/event/initDone', {
+                "initDone": 1,
+            });
+
+            eventBus.on(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);
+            eventBus.on(MediaPlayerEvents.BUFFER_EMPTY, onBufferEmpty, instance);
+
+            CMABController = CMABAbrController(context).create();
+        });
     }
 
     function onBufferEmpty(e) {
@@ -190,7 +212,8 @@ function CMABRule(config) {
                 currentLiveLatency, playbackRate,
                 throughput,
                 rebufferingEvents,
-                cmabAlpha);
+                cmabAlpha,
+                pyodideInitDone);
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
 
