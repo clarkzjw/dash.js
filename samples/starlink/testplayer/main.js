@@ -98,30 +98,6 @@ async function sendStats(url, type, stat) {
         })
 }
 
-async function setNetworkLatencyHost(host) {
-    let LatencySidecarURL = statServerUrl+'/ping';
-
-    fetch(LatencySidecarURL, {
-        credentials: 'omit',
-        mode: 'cors',
-        method: 'post',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({host: host})
-    })
-        .then(resp => {
-            if (resp.status === 200) {
-                return resp.json()
-            } else {
-                console.log('Status: ' + resp.status)
-                return Promise.reject('500')
-            }
-        })
-        .catch(err => {
-            if (err === '500') return
-            console.log(err)
-        })
-}
-
 App.prototype._load = function () {
     let url;
 
@@ -184,10 +160,10 @@ App.prototype._load = function () {
     this.controlbar.initialize();
     this.video.muted = true;
 
-    let mpd_url = new URL(url)
-    // setNetworkLatencyHost(mpd_url.hostname);
-
     // http://cdn.dashjs.org/latest/jsdoc/MediaPlayerEvents.html
+    // const events = [
+    //     "THROUGHPUT_MEASUREMENT_STORED",
+    // ]
     const events = [
         // "ADAPTATION_SET_REMOVED_NO_CAPABILITIES",
         // "AST_IN_FUTURE",
@@ -621,6 +597,33 @@ App.prototype._startIntervalHandler = function () {
         }
 
     }, METRIC_INTERVAL_MS);
+
+
+    const intervalID = setInterval(function () {
+        fetch(statServerUrl+'/event/initDone/'+self.domElements.experimentID.value, {
+            credentials: 'omit',
+            mode: 'cors',
+            method: 'get',
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(resp => {
+                if (resp.status === 200) {
+                    if (self.player) {
+                        console.log('reset player quality')
+                        self.player.setQualityFor('video', 1, 1)
+                        clearInterval(intervalID)
+                    }
+                    return resp.json()
+                } else {
+                    console.log('initDone false')
+                    return Promise.reject('404')
+                }
+            })
+            .catch(err => {
+                // if (err === '500') return
+                console.log(err)
+            })
+    }, 1000);
 }
 
 App.prototype._registerEventHandler = function () {
