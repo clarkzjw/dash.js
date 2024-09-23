@@ -1,4 +1,5 @@
 const METRIC_INTERVAL_MS = 100; // 0.1s
+const CHECK_PYODIDE_INIT_INTERVAL_MS = 100; // 0.1s
 const SEND_STAT_INTERVAL_MS = 5000; // 5s
 
 let App = function () {
@@ -23,7 +24,7 @@ let App = function () {
     }
     this.events = []
     this.playbackMetric = []
-    this.pyodide = null;
+    this.pyodide_init_started = false;
 };
 
 // const statServerUrl = 'http://stat-server:8000';
@@ -108,6 +109,7 @@ App.prototype._load = function () {
         this.chartData.lastTimeStamp = null
     }
 
+    this.pyodide_init_started = true;
     url = document.getElementById('manifest').value;
 
     this.video = document.querySelector('video');
@@ -598,32 +600,32 @@ App.prototype._startIntervalHandler = function () {
 
     }, METRIC_INTERVAL_MS);
 
-
     const intervalID = setInterval(function () {
-        fetch(statServerUrl+'/event/initDone/'+self.domElements.experimentID.value, {
-            credentials: 'omit',
-            mode: 'cors',
-            method: 'get',
-            headers: { 'Content-Type': 'application/json' },
-        })
-            .then(resp => {
-                if (resp.status === 200) {
-                    if (self.player) {
-                        console.log('reset player quality')
-                        self.player.setQualityFor('video', 1, 1)
-                        clearInterval(intervalID)
+        if (self.pyodide_init_started) {
+            fetch(statServerUrl+'/event/initDone/'+self.domElements.experimentID.value, {
+                credentials: 'omit',
+                mode: 'cors',
+                method: 'get',
+                headers: { 'Content-Type': 'application/json' },
+            })
+                .then(resp => {
+                    if (resp.status === 200) {
+                        if (self.player) {
+                            console.log('reset player quality')
+                            self.player.setQualityFor('video', 1, 0)
+                            clearInterval(intervalID)
+                        }
+                        return resp.json()
+                    } else {
+                        console.log('initDone false')
+                        return Promise.reject('404')
                     }
-                    return resp.json()
-                } else {
-                    console.log('initDone false')
-                    return Promise.reject('404')
-                }
-            })
-            .catch(err => {
-                // if (err === '500') return
-                console.log(err)
-            })
-    }, 1000);
+                })
+                .catch(err => {
+                    console.log(err)
+                })
+        }
+    }, CHECK_PYODIDE_INIT_INTERVAL_MS);
 }
 
 App.prototype._registerEventHandler = function () {
