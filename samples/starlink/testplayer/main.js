@@ -168,10 +168,10 @@ App.prototype._load = function () {
         // "ADAPTATION_SET_REMOVED_NO_CAPABILITIES",
         // "AST_IN_FUTURE",
         // "BASE_URLS_UPDATED",
-        "BUFFER_EMPTY",
-        "BUFFER_LEVEL_STATE_CHANGED",
-        "BUFFER_LEVEL_UPDATED",
-        "BUFFER_LOADED",
+        'BUFFER_EMPTY',
+        'BUFFER_LEVEL_STATE_CHANGED',
+        'BUFFER_LEVEL_UPDATED',
+        'BUFFER_LOADED',
         // "CAN_PLAY",
         // "CAN_PLAY_THROUGH",
         // "CAPTION_CONTAINER_RESIZE",
@@ -187,51 +187,51 @@ App.prototype._load = function () {
         // "ERROR",
         // "EVENT_MODE_ON_RECEIVE",
         // "EVENT_MODE_ON_START",
-        "FRAGMENT_LOADING_ABANDONED",
-        "FRAGMENT_LOADING_COMPLETED",
-        "FRAGMENT_LOADING_PROGRESS",
-        "FRAGMENT_LOADING_STARTED",
+        'FRAGMENT_LOADING_ABANDONED',
+        'FRAGMENT_LOADING_COMPLETED',
+        'FRAGMENT_LOADING_PROGRESS',
+        'FRAGMENT_LOADING_STARTED',
         // "INBAND_PRFT",
-        "LOG",
-        "MANIFEST_LOADED",
-        "MANIFEST_LOADING_FINISHED",
-        "MANIFEST_LOADING_STARTED",
+        'LOG',
+        'MANIFEST_LOADED',
+        'MANIFEST_LOADING_FINISHED',
+        'MANIFEST_LOADING_STARTED',
         // "MANIFEST_VALIDITY_CHANGED",
-        "METRIC_ADDED",
+        'METRIC_ADDED',
         // "METRIC_CHANGED",
         // "METRIC_UPDATED",
         // "METRICS_CHANGED",
         // "PERIOD_SWITCH_COMPLETED",
         // "PERIOD_SWITCH_STARTED",
-        "PLAYBACK_ENDED",
-        "PLAYBACK_ERROR",
-        "PLAYBACK_LOADED_DATA",
-        "PLAYBACK_METADATA_LOADED",
+        'PLAYBACK_ENDED',
+        'PLAYBACK_ERROR',
+        'PLAYBACK_LOADED_DATA',
+        'PLAYBACK_METADATA_LOADED',
         // "PLAYBACK_NOT_ALLOWED",
-        "PLAYBACK_PAUSED",
-        "PLAYBACK_PLAYING",
-        "PLAYBACK_PROGRESS",
-        "PLAYBACK_RATE_CHANGED",
+        'PLAYBACK_PAUSED',
+        'PLAYBACK_PLAYING',
+        'PLAYBACK_PROGRESS',
+        'PLAYBACK_RATE_CHANGED',
         // "PLAYBACK_SEEKED",
         // "PLAYBACK_SEEKING",
-        "PLAYBACK_STALLED",
-        "PLAYBACK_STARTED",
+        'PLAYBACK_STALLED',
+        'PLAYBACK_STARTED',
         // "PLAYBACK_TIME_UPDATED",
         // "PLAYBACK_VOLUME_CHANGED",
-        "PLAYBACK_WAITING",
-        "QUALITY_CHANGE_RENDERED",
-        "QUALITY_CHANGE_REQUESTED",
-        "REPRESENTATION_SWITCH",
-        "STREAM_ACTIVATED",
-        "STREAM_DEACTIVATED",
-        "STREAM_INITIALIZED",
-        "STREAM_INITIALIZING",
+        'PLAYBACK_WAITING',
+        'QUALITY_CHANGE_RENDERED',
+        'QUALITY_CHANGE_REQUESTED',
+        'REPRESENTATION_SWITCH',
+        'STREAM_ACTIVATED',
+        'STREAM_DEACTIVATED',
+        'STREAM_INITIALIZED',
+        'STREAM_INITIALIZING',
         // "STREAM_TEARDOWN_COMPLETE",
-        "STREAM_UPDATED",
+        'STREAM_UPDATED',
         // "TEXT_TRACK_ADDED",
         // "TEXT_TRACKS_ADDED",
-        "THROUGHPUT_MEASUREMENT_STORED",
-        "TRACK_CHANGE_RENDERED",
+        'THROUGHPUT_MEASUREMENT_STORED',
+        'TRACK_CHANGE_RENDERED',
         // "TTML_PARSED",
         // "TTML_TO_PARSE",
     ]
@@ -239,20 +239,20 @@ App.prototype._load = function () {
     document.getElementById('eventHolder').innerHTML = '';
     document.getElementById('trace').innerHTML = '';
 
-    for (const e of events) {
-        app.player.on(dashjs.MediaPlayer.events[e], showEvent);
-
-        let element = document.createElement('input');
-        element.type = 'button';
-        element.className = 'btn btn-danger';
-        element.id = e;
-        element.value = 'Remove ' + e;
-        element.onclick = function() {
-            app.player.off(dashjs.MediaPlayer.events[e], showEvent);
-            document.getElementById('eventHolder').removeChild(element);
-        };
-        document.getElementById('eventHolder').appendChild(element);
-    }
+    // for (const e of events) {
+    //     this.player.on(dashjs.MediaPlayer.events[e], showEvent);
+    //
+    //     let element = document.createElement('input');
+    //     element.type = 'button';
+    //     element.className = 'btn btn-danger';
+    //     element.id = e;
+    //     element.value = 'Remove ' + e;
+    //     element.onclick = function() {
+    //         this.player.off(dashjs.MediaPlayer.events[e], showEvent);
+    //         document.getElementById('eventHolder').removeChild(element);
+    //     };
+    //     document.getElementById('eventHolder').appendChild(element);
+    // }
 
     let self = this;
     setInterval(function() {
