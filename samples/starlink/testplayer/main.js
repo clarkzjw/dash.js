@@ -1,5 +1,5 @@
 const METRIC_INTERVAL_MS = 100; // 0.1s
-const CHECK_PYODIDE_INIT_INTERVAL_MS = 100; // 0.1s
+const CHECK_PYODIDE_INIT_INTERVAL_MS = 2000; // 0.1s
 const SEND_STAT_INTERVAL_MS = 5000; // 5s
 
 let App = function () {
@@ -241,20 +241,20 @@ App.prototype._load = function () {
     document.getElementById('eventHolder').innerHTML = '';
     document.getElementById('trace').innerHTML = '';
 
-    // for (const e of events) {
-    //     this.player.on(dashjs.MediaPlayer.events[e], showEvent);
-    //
-    //     let element = document.createElement('input');
-    //     element.type = 'button';
-    //     element.className = 'btn btn-danger';
-    //     element.id = e;
-    //     element.value = 'Remove ' + e;
-    //     element.onclick = function() {
-    //         this.player.off(dashjs.MediaPlayer.events[e], showEvent);
-    //         document.getElementById('eventHolder').removeChild(element);
-    //     };
-    //     document.getElementById('eventHolder').appendChild(element);
-    // }
+    for (const e of events) {
+        this.player.on(dashjs.MediaPlayer.events[e], showEvent);
+
+        let element = document.createElement('input');
+        element.type = 'button';
+        element.className = 'btn btn-danger';
+        element.id = e;
+        element.value = 'Remove ' + e;
+        element.onclick = function() {
+            this.player.off(dashjs.MediaPlayer.events[e], showEvent);
+            document.getElementById('eventHolder').removeChild(element);
+        };
+        document.getElementById('eventHolder').appendChild(element);
+    }
 
     let self = this;
     setInterval(function() {
@@ -600,32 +600,32 @@ App.prototype._startIntervalHandler = function () {
 
     }, METRIC_INTERVAL_MS);
 
-    const intervalID = setInterval(function () {
-        if (self.pyodide_init_started) {
-            fetch(statServerUrl+'/event/initDone/'+self.domElements.experimentID.value, {
-                credentials: 'omit',
-                mode: 'cors',
-                method: 'get',
-                headers: { 'Content-Type': 'application/json' },
-            })
-                .then(resp => {
-                    if (resp.status === 200) {
-                        if (self.player) {
-                            console.log('reset player quality')
-                            self.player.setQualityFor('video', 1, 0)
-                            clearInterval(intervalID)
-                        }
-                        return resp.json()
-                    } else {
-                        console.log('initDone false')
-                        return Promise.reject('404')
-                    }
-                })
-                .catch(err => {
-                    console.log(err)
-                })
-        }
-    }, CHECK_PYODIDE_INIT_INTERVAL_MS);
+    // const intervalID = setInterval(function () {
+    //     if (self.pyodide_init_started) {
+    //         fetch(statServerUrl+'/event/initDone/'+self.domElements.experimentID.value, {
+    //             credentials: 'omit',
+    //             mode: 'cors',
+    //             method: 'get',
+    //             headers: { 'Content-Type': 'application/json' },
+    //         })
+    //             .then(resp => {
+    //                 if (resp.status === 200) {
+    //                     if (self.player) {
+    //                         console.log('reset player quality')
+    //                         self.player.setQualityFor('video', 1, 0)
+    //                         clearInterval(intervalID)
+    //                     }
+    //                     return resp.json()
+    //                 } else {
+    //                     console.log('initDone false')
+    //                     return Promise.reject('404')
+    //                 }
+    //             })
+    //             .catch(err => {
+    //                 console.log(err)
+    //             })
+    //     }
+    // }, CHECK_PYODIDE_INIT_INTERVAL_MS);
 }
 
 App.prototype._registerEventHandler = function () {

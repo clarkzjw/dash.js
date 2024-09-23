@@ -43,6 +43,7 @@ import EventBus from '../../../../core/EventBus';
 import Settings from '../../../../core/Settings';
 
 const { loadPyodide } = require('pyodide');
+const statServerUrl = 'http://100.99.201.63/stats';
 
 async function sendStats(url, stat) {
     fetch(url, {
@@ -116,7 +117,7 @@ function CMABRule(config) {
             pyodideInitDone = true;
 
             sendStats(statServerUrl + '/event/initDone', {
-                "initDone": 1,
+                'initDone': 1,
             });
 
             eventBus.on(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);

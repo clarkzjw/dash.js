@@ -52,6 +52,36 @@ function getLatestNetworkLatency() {
     }
 }
 
+function getHistory(url) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, false); // 'false' makes the request synchronous
+    xhr.setRequestHeader('Content-Type', 'application/json');
+
+    try {
+        xhr.send(null);
+
+        if (xhr.status === 200) {
+            return JSON.parse(xhr.responseText); // Return parsed JSON
+        } else {
+            // console.log("Error: " + xhr.status);
+            return null; // Handle non-200 responses
+        }
+    } catch (err) {
+        // console.log("Request failed", err);
+        return null;
+    }
+}
+
+function getLatencyHistory() {
+    const url = statServerUrl + '/pingstats';
+    return getHistory(url);
+}
+
+function getThroughputHistory() {
+    const url = statServerUrl + '/throughputstats';
+    return getHistory(url);
+}
+
 async function sendStats(url, type, stat) {
     fetch(url, {
         credentials: 'omit',
@@ -83,6 +113,7 @@ function CMABAbrController() {
     from pprint import pprint
 
     from js import js_cmabArms, js_rewards, js_selected_arms, js_bitrate, js_history, js_rebuffer_events, js_cmabAlpha
+    from js import js_throughput_playback_history, js_latency_playback_history
 
     arms = js_cmabArms.to_py()
     rewards = js_rewards.to_py()
@@ -91,10 +122,13 @@ function CMABAbrController() {
     history = js_history.to_py()
     rebuffering_events = js_rebuffer_events.to_py()
     cmab_alpha = js_cmabAlpha
-    print("cmab_alpha from pyodide", cmab_alpha)
-    #print(history)
-
     length = len(history)
+    throughput_playback_history = js_throughput_playback_history.to_py()
+    latency_playback_history = js_latency_playback_history.to_py()
+
+    print("cmab_alpha from pyodide", cmab_alpha)
+    pprint(throughput_playback_history)
+    pprint(latency_playback_history)
 
     # selected_arms == bitrate level in each round
     previous_rounds = length - 1
@@ -188,7 +222,7 @@ function CMABAbrController() {
     // calculate reward using QoE ITU-T Rec. P.1203: https://github.com/itu-p1203/itu-p1203
     function calculateReward(pyodide, context, currentLatency, selectedBitrate, bitrateRatio, rebufferingEvents) {
         let itu_p1203_input_json = generateITUP1203InputJSON(context);
-        console.log('calculateReward context', context, 'target live delay', context.target_latency);
+        // console.log('calculateReward context', context, 'target live delay', context.target_latency);
 
         let total_rebuffering_time = 0;
         let selected_bitrate_rebuffering_time = 0;
@@ -205,13 +239,13 @@ function CMABAbrController() {
                 selected_bitrate_rebuffering_time = sum;
             }
             total_rebuffering_time = total_rebuffering_time + sum;
-            console.log(`entry ${entry}, sum ${sum}, bitrate ${bitrate}`);
+            // console.log(`entry ${entry}, sum ${sum}, bitrate ${bitrate}`);
         }
 
         if (total_rebuffering_time > 0) {
             rebuffering_ratio = selected_bitrate_rebuffering_time / total_rebuffering_time;
         }
-        console.log(`total rebuffering ${total_rebuffering_time}, selected rebuffering ${selected_bitrate_rebuffering_time}, ratio ${rebuffering_ratio}`);
+        // console.log(`total rebuffering ${total_rebuffering_time}, selected rebuffering ${selected_bitrate_rebuffering_time}, ratio ${rebuffering_ratio}`);
 
         let itu_qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
         let qoe = itu_qoe * (context.target_latency / currentLatency) * bitrateRatio - rebuffering_ratio;
@@ -366,9 +400,15 @@ function CMABAbrController() {
         if (pyodideInitDone === false) {
             return 0;
         }
+
+        let _latency_playback_history = getLatencyHistory()
+        let _throughput_playback_history = getThroughputHistory()
+
+        console.log(_latency_playback_history)
+        console.log(_throughput_playback_history)
         let tic = new Date();
 
-        console.log('\n\ngetCMABNextQuality', tic);
+        console.log('\ngetCMABNextQuality', tic);
         console.log(`Throughput ${throughput} kbps, playbackSpeed ${playbackRate}, currentLatency ${currentLiveLatency}, currentBitrate ${currentBitrateKbps}, maxBitrate ${maxBitrateKbps}, currentQualityLevel ${currentQualityLevel}`);
 
         throughput = throughput / 1000.0;
@@ -413,6 +453,8 @@ function CMABAbrController() {
         window.js_history = _throughputDict.get(starlinkTimeslotCount).history;
         window.js_rebuffer_events = rebufferingEvents;
         window.js_cmabAlpha = cmabAlpha;
+        window.js_throughput_playback_history = _throughput_playback_history;
+        window.js_latency_playback_history = _latency_playback_history;
 
         // just recovered from satellite handover
         if (_selectedArmsArray.length < cmabArms.length - 1) {
