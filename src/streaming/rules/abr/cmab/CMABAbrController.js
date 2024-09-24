@@ -404,12 +404,12 @@ function CMABAbrController() {
         let _latency_playback_history = getLatencyHistory()
         let _throughput_playback_history = getThroughputHistory()
 
-        console.log(_latency_playback_history)
-        console.log(_throughput_playback_history)
+        // console.log(_latency_playback_history)
+        // console.log(_throughput_playback_history)
         let tic = new Date();
 
         console.log('\ngetCMABNextQuality', tic);
-        console.log(`Throughput ${throughput} kbps, playbackSpeed ${playbackRate}, currentLatency ${currentLiveLatency}, currentBitrate ${currentBitrateKbps}, maxBitrate ${maxBitrateKbps}, currentQualityLevel ${currentQualityLevel}`);
+        // console.log(`Throughput ${throughput} kbps, playbackSpeed ${playbackRate}, currentLatency ${currentLiveLatency}, currentBitrate ${currentBitrateKbps}, maxBitrate ${maxBitrateKbps}, currentQualityLevel ${currentQualityLevel}`);
 
         throughput = throughput / 1000.0;
 
@@ -444,7 +444,7 @@ function CMABAbrController() {
             live_latency: currentLiveLatency,
             playback_rate: playbackRate
         });
-        console.log('network latency:', networkLatency);
+        // console.log('network latency:', networkLatency);
 
         window.js_cmabArms = cmabArms;
         window.js_rewards = _rewardsArray;
@@ -458,6 +458,7 @@ function CMABAbrController() {
 
         // just recovered from satellite handover
         if (_selectedArmsArray.length < cmabArms.length - 1) {
+            console.log('length: ', _selectedArmsArray.length)
             selectedArm = cmabArms.length - 1
         } else {
             selectedArm = pyodide.runPython(_py_mabwiser_select_arm);

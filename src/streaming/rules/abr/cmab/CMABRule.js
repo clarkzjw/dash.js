@@ -93,6 +93,13 @@ function CMABRule(config) {
     let rebufferingEvents = new Map();
     let cmabAlpha = null;
 
+    let _py_import_test = `
+    import pandas as pd
+    from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
+    from sklearn.preprocessing import StandardScaler
+    from pprint import pprint
+    `
+
     async function init_pyodide() {
         console.log('Loading Pyodide...');
         let pyodide = await loadPyodide({ indexURL: 'http://100.99.201.63/pyodide/' });
@@ -103,6 +110,8 @@ function CMABRule(config) {
             'http://100.99.201.63/pyodide/itu_p1203-1.9.5-py3-none-any.whl',
         ]
         await pyodide.loadPackage(requirements);
+        await pyodide.runPythonAsync(_py_import_test);
+
         return pyodide;
     }
 
@@ -208,6 +217,7 @@ function CMABRule(config) {
             currentBitrateKbps = currentBitrate / 1000.0;
             let maxBitrateKbps = bitrateList[bitrateList.length-1].bandwidth / 1000.0;
 
+            console.log('waiting CMABController.getCMABNextQuality')
             switchRequest.quality = CMABController.getCMABNextQuality(pyodide, context, bitrateList, cmabArms,
                 currentQualityLevel, currentBitrateKbps, maxBitrateKbps,
                 currentLiveLatency, playbackRate,
