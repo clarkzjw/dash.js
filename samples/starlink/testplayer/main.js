@@ -86,7 +86,7 @@ async function sendStats(url, type, stat) {
     })
         .then(resp => {
             if (resp.status === 200) {
-                console.log('Sent %d %s', stat.length, type)
+                // console.log('Sent %d %s', stat.length, type)
                 return resp.json()
             } else {
                 console.log('Status: ' + resp.status)
@@ -100,6 +100,10 @@ async function sendStats(url, type, stat) {
 }
 
 App.prototype._load = function () {
+    let now = new Date()
+    sendStats(statServerUrl+'/event/'+this.domElements.experimentID.value, 'event', {'type': 'loading', 'ts': now})
+    sendStats(statServerUrl+'/metric/'+this.domElements.experimentID.value, 'metric', {'type': 'loading', 'ts': now})
+
     let url;
 
     if (this.player) {
