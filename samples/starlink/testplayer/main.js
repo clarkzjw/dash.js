@@ -27,8 +27,8 @@ let App = function () {
     this.pyodide_init_started = false;
 };
 
-// const statServerUrl = 'http://stat-server:8000';
-const statServerUrl = 'http://100.99.201.63/stats';
+const statServerUrl = 'http://stat-server:8000';
+// const statServerUrl = 'http://100.99.201.63/stats';
 
 App.prototype.addEvent = function (e) {
     this.events.push(e)

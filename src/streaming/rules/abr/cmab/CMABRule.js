@@ -43,7 +43,8 @@ import EventBus from '../../../../core/EventBus';
 import Settings from '../../../../core/Settings';
 
 const { loadPyodide } = require('pyodide');
-const statServerUrl = 'http://100.99.201.63/stats';
+// const statServerUrl = 'http://100.99.201.63/stats';
+const statServerUrl = 'http://stat-server:8000';
 
 async function sendStats(url, stat) {
     fetch(url, {
@@ -102,12 +103,12 @@ function CMABRule(config) {
 
     async function init_pyodide() {
         console.log('Loading Pyodide...');
-        let pyodide = await loadPyodide({ indexURL: 'http://100.99.201.63/pyodide/' });
+        let pyodide = await loadPyodide({ indexURL: 'http://pyodide/pyodide/' });
         let requirements = [
             'pandas',
             'scikit-learn',
-            'http://100.99.201.63/pyodide/mabwiser-2.7.0-py3-none-any.whl',
-            'http://100.99.201.63/pyodide/itu_p1203-1.9.5-py3-none-any.whl',
+            'http://pyodide/pyodide/mabwiser-2.7.0-py3-none-any.whl',
+            'http://pyodide/pyodide/itu_p1203-1.9.5-py3-none-any.whl',
         ]
         await pyodide.loadPackage(requirements);
         await pyodide.runPythonAsync(_py_import_test);
