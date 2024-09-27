@@ -2292,6 +2292,9 @@ function Settings() {
       retryIntervals: (_retryIntervals = {}, _defineProperty(_retryIntervals, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.MPD_TYPE, 500), _defineProperty(_retryIntervals, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.XLINK_EXPANSION_TYPE, 500), _defineProperty(_retryIntervals, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.MEDIA_SEGMENT_TYPE, 1000), _defineProperty(_retryIntervals, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.INIT_SEGMENT_TYPE, 1000), _defineProperty(_retryIntervals, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.BITSTREAM_SWITCHING_SEGMENT_TYPE, 1000), _defineProperty(_retryIntervals, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.INDEX_SEGMENT_TYPE, 1000), _defineProperty(_retryIntervals, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.MSS_FRAGMENT_INFO_SEGMENT_TYPE, 1000), _defineProperty(_retryIntervals, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.LICENSE, 1000), _defineProperty(_retryIntervals, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.OTHER_TYPE, 1000), _defineProperty(_retryIntervals, "lowLatencyReductionFactor", 10), _retryIntervals),
       retryAttempts: (_retryAttempts = {}, _defineProperty(_retryAttempts, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.MPD_TYPE, 3), _defineProperty(_retryAttempts, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.XLINK_EXPANSION_TYPE, 1), _defineProperty(_retryAttempts, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.MEDIA_SEGMENT_TYPE, 3), _defineProperty(_retryAttempts, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.INIT_SEGMENT_TYPE, 3), _defineProperty(_retryAttempts, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.BITSTREAM_SWITCHING_SEGMENT_TYPE, 3), _defineProperty(_retryAttempts, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.INDEX_SEGMENT_TYPE, 3), _defineProperty(_retryAttempts, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.MSS_FRAGMENT_INFO_SEGMENT_TYPE, 3), _defineProperty(_retryAttempts, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.LICENSE, 3), _defineProperty(_retryAttempts, _streaming_vo_metrics_HTTPRequest__WEBPACK_IMPORTED_MODULE_4__.HTTPRequest.OTHER_TYPE, 3), _defineProperty(_retryAttempts, "lowLatencyMultiplyFactor", 5), _retryAttempts),
       abr: {
+        cmab: {
+          alpha: 0.5
+        },
         movingAverageMethod: _streaming_constants_Constants__WEBPACK_IMPORTED_MODULE_3__["default"].MOVING_AVERAGE_SLIDING_WINDOW,
         ABRStrategy: _streaming_constants_Constants__WEBPACK_IMPORTED_MODULE_3__["default"].ABR_STRATEGY_DYNAMIC,
         additionalAbrRules: {
@@ -13357,6 +13360,13 @@ var Constants = /*#__PURE__*/function () {
 
       this.ABR_STRATEGY_DYNAMIC = 'abrDynamic';
       /**
+       *  @constant {string} ABR_STRATEGY_CMAB Adaptive bitrate algorithm based on CMAB (Contextual multi-armed bandit)
+       *  @memberof Constants#
+       *  @static
+       */
+
+      this.ABR_STRATEGY_CMAB = 'abrCMAB';
+      /**
        *  @constant {string} ABR_STRATEGY_BOLA Adaptive bitrate algorithm based on Bola (buffer level)
        *  @memberof Constants#
        *  @static
@@ -13419,6 +13429,13 @@ var Constants = /*#__PURE__*/function () {
        */
 
       this.LIVE_CATCHUP_MODE_LOLP = 'liveCatchupModeLoLP';
+      /**
+       *  @constant {string} LIVE_CATCHUP_MODE_CMAB Playback rate calculation based on CMAB
+       *  @memberof Constants#
+       *  @static
+       */
+
+      this.LIVE_CATCHUP_MODE_CMAB = 'liveCatchupModeCMAB';
       /**
        *  @constant {string} MOVING_AVERAGE_SLIDING_WINDOW Moving average sliding window
        *  @memberof Constants#
@@ -17245,17 +17262,20 @@ _core_FactoryMaker__WEBPACK_IMPORTED_MODULE_0__["default"].updateClassFactory(Sw
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _ThroughputRule__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ThroughputRule */ "./src/streaming/rules/abr/ThroughputRule.js");
-/* harmony import */ var _InsufficientBufferRule__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./InsufficientBufferRule */ "./src/streaming/rules/abr/InsufficientBufferRule.js");
-/* harmony import */ var _AbandonRequestsRule__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./AbandonRequestsRule */ "./src/streaming/rules/abr/AbandonRequestsRule.js");
-/* harmony import */ var _DroppedFramesRule__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./DroppedFramesRule */ "./src/streaming/rules/abr/DroppedFramesRule.js");
-/* harmony import */ var _SwitchHistoryRule__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./SwitchHistoryRule */ "./src/streaming/rules/abr/SwitchHistoryRule.js");
-/* harmony import */ var _BolaRule__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./BolaRule */ "./src/streaming/rules/abr/BolaRule.js");
-/* harmony import */ var _L2ARule_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./L2ARule.js */ "./src/streaming/rules/abr/L2ARule.js");
-/* harmony import */ var _lolp_LoLpRule_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./lolp/LoLpRule.js */ "./src/streaming/rules/abr/lolp/LoLpRule.js");
-/* harmony import */ var _core_FactoryMaker__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../core/FactoryMaker */ "./src/core/FactoryMaker.js");
-/* harmony import */ var _SwitchRequest__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../SwitchRequest */ "./src/streaming/rules/SwitchRequest.js");
-/* harmony import */ var _constants_Constants__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../constants/Constants */ "./src/streaming/constants/Constants.js");
+/* harmony import */ var regenerator_runtime_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! regenerator-runtime/runtime */ "./node_modules/regenerator-runtime/runtime.js");
+/* harmony import */ var regenerator_runtime_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(regenerator_runtime_runtime__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ThroughputRule__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ThroughputRule */ "./src/streaming/rules/abr/ThroughputRule.js");
+/* harmony import */ var _InsufficientBufferRule__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./InsufficientBufferRule */ "./src/streaming/rules/abr/InsufficientBufferRule.js");
+/* harmony import */ var _AbandonRequestsRule__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./AbandonRequestsRule */ "./src/streaming/rules/abr/AbandonRequestsRule.js");
+/* harmony import */ var _DroppedFramesRule__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./DroppedFramesRule */ "./src/streaming/rules/abr/DroppedFramesRule.js");
+/* harmony import */ var _SwitchHistoryRule__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./SwitchHistoryRule */ "./src/streaming/rules/abr/SwitchHistoryRule.js");
+/* harmony import */ var _cmab_CMABRule_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./cmab/CMABRule.js */ "./src/streaming/rules/abr/cmab/CMABRule.js");
+/* harmony import */ var _BolaRule__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./BolaRule */ "./src/streaming/rules/abr/BolaRule.js");
+/* harmony import */ var _L2ARule_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./L2ARule.js */ "./src/streaming/rules/abr/L2ARule.js");
+/* harmony import */ var _lolp_LoLpRule_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./lolp/LoLpRule.js */ "./src/streaming/rules/abr/lolp/LoLpRule.js");
+/* harmony import */ var _core_FactoryMaker__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../../core/FactoryMaker */ "./src/core/FactoryMaker.js");
+/* harmony import */ var _SwitchRequest__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../SwitchRequest */ "./src/streaming/rules/SwitchRequest.js");
+/* harmony import */ var _constants_Constants__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../../constants/Constants */ "./src/streaming/constants/Constants.js");
 /**
  * The copyright in this software is being made available under the BSD License,
  * included below. This software may be subject to other third party and contributor
@@ -17297,6 +17317,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
 var QUALITY_SWITCH_RULES = 'qualitySwitchRules';
 var ABANDON_FRAGMENT_RULES = 'abandonFragmentRules';
 
@@ -17310,50 +17332,56 @@ function ABRRulesCollection(config) {
   var instance, qualitySwitchRules, abandonFragmentRules;
 
   function initialize() {
+    console.log('ABRRulesCollection initialize');
     qualitySwitchRules = [];
     abandonFragmentRules = [];
 
     if (settings.get().streaming.abr.useDefaultABRRules) {
       // If L2A is used we only need this one rule
-      if (settings.get().streaming.abr.ABRStrategy === _constants_Constants__WEBPACK_IMPORTED_MODULE_10__["default"].ABR_STRATEGY_L2A) {
-        qualitySwitchRules.push((0,_L2ARule_js__WEBPACK_IMPORTED_MODULE_6__["default"])(context).create({
+      if (settings.get().streaming.abr.ABRStrategy === _constants_Constants__WEBPACK_IMPORTED_MODULE_12__["default"].ABR_STRATEGY_L2A) {
+        qualitySwitchRules.push((0,_L2ARule_js__WEBPACK_IMPORTED_MODULE_8__["default"])(context).create({
           dashMetrics: dashMetrics,
           settings: settings
         }));
+      } // If CMAB is used we only need this one rule
+      else if (settings.get().streaming.abr.ABRStrategy === _constants_Constants__WEBPACK_IMPORTED_MODULE_12__["default"].ABR_STRATEGY_CMAB) {
+        qualitySwitchRules.push((0,_cmab_CMABRule_js__WEBPACK_IMPORTED_MODULE_6__["default"])(context).create({
+          dashMetrics: dashMetrics
+        }));
       } // If LoLP is used we only need this one rule
-      else if (settings.get().streaming.abr.ABRStrategy === _constants_Constants__WEBPACK_IMPORTED_MODULE_10__["default"].ABR_STRATEGY_LoLP) {
-        qualitySwitchRules.push((0,_lolp_LoLpRule_js__WEBPACK_IMPORTED_MODULE_7__["default"])(context).create({
+      else if (settings.get().streaming.abr.ABRStrategy === _constants_Constants__WEBPACK_IMPORTED_MODULE_12__["default"].ABR_STRATEGY_LoLP) {
+        qualitySwitchRules.push((0,_lolp_LoLpRule_js__WEBPACK_IMPORTED_MODULE_9__["default"])(context).create({
           dashMetrics: dashMetrics
         }));
       } else {
         // Only one of BolaRule and ThroughputRule will give a switchRequest.quality !== SwitchRequest.NO_CHANGE.
         // This is controlled by useBufferOccupancyABR mechanism in AbrController.
-        qualitySwitchRules.push((0,_BolaRule__WEBPACK_IMPORTED_MODULE_5__["default"])(context).create({
+        qualitySwitchRules.push((0,_BolaRule__WEBPACK_IMPORTED_MODULE_7__["default"])(context).create({
           dashMetrics: dashMetrics,
           mediaPlayerModel: mediaPlayerModel,
           settings: settings
         }));
-        qualitySwitchRules.push((0,_ThroughputRule__WEBPACK_IMPORTED_MODULE_0__["default"])(context).create({
+        qualitySwitchRules.push((0,_ThroughputRule__WEBPACK_IMPORTED_MODULE_1__["default"])(context).create({
           dashMetrics: dashMetrics
         }));
 
         if (settings.get().streaming.abr.additionalAbrRules.insufficientBufferRule) {
-          qualitySwitchRules.push((0,_InsufficientBufferRule__WEBPACK_IMPORTED_MODULE_1__["default"])(context).create({
+          qualitySwitchRules.push((0,_InsufficientBufferRule__WEBPACK_IMPORTED_MODULE_2__["default"])(context).create({
             dashMetrics: dashMetrics,
             settings: settings
           }));
         }
 
         if (settings.get().streaming.abr.additionalAbrRules.switchHistoryRule) {
-          qualitySwitchRules.push((0,_SwitchHistoryRule__WEBPACK_IMPORTED_MODULE_4__["default"])(context).create());
+          qualitySwitchRules.push((0,_SwitchHistoryRule__WEBPACK_IMPORTED_MODULE_5__["default"])(context).create());
         }
 
         if (settings.get().streaming.abr.additionalAbrRules.droppedFramesRule) {
-          qualitySwitchRules.push((0,_DroppedFramesRule__WEBPACK_IMPORTED_MODULE_3__["default"])(context).create());
+          qualitySwitchRules.push((0,_DroppedFramesRule__WEBPACK_IMPORTED_MODULE_4__["default"])(context).create());
         }
 
         if (settings.get().streaming.abr.additionalAbrRules.abandonRequestsRule) {
-          abandonFragmentRules.push((0,_AbandonRequestsRule__WEBPACK_IMPORTED_MODULE_2__["default"])(context).create({
+          abandonFragmentRules.push((0,_AbandonRequestsRule__WEBPACK_IMPORTED_MODULE_3__["default"])(context).create({
             dashMetrics: dashMetrics,
             mediaPlayerModel: mediaPlayerModel,
             settings: settings
@@ -17377,7 +17405,7 @@ function ABRRulesCollection(config) {
 
   function _getRulesWithChange(srArray) {
     return srArray.filter(function (sr) {
-      return sr.quality > _SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].NO_CHANGE;
+      return sr.quality > _SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].NO_CHANGE;
     });
   }
   /**
@@ -17396,41 +17424,41 @@ function ABRRulesCollection(config) {
       return;
     }
 
-    values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].PRIORITY.STRONG] = {
-      quality: _SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].NO_CHANGE,
+    values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].PRIORITY.STRONG] = {
+      quality: _SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].NO_CHANGE,
       reason: null
     };
-    values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].PRIORITY.WEAK] = {
-      quality: _SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].NO_CHANGE,
+    values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].PRIORITY.WEAK] = {
+      quality: _SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].NO_CHANGE,
       reason: null
     };
-    values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].PRIORITY.DEFAULT] = {
-      quality: _SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].NO_CHANGE,
+    values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].PRIORITY.DEFAULT] = {
+      quality: _SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].NO_CHANGE,
       reason: null
     };
 
     for (i = 0, len = srArray.length; i < len; i += 1) {
       req = srArray[i];
 
-      if (req.quality !== _SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].NO_CHANGE) {
+      if (req.quality !== _SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].NO_CHANGE) {
         // We only use the new quality in case it is lower than the already saved one or if no new quality has been selected for the respective priority
-        if (values[req.priority].quality === _SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].NO_CHANGE || values[req.priority].quality > req.quality) {
+        if (values[req.priority].quality === _SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].NO_CHANGE || values[req.priority].quality > req.quality) {
           values[req.priority].quality = req.quality;
           values[req.priority].reason = req.reason || null;
         }
       }
     }
 
-    if (values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].PRIORITY.WEAK].quality !== _SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].NO_CHANGE) {
-      newSwitchReq = values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].PRIORITY.WEAK];
+    if (values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].PRIORITY.WEAK].quality !== _SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].NO_CHANGE) {
+      newSwitchReq = values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].PRIORITY.WEAK];
     }
 
-    if (values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].PRIORITY.DEFAULT].quality !== _SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].NO_CHANGE) {
-      newSwitchReq = values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].PRIORITY.DEFAULT];
+    if (values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].PRIORITY.DEFAULT].quality !== _SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].NO_CHANGE) {
+      newSwitchReq = values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].PRIORITY.DEFAULT];
     }
 
-    if (values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].PRIORITY.STRONG].quality !== _SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].NO_CHANGE) {
-      newSwitchReq = values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"].PRIORITY.STRONG];
+    if (values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].PRIORITY.STRONG].quality !== _SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].NO_CHANGE) {
+      newSwitchReq = values[_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"].PRIORITY.STRONG];
     }
 
     if (newSwitchReq) {
@@ -17438,7 +17466,7 @@ function ABRRulesCollection(config) {
       reason = newSwitchReq.reason;
     }
 
-    return (0,_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"])(context).create(quality, reason);
+    return (0,_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"])(context).create(quality, reason);
   }
 
   function getMaxQuality(rulesContext) {
@@ -17449,7 +17477,7 @@ function ABRRulesCollection(config) {
     var activeRules = _getRulesWithChange(switchRequestArray);
 
     var maxQuality = getMinSwitchRequest(activeRules);
-    return maxQuality || (0,_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"])(context).create();
+    return maxQuality || (0,_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"])(context).create();
   }
 
   function shouldAbandonFragment(rulesContext, streamId) {
@@ -17465,7 +17493,7 @@ function ABRRulesCollection(config) {
       shouldAbandon.reason.forceAbandon = true;
     }
 
-    return shouldAbandon || (0,_SwitchRequest__WEBPACK_IMPORTED_MODULE_9__["default"])(context).create();
+    return shouldAbandon || (0,_SwitchRequest__WEBPACK_IMPORTED_MODULE_11__["default"])(context).create();
   }
 
   function reset() {
@@ -17496,10 +17524,10 @@ function ABRRulesCollection(config) {
 }
 
 ABRRulesCollection.__dashjs_factory_name = 'ABRRulesCollection';
-var factory = _core_FactoryMaker__WEBPACK_IMPORTED_MODULE_8__["default"].getClassFactory(ABRRulesCollection);
+var factory = _core_FactoryMaker__WEBPACK_IMPORTED_MODULE_10__["default"].getClassFactory(ABRRulesCollection);
 factory.QUALITY_SWITCH_RULES = QUALITY_SWITCH_RULES;
 factory.ABANDON_FRAGMENT_RULES = ABANDON_FRAGMENT_RULES;
-_core_FactoryMaker__WEBPACK_IMPORTED_MODULE_8__["default"].updateSingletonFactory(ABRRulesCollection.__dashjs_factory_name, factory);
+_core_FactoryMaker__WEBPACK_IMPORTED_MODULE_10__["default"].updateSingletonFactory(ABRRulesCollection.__dashjs_factory_name, factory);
 /* harmony default export */ __webpack_exports__["default"] = (factory);
 
 /***/ }),
@@ -19235,6 +19263,748 @@ function ThroughputRule(config) {
 
 ThroughputRule.__dashjs_factory_name = 'ThroughputRule';
 /* harmony default export */ __webpack_exports__["default"] = (_core_FactoryMaker__WEBPACK_IMPORTED_MODULE_0__["default"].getClassFactory(ThroughputRule));
+
+/***/ }),
+
+/***/ "./src/streaming/rules/abr/cmab/CMABAbrController.js":
+/*!***********************************************************!*\
+  !*** ./src/streaming/rules/abr/cmab/CMABAbrController.js ***!
+  \***********************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _core_FactoryMaker__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../core/FactoryMaker */ "./src/core/FactoryMaker.js");
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+/**
+ * The copyright in this software is being made available under the BSD License,
+ * included below. This software may be subject to other third party and contributor
+ * rights, including patent rights, and no such rights are granted under this license.
+ *
+ * Copyright (c) 2013, Dash Industry Forum.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *  this list of conditions and the following disclaimer in the documentation and/or
+ *  other materials provided with the distribution.
+ *  * Neither the name of Dash Industry Forum nor the names of its
+ *  contributors may be used to endorse or promote products derived from this software
+ *  without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS AS IS AND ANY
+ *  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ *  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ *  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ *  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * Authors:
+ * Jinwei Zhao | University of Victoria | clarkzjw@uvic.ca, clarkzjw@gmail.com
+ */
+ // const statServerUrl = 'http://stat-server:8000';
+
+var statServerUrl = 'http://100.99.201.63/stats';
+
+function getLatestNetworkLatency() {
+  var LatencySidecarURL = statServerUrl + '/ping';
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', LatencySidecarURL, false);
+  xhr.send(null);
+
+  if (xhr.status === 200) {
+    return xhr.responseText;
+  } else {
+    throw new Error('Request failed: ' + xhr.statusText);
+  }
+}
+
+function getHistory(url) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, false); // 'false' makes the request synchronous
+
+  xhr.setRequestHeader('Content-Type', 'application/json');
+
+  try {
+    xhr.send(null);
+
+    if (xhr.status === 200) {
+      return JSON.parse(xhr.responseText); // Return parsed JSON
+    } else {
+      // console.log("Error: " + xhr.status);
+      return null; // Handle non-200 responses
+    }
+  } catch (err) {
+    // console.log("Request failed", err);
+    return null;
+  }
+}
+
+function getLatencyHistory() {
+  var url = statServerUrl + '/pingstats';
+  return getHistory(url);
+}
+
+function getThroughputHistory() {
+  var url = statServerUrl + '/throughputstats';
+  return getHistory(url);
+}
+
+function sendStats(_x, _x2, _x3) {
+  return _sendStats.apply(this, arguments);
+}
+
+function _sendStats() {
+  _sendStats = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(url, type, stat) {
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            fetch(url, {
+              credentials: 'omit',
+              mode: 'cors',
+              method: 'post',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                type: stat
+              })
+            }).then(function (resp) {
+              if (resp.status === 200) {
+                // console.log('Sent %s', type)
+                return resp.json();
+              } else {
+                console.log('Status: ' + resp.status);
+                return Promise.reject('500');
+              }
+            })["catch"](function (err) {
+              if (err === '500') return;
+              console.log(err);
+            });
+
+          case 1:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _sendStats.apply(this, arguments);
+}
+
+function CMABAbrController() {
+  var _py_mabwiser_select_arm = "\n    import pandas as pd\n    from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy\n    from sklearn.preprocessing import StandardScaler\n    from pprint import pprint\n\n    from js import js_cmabArms, js_rewards, js_selected_arms, js_bitrate, js_history, js_rebuffer_events, js_cmabAlpha\n    from js import js_throughput_playback_history, js_latency_playback_history\n\n    arms = js_cmabArms.to_py()\n    rewards = js_rewards.to_py()\n    selected_arms = js_selected_arms.to_py()\n    bitrate = js_bitrate.to_py()\n    history = js_history.to_py()\n    rebuffering_events = js_rebuffer_events.to_py()\n    cmab_alpha = js_cmabAlpha\n    length = len(history)\n    throughput_playback_history = js_throughput_playback_history.to_py()\n    latency_playback_history = js_latency_playback_history.to_py()\n\n    print(\"cmab_alpha from pyodide\", cmab_alpha)\n    pprint(throughput_playback_history)\n    pprint(latency_playback_history)\n\n    # selected_arms == bitrate level in each round\n    previous_rounds = length - 1\n\n    throughput = [x['throughput'] for x in history]\n    playback_rate = [x['playback_rate'] for x in history]\n    network_latency = [x['network_latency'] for x in history]\n    live_latency = [x['live_latency'] for x in history]\n\n    #print('history length', length)\n    #print('selected_arms length', len(selected_arms))\n    #print('rewards length', len(rewards))\n    #print('bitrate length', len(bitrate))\n    #print('throughput length', len(throughput))\n\n    train_df = pd.DataFrame({\n                             'selected_arms': selected_arms,\n                             'reward': rewards,\n                             'bitrate': bitrate,\n                             'throughput': throughput[:previous_rounds],\n                             'playback_rate': playback_rate[:previous_rounds],\n                             'network_latency': network_latency[:previous_rounds],\n                             'live_latency': live_latency[:previous_rounds],\n                            #  'live_latency': live_latency[length:previous_rounds],\n                            #  'throughput': throughput[length:previous_rounds],\n                            #  'playback_rate': playback_rate[length:previous_rounds]\n                             })\n\n    #pprint(train_df)\n\n    scaler = StandardScaler()\n    train = scaler.fit_transform(train_df[[\n        'throughput',\n        'playback_rate',\n        'network_latency'\n    ]])\n\n    # Model\n\n    # LinUCB\n    # mab = MAB(arms=arms, learning_policy=LearningPolicy.LinUCB(alpha=1.25, l2_lambda=1))\n    # mab.fit(decisions=train_df['selected_arms'], rewards=train_df['reward'], contexts=train)\n\n    # EpsilonGreedy\n    # mab = MAB(arms=arms, learning_policy=LearningPolicy.EpsilonGreedy(epsilon=0.25))\n    # mab.fit(decisions=train_df['selected_arms'], rewards=train_df['reward'])\n\n    # LinTS\n    mab = MAB(arms=arms, learning_policy=LearningPolicy.LinTS(alpha=cmab_alpha))\n    mab.fit(decisions=train_df['selected_arms'], rewards=train_df['reward'], contexts=train)\n\n    # Test\n    test_df = pd.DataFrame({\n                            'throughput': [throughput[-1]],\n                            'playback_rate': [playback_rate[-1]],\n                            'network_latency': [network_latency[-1]]\n                            })\n    test = scaler.transform(test_df)\n\n    mab.predict(test)\n    ";
+  var _py_itu_p1203_calculate_o46 = "\n    import json\n    from itu_p1203 import P1203Standalone\n    from js import js_itup1203inputjson\n\n    input_json = js_itup1203inputjson.to_py()\n\n    input = json.loads(json.dumps(input_json))\n    res = P1203Standalone(input).calculate_complete()\n    res[\"O46\"]\n    ";
+  var instance;
+  var starlinkTimeslotCount = 0;
+  var _rewardsArray = [];
+  var _selectedArmsArray = [];
+  var _bitrateArray = [];
+
+  var _throughputDict = new Map();
+
+  var rounds = 0;
+
+  function timeDiff(tic, toc) {
+    return (toc - tic) / 1000.0;
+  } // calculate reward using QoE ITU-T Rec. P.1203: https://github.com/itu-p1203/itu-p1203
+
+
+  function calculateReward(pyodide, context, currentLatency, selectedBitrate, bitrateRatio, rebufferingEvents) {
+    var itu_p1203_input_json = generateITUP1203InputJSON(context); // console.log('calculateReward context', context, 'target live delay', context.target_latency);
+
+    var total_rebuffering_time = 0;
+    var selected_bitrate_rebuffering_time = 0;
+    var rebuffering_ratio = 0;
+
+    var _iterator = _createForOfIteratorHelper(rebufferingEvents.entries()),
+        _step;
+
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var entry = _step.value;
+        var bitrate = entry[0];
+        var event = entry[1];
+        var sum = 0;
+
+        if (event.length > 0) {
+          sum = event.reduce(function (a, b) {
+            return a + b;
+          });
+        }
+
+        if (bitrate === selectedBitrate) {
+          selected_bitrate_rebuffering_time = sum;
+        }
+
+        total_rebuffering_time = total_rebuffering_time + sum; // console.log(`entry ${entry}, sum ${sum}, bitrate ${bitrate}`);
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+
+    if (total_rebuffering_time > 0) {
+      rebuffering_ratio = selected_bitrate_rebuffering_time / total_rebuffering_time;
+    } // console.log(`total rebuffering ${total_rebuffering_time}, selected rebuffering ${selected_bitrate_rebuffering_time}, ratio ${rebuffering_ratio}`);
+
+
+    var itu_qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
+    var qoe = itu_qoe * (context.target_latency / currentLatency) * bitrateRatio - rebuffering_ratio;
+    console.log("ITU P1203 QoE: ".concat(itu_qoe, ", qoe: ").concat(qoe, ", current latency: ").concat(currentLatency));
+    return qoe;
+  } // generate ITU P1203 input json, using mode 0
+  // https://github.com/itu-p1203/itu-p1203/blob/master/examples/mode0.json
+
+
+  function generateITUP1203InputJSON(context) {
+    // example input json
+    // {
+    //     "I11": {
+    //         "segments": [
+    //             {
+    //                 "bitrate": 331.46,
+    //                 "codec": "aaclc",
+    //                 "duration": 1,
+    //                 "start": 10
+    //             }
+    //         ],
+    //         "streamId": 42
+    //     },
+    //     "I13": {
+    //         "segments": [
+    //             {
+    //                 "bitrate": 691.72,
+    //                 "codec": "h264",
+    //                 "duration": 1,
+    //                 "fps": 24.0,
+    //                 "resolution": "1920x1080",
+    //                 "start": 10
+    //             }
+    //         ],
+    //         "streamId": 42
+    //     },
+    //     "I23": {
+    //         "stalling": [],
+    //         "streamId": 42
+    //     },
+    //     "IGen": {
+    //         "device": "pc",
+    //         "displaySize": "1920x1080",
+    //         "viewingDistance": "150cm"
+    //     }
+    // }
+    var audio_bitrate = context.audio_bitrate;
+    var audio_codec = context.audio_codec.includes('mp4a') ? 'aaclc' : context.audio_codec;
+    var seg_duration = context.seg_duration;
+    var stream_id = context.stream_id;
+    var start = 0;
+    var fps = 24.0;
+    var video_bitrate = context.video_bitrate;
+    var video_codec = context.video_codec.includes('avc') ? 'h264' : context.video_codec;
+    var resolution = context.resolution;
+    return {
+      'I11': {
+        'segments': [{
+          'bitrate': audio_bitrate,
+          'codec': audio_codec,
+          'duration': seg_duration,
+          'start': start
+        }],
+        'streamId': stream_id
+      },
+      'I13': {
+        'segments': [{
+          'bitrate': video_bitrate,
+          'codec': video_codec,
+          'duration': seg_duration,
+          'fps': fps,
+          'resolution': resolution,
+          'start': start
+        }],
+        'streamId': stream_id
+      },
+      'I23': {
+        'stalling': [],
+        'streamId': stream_id
+      },
+      'IGen': {
+        'device': 'pc',
+        'displaySize': resolution,
+        'viewingDistance': '150cm'
+      }
+    };
+  } // calculate ITU P1203 O46 QoE value
+
+
+  function calculateITUP1203QoE(pyodide, itup1203_input_json) {
+    window.js_itup1203inputjson = itup1203_input_json;
+    return pyodide.runPython(_py_itu_p1203_calculate_o46);
+  }
+
+  function isSameSatelliteTimeSlot(t1, t2) {
+    // 12, 27, 42, 57
+    // if the difference between two timestamps > 15 seconds,
+    // they definitely belong to different satellite timeslots
+    if ((t2 - t1) / 1000.0 > 15) {
+      return false;
+    }
+
+    var t1_minute = t1.getMinutes();
+    var t2_minute = t2.getMinutes(); // if their minute difference > 1,
+    // they definitely belong to different satellite timeslots
+
+    if (t2_minute - t1_minute > 1) {
+      return false;
+    }
+
+    var t1_second = t1.getSeconds();
+    var t2_second = t2.getSeconds(); // if they are in adjacent minutes,
+    // and t1 > 57, t2 < 12, they belong to the same timeslot
+
+    if (t2_minute - t1_minute === 1 && t1_second > 57 && t2_second <= 12) {
+      return true;
+    } // if they are in the same minute
+
+
+    if (t1_minute === t2_minute) {
+      if (t1_second <= 12 && t2_second <= 12) {
+        return true;
+      }
+
+      if (t1_second > 12 && t1_second <= 27 && t2_second > 12 && t2_second <= 27) {
+        return true;
+      }
+
+      if (t1_second > 27 && t1_second <= 42 && t2_second > 27 && t2_second <= 42) {
+        return true;
+      }
+
+      if (t1_second > 42 && t1_second <= 57 && t2_second > 42 && t2_second <= 57) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel, currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput, rebufferingEvents, cmabAlpha, pyodideInitDone) {
+    if (pyodideInitDone === false) {
+      return 0;
+    }
+
+    var _latency_playback_history = getLatencyHistory();
+
+    var _throughput_playback_history = getThroughputHistory(); // console.log(_latency_playback_history)
+    // console.log(_throughput_playback_history)
+
+
+    var tic = new Date();
+    console.log('\ngetCMABNextQuality', tic); // console.log(`Throughput ${throughput} kbps, playbackSpeed ${playbackRate}, currentLatency ${currentLiveLatency}, currentBitrate ${currentBitrateKbps}, maxBitrate ${maxBitrateKbps}, currentQualityLevel ${currentQualityLevel}`);
+
+    throughput = throughput / 1000.0;
+
+    if (_throughputDict.get(starlinkTimeslotCount) === undefined) {
+      _throughputDict.set(starlinkTimeslotCount, {
+        'start': tic,
+        'history': []
+      });
+    } else {
+      var last_timeslot_started_at = _throughputDict.get(starlinkTimeslotCount)['start'];
+
+      var same_timeslot = isSameSatelliteTimeSlot(last_timeslot_started_at, tic);
+
+      if (!same_timeslot) {
+        starlinkTimeslotCount += 1;
+
+        _throughputDict.set(starlinkTimeslotCount, {
+          'start': tic,
+          'history': []
+        });
+
+        _selectedArmsArray = [];
+        _rewardsArray = [];
+        _bitrateArray = [];
+      }
+    }
+
+    var selectedArm = 0;
+    var networkLatency = getLatestNetworkLatency();
+
+    _throughputDict.get(starlinkTimeslotCount).history.push({
+      tic: tic,
+      throughput: throughput,
+      network_latency: networkLatency,
+      live_latency: currentLiveLatency,
+      playback_rate: playbackRate
+    }); // console.log('network latency:', networkLatency);
+
+
+    window.js_cmabArms = cmabArms;
+    window.js_rewards = _rewardsArray;
+    window.js_selected_arms = _selectedArmsArray;
+    window.js_bitrate = _bitrateArray;
+    window.js_history = _throughputDict.get(starlinkTimeslotCount).history;
+    window.js_rebuffer_events = rebufferingEvents;
+    window.js_cmabAlpha = cmabAlpha;
+    window.js_throughput_playback_history = _throughput_playback_history;
+    window.js_latency_playback_history = _latency_playback_history; // just recovered from satellite handover
+
+    if (_selectedArmsArray.length < cmabArms.length - 1) {
+      console.log('length: ', _selectedArmsArray.length);
+      selectedArm = cmabArms.length - 1;
+    } else {
+      selectedArm = pyodide.runPython(_py_mabwiser_select_arm);
+    }
+
+    _selectedArmsArray.push(selectedArm);
+
+    context.video_bitrate = bitrateList[selectedArm].bandwidth / 1000.0;
+    context.resolution = "".concat(bitrateList[selectedArm].width, "x").concat(bitrateList[selectedArm].height);
+    var bitrateRatio = context.video_bitrate / maxBitrateKbps;
+    var reward_qoe = calculateReward(pyodide, context, currentLiveLatency, context.video_bitrate, bitrateRatio, rebufferingEvents);
+
+    _bitrateArray.push(context.video_bitrate);
+
+    _rewardsArray.push(reward_qoe);
+
+    sendStats(statServerUrl + '/qoe/', 'qoe', {
+      timestamp: new Date().valueOf(),
+      reward_qoe: reward_qoe,
+      arm: selectedArm,
+      video_bitrate: context.video_bitrate,
+      bitrateRatio: bitrateRatio,
+      currentLiveLatency: currentLiveLatency
+    });
+    rounds = rounds + 1;
+    var toc = new Date();
+    console.log('selected arm', selectedArm, 'time used', timeDiff(tic, toc), 'seconds');
+    return selectedArm;
+  }
+
+  instance = {
+    getCMABNextQuality: getCMABNextQuality
+  };
+  return instance;
+}
+
+CMABAbrController.__dashjs_factory_name = 'CMABAbrController';
+/* harmony default export */ __webpack_exports__["default"] = (_core_FactoryMaker__WEBPACK_IMPORTED_MODULE_0__["default"].getClassFactory(CMABAbrController));
+
+/***/ }),
+
+/***/ "./src/streaming/rules/abr/cmab/CMABRule.js":
+/*!**************************************************!*\
+  !*** ./src/streaming/rules/abr/cmab/CMABRule.js ***!
+  \**************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _core_FactoryMaker__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../core/FactoryMaker */ "./src/core/FactoryMaker.js");
+/* harmony import */ var _constants_Constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../constants/Constants */ "./src/streaming/constants/Constants.js");
+/* harmony import */ var _constants_MetricsConstants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../constants/MetricsConstants */ "./src/streaming/constants/MetricsConstants.js");
+/* harmony import */ var _CMABAbrController__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./CMABAbrController */ "./src/streaming/rules/abr/cmab/CMABAbrController.js");
+/* harmony import */ var _MediaPlayerEvents__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../MediaPlayerEvents */ "./src/streaming/MediaPlayerEvents.js");
+/* harmony import */ var _core_EventBus__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../../core/EventBus */ "./src/core/EventBus.js");
+/* harmony import */ var _core_Settings__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../../core/Settings */ "./src/core/Settings.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+/**
+ * The copyright in this software is being made available under the BSD License,
+ * included below. This software may be subject to other third party and contributor
+ * rights, including patent rights, and no such rights are granted under this license.
+ *
+ * Copyright (c) 2013, Dash Industry Forum.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *  this list of conditions and the following disclaimer in the documentation and/or
+ *  other materials provided with the distribution.
+ *  * Neither the name of Dash Industry Forum nor the names of its
+ *  contributors may be used to endorse or promote products derived from this software
+ *  without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS AS IS AND ANY
+ *  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ *  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ *  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ *  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * Authors:
+ * Jinwei Zhao | University of Victoria | clarkzjw@uvic.ca, clarkzjw@gmail.com
+ */
+
+
+
+
+
+
+
+
+var _require = __webpack_require__(/*! pyodide */ "./node_modules/pyodide/pyodide.js"),
+    loadPyodide = _require.loadPyodide;
+
+var statServerUrl = 'http://100.99.201.63/stats'; // const statServerUrl = 'http://stat-server:8000';
+
+function sendStats(_x, _x2) {
+  return _sendStats.apply(this, arguments);
+}
+
+function _sendStats() {
+  _sendStats = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(url, stat) {
+    return regeneratorRuntime.wrap(function _callee2$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            fetch(url, {
+              credentials: 'omit',
+              mode: 'cors',
+              method: 'post',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                stat: stat
+              })
+            }).then(function (resp) {
+              if (resp.status === 200) {
+                return resp.json();
+              } else {
+                console.log('Status: ' + resp.status);
+                return Promise.reject('500');
+              }
+            })["catch"](function (err) {
+              if (err === '500') return;
+              console.log(err);
+            });
+
+          case 1:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _sendStats.apply(this, arguments);
+}
+
+function CMABRule(config) {
+  config = config || {};
+  var dashMetrics = config.dashMetrics;
+  var factory = dashjs.FactoryMaker;
+  var SwitchRequest = factory.getClassFactoryByName('SwitchRequest');
+  var context = this.context;
+  var eventBus = (0,_core_EventBus__WEBPACK_IMPORTED_MODULE_5__["default"])(context).getInstance();
+  var instance;
+  var cmabArms = null;
+  var pyodide = null;
+  var pyodideInitDone = false;
+  var CMABController;
+  var player_settings;
+  var audioCodec = 'aaclc';
+  var audioBitrate = -1;
+  var currentBitrate;
+  var currentBitrateKbps;
+  var lastStallTime = null;
+  var rebufferingEvents = new Map();
+  var cmabAlpha = null;
+  var _py_import_test = "\n    import pandas as pd\n    from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy\n    from sklearn.preprocessing import StandardScaler\n    from pprint import pprint\n    ";
+
+  function init_pyodide() {
+    return _init_pyodide.apply(this, arguments);
+  }
+
+  function _init_pyodide() {
+    _init_pyodide = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+      var pyodide, requirements;
+      return regeneratorRuntime.wrap(function _callee$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              console.log('Loading Pyodide...');
+              _context2.next = 3;
+              return loadPyodide({
+                indexURL: 'http://100.99.201.63/pyodide/'
+              });
+
+            case 3:
+              pyodide = _context2.sent;
+              requirements = ['pandas', 'scikit-learn', 'http://100.99.201.63/pyodide/mabwiser-2.7.0-py3-none-any.whl', 'http://100.99.201.63/pyodide/itu_p1203-1.9.5-py3-none-any.whl'];
+              _context2.next = 7;
+              return pyodide.loadPackage(requirements);
+
+            case 7:
+              _context2.next = 9;
+              return pyodide.runPythonAsync(_py_import_test);
+
+            case 9:
+              return _context2.abrupt("return", pyodide);
+
+            case 10:
+            case "end":
+              return _context2.stop();
+          }
+        }
+      }, _callee);
+    }));
+    return _init_pyodide.apply(this, arguments);
+  }
+
+  function setup() {
+    player_settings = (0,_core_Settings__WEBPACK_IMPORTED_MODULE_6__["default"])(context).getInstance();
+    cmabAlpha = player_settings.get().streaming.abr.cmab.alpha;
+    console.log('!!!!!!cmab alpha:', cmabAlpha);
+    init_pyodide().then(function (pyodide_context) {
+      pyodide = pyodide_context;
+      console.log('CMAB Rule Setup Done', new Date());
+      pyodideInitDone = true;
+      sendStats(statServerUrl + '/event/initDone', {
+        'initDone': 1
+      });
+      eventBus.on(_MediaPlayerEvents__WEBPACK_IMPORTED_MODULE_4__["default"].BUFFER_LOADED, onBufferLoaded, instance);
+      eventBus.on(_MediaPlayerEvents__WEBPACK_IMPORTED_MODULE_4__["default"].BUFFER_EMPTY, onBufferEmpty, instance);
+      CMABController = (0,_CMABAbrController__WEBPACK_IMPORTED_MODULE_3__["default"])(context).create();
+    });
+  }
+
+  function onBufferEmpty(e) {
+    if (e.mediaType === 'video' && pyodideInitDone === true) {
+      var tic = new Date();
+      console.log('===CMAB Buffer Empty:', e, currentBitrate, tic);
+      lastStallTime = new Date();
+    }
+  }
+
+  function onBufferLoaded(e) {
+    if (e.mediaType === 'video' && pyodideInitDone === true) {
+      var tic = new Date();
+      console.log('===CMAB Buffer Loaded:', e, tic, lastStallTime);
+
+      if (lastStallTime != null) {
+        var duration = (tic - lastStallTime) / 1000.0;
+        rebufferingEvents.get(currentBitrateKbps).push(duration);
+        console.log('++++rebuffering duration', rebufferingEvents);
+      }
+    }
+  }
+
+  function getMaxIndex(rulesContext) {
+    try {
+      var switchRequest = SwitchRequest(_context).create();
+      var abrController = rulesContext.getAbrController();
+      var streamInfo = rulesContext.getStreamInfo();
+      var scheduleController = rulesContext.getScheduleController();
+      var playbackController = scheduleController.getPlaybackController();
+      var isDynamic = streamInfo && streamInfo.manifestInfo ? streamInfo.manifestInfo.isDynamic : null;
+      var mediaType = rulesContext.getMediaInfo().type;
+      var bufferStateVO = dashMetrics.getCurrentBufferState(mediaType);
+      var playbackRate = playbackController.getPlaybackRate();
+      var throughputHistory = abrController.getThroughputHistory();
+      var throughput = throughputHistory.getSafeAverageThroughput(mediaType, isDynamic);
+      var currentLiveLatency = playbackController.getCurrentLiveLatency();
+      var latencyTarget = playbackController.getLiveDelay();
+      var mediaInfo = rulesContext.getMediaInfo();
+
+      if (!currentLiveLatency) {
+        currentLiveLatency = 0;
+      }
+
+      if (mediaType === _constants_Constants__WEBPACK_IMPORTED_MODULE_1__["default"].AUDIO) {
+        audioCodec = mediaInfo.codec.split(';')[1].split('=')[1].replace(/['"]+/g, '');
+        audioBitrate = mediaInfo.bitrateList[0].bandwidth / 1000.0;
+      }
+
+      if (isNaN(throughput) || !bufferStateVO || mediaType === _constants_Constants__WEBPACK_IMPORTED_MODULE_1__["default"].AUDIO || pyodideInitDone === false || abrController.getAbandonmentStateFor(streamInfo.id, mediaType) === _constants_MetricsConstants__WEBPACK_IMPORTED_MODULE_2__["default"].ABANDON_LOAD) {
+        return switchRequest;
+      }
+
+      var _context = {
+        video_codec: mediaInfo.codec.split(';')[1].split('=')[1].replace(/['"]+/g, ''),
+        stream_id: streamInfo.index,
+        seg_duration: streamInfo.manifestInfo.maxFragmentDuration,
+        audio_codec: audioCodec,
+        audio_bitrate: audioBitrate,
+        target_latency: latencyTarget
+      };
+      var bitrateList = mediaInfo.bitrateList; // [{bandwidth: 200000, width: 640, height: 360}, ...]
+
+      if (cmabArms == null) {
+        cmabArms = Array.apply(null, Array(bitrateList.length)).map(function (x, i) {
+          return i;
+        });
+      }
+
+      if (rebufferingEvents.size === 0) {
+        for (var i = 0; i < bitrateList.length; i++) {
+          rebufferingEvents.set(bitrateList[i].bandwidth / 1000.0, []);
+        }
+      }
+
+      var currentQualityLevel = abrController.getQualityFor(mediaType, streamInfo.id);
+      currentBitrate = bitrateList[currentQualityLevel].bandwidth;
+      currentBitrateKbps = currentBitrate / 1000.0;
+      var maxBitrateKbps = bitrateList[bitrateList.length - 1].bandwidth / 1000.0;
+      console.log('waiting CMABController.getCMABNextQuality');
+      switchRequest.quality = CMABController.getCMABNextQuality(pyodide, _context, bitrateList, cmabArms, currentQualityLevel, currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput, rebufferingEvents, cmabAlpha, pyodideInitDone);
+      switchRequest.reason = 'Switch bitrate based on CMAB';
+      switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
+      scheduleController.setTimeToLoadDelay(0);
+      return switchRequest;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  }
+
+  function reset() {
+    eventBus.off(_MediaPlayerEvents__WEBPACK_IMPORTED_MODULE_4__["default"].BUFFER_LOADED, onBufferLoaded, instance);
+    eventBus.off(_MediaPlayerEvents__WEBPACK_IMPORTED_MODULE_4__["default"].BUFFER_EMPTY, onBufferEmpty, instance);
+  }
+
+  instance = {
+    getMaxIndex: getMaxIndex,
+    reset: reset
+  };
+  setup();
+  return instance;
+}
+
+CMABRule.__dashjs_factory_name = 'CMABRule';
+/* harmony default export */ __webpack_exports__["default"] = (_core_FactoryMaker__WEBPACK_IMPORTED_MODULE_0__["default"].getClassFactory(CMABRule));
 
 /***/ }),
 
@@ -28863,6 +29633,790 @@ module.exports = posix;
 
 /***/ }),
 
+/***/ "./node_modules/pyodide/pyodide.js":
+/*!*****************************************!*\
+  !*** ./node_modules/pyodide/pyodide.js ***!
+  \*****************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+var __dirname = "/";
+!function(global,factory){ true?factory(exports):0}(this,(function(exports){"use strict";"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof window?window:"undefined"!=typeof __webpack_require__.g?__webpack_require__.g:"undefined"!=typeof self&&self;var errorStackParser={exports:{}},stackframe={exports:{}};!function(module,exports){module.exports=function(){function _isNumber(n){return!isNaN(parseFloat(n))&&isFinite(n)}function _capitalize(str){return str.charAt(0).toUpperCase()+str.substring(1)}function _getter(p){return function(){return this[p]}}var booleanProps=["isConstructor","isEval","isNative","isToplevel"],numericProps=["columnNumber","lineNumber"],stringProps=["fileName","functionName","source"],arrayProps=["args"],objectProps=["evalOrigin"],props=booleanProps.concat(numericProps,stringProps,arrayProps,objectProps);function StackFrame(obj){if(obj)for(var i=0;i<props.length;i++)void 0!==obj[props[i]]&&this["set"+_capitalize(props[i])](obj[props[i]])}StackFrame.prototype={getArgs:function(){return this.args},setArgs:function(v){if("[object Array]"!==Object.prototype.toString.call(v))throw new TypeError("Args must be an Array");this.args=v},getEvalOrigin:function(){return this.evalOrigin},setEvalOrigin:function(v){if(v instanceof StackFrame)this.evalOrigin=v;else{if(!(v instanceof Object))throw new TypeError("Eval Origin must be an Object or StackFrame");this.evalOrigin=new StackFrame(v)}},toString:function(){var fileName=this.getFileName()||"",lineNumber=this.getLineNumber()||"",columnNumber=this.getColumnNumber()||"",functionName=this.getFunctionName()||"";return this.getIsEval()?fileName?"[eval] ("+fileName+":"+lineNumber+":"+columnNumber+")":"[eval]:"+lineNumber+":"+columnNumber:functionName?functionName+" ("+fileName+":"+lineNumber+":"+columnNumber+")":fileName+":"+lineNumber+":"+columnNumber}},StackFrame.fromString=function(str){var argsStartIndex=str.indexOf("("),argsEndIndex=str.lastIndexOf(")"),functionName=str.substring(0,argsStartIndex),args=str.substring(argsStartIndex+1,argsEndIndex).split(","),locationString=str.substring(argsEndIndex+1);if(0===locationString.indexOf("@"))var parts=/@(.+?)(?::(\d+))?(?::(\d+))?$/.exec(locationString,""),fileName=parts[1],lineNumber=parts[2],columnNumber=parts[3];return new StackFrame({functionName:functionName,args:args||void 0,fileName:fileName,lineNumber:lineNumber||void 0,columnNumber:columnNumber||void 0})};for(var i=0;i<booleanProps.length;i++)StackFrame.prototype["get"+_capitalize(booleanProps[i])]=_getter(booleanProps[i]),StackFrame.prototype["set"+_capitalize(booleanProps[i])]=function(p){return function(v){this[p]=Boolean(v)}}(booleanProps[i]);for(var j=0;j<numericProps.length;j++)StackFrame.prototype["get"+_capitalize(numericProps[j])]=_getter(numericProps[j]),StackFrame.prototype["set"+_capitalize(numericProps[j])]=function(p){return function(v){if(!_isNumber(v))throw new TypeError(p+" must be a Number");this[p]=Number(v)}}(numericProps[j]);for(var k=0;k<stringProps.length;k++)StackFrame.prototype["get"+_capitalize(stringProps[k])]=_getter(stringProps[k]),StackFrame.prototype["set"+_capitalize(stringProps[k])]=function(p){return function(v){this[p]=String(v)}}(stringProps[k]);return StackFrame}()}(stackframe),function(module,exports){var StackFrame,FIREFOX_SAFARI_STACK_REGEXP,CHROME_IE_STACK_REGEXP,SAFARI_NATIVE_CODE_REGEXP;module.exports=(StackFrame=stackframe.exports,FIREFOX_SAFARI_STACK_REGEXP=/(^|@)\S+:\d+/,CHROME_IE_STACK_REGEXP=/^\s*at .*(\S+:\d+|\(native\))/m,SAFARI_NATIVE_CODE_REGEXP=/^(eval@)?(\[native code])?$/,{parse:function(error){if(void 0!==error.stacktrace||void 0!==error["opera#sourceloc"])return this.parseOpera(error);if(error.stack&&error.stack.match(CHROME_IE_STACK_REGEXP))return this.parseV8OrIE(error);if(error.stack)return this.parseFFOrSafari(error);throw new Error("Cannot parse given Error object")},extractLocation:function(urlLike){if(-1===urlLike.indexOf(":"))return[urlLike];var parts=/(.+?)(?::(\d+))?(?::(\d+))?$/.exec(urlLike.replace(/[()]/g,""));return[parts[1],parts[2]||void 0,parts[3]||void 0]},parseV8OrIE:function(error){return error.stack.split("\n").filter((function(line){return!!line.match(CHROME_IE_STACK_REGEXP)}),this).map((function(line){line.indexOf("(eval ")>-1&&(line=line.replace(/eval code/g,"eval").replace(/(\(eval at [^()]*)|(,.*$)/g,""));var sanitizedLine=line.replace(/^\s+/,"").replace(/\(eval code/g,"(").replace(/^.*?\s+/,""),location=sanitizedLine.match(/ (\(.+\)$)/);sanitizedLine=location?sanitizedLine.replace(location[0],""):sanitizedLine;var locationParts=this.extractLocation(location?location[1]:sanitizedLine),functionName=location&&sanitizedLine||void 0,fileName=["eval","<anonymous>"].indexOf(locationParts[0])>-1?void 0:locationParts[0];return new StackFrame({functionName:functionName,fileName:fileName,lineNumber:locationParts[1],columnNumber:locationParts[2],source:line})}),this)},parseFFOrSafari:function(error){return error.stack.split("\n").filter((function(line){return!line.match(SAFARI_NATIVE_CODE_REGEXP)}),this).map((function(line){if(line.indexOf(" > eval")>-1&&(line=line.replace(/ line (\d+)(?: > eval line \d+)* > eval:\d+:\d+/g,":$1")),-1===line.indexOf("@")&&-1===line.indexOf(":"))return new StackFrame({functionName:line});var functionNameRegex=/((.*".+"[^@]*)?[^@]*)(?:@)/,matches=line.match(functionNameRegex),functionName=matches&&matches[1]?matches[1]:void 0,locationParts=this.extractLocation(line.replace(functionNameRegex,""));return new StackFrame({functionName:functionName,fileName:locationParts[0],lineNumber:locationParts[1],columnNumber:locationParts[2],source:line})}),this)},parseOpera:function(e){return!e.stacktrace||e.message.indexOf("\n")>-1&&e.message.split("\n").length>e.stacktrace.split("\n").length?this.parseOpera9(e):e.stack?this.parseOpera11(e):this.parseOpera10(e)},parseOpera9:function(e){for(var lineRE=/Line (\d+).*script (?:in )?(\S+)/i,lines=e.message.split("\n"),result=[],i=2,len=lines.length;i<len;i+=2){var match=lineRE.exec(lines[i]);match&&result.push(new StackFrame({fileName:match[2],lineNumber:match[1],source:lines[i]}))}return result},parseOpera10:function(e){for(var lineRE=/Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i,lines=e.stacktrace.split("\n"),result=[],i=0,len=lines.length;i<len;i+=2){var match=lineRE.exec(lines[i]);match&&result.push(new StackFrame({functionName:match[3]||void 0,fileName:match[2],lineNumber:match[1],source:lines[i]}))}return result},parseOpera11:function(error){return error.stack.split("\n").filter((function(line){return!!line.match(FIREFOX_SAFARI_STACK_REGEXP)&&!line.match(/^Error created at/)}),this).map((function(line){var argsRaw,tokens=line.split("@"),locationParts=this.extractLocation(tokens.pop()),functionCall=tokens.shift()||"",functionName=functionCall.replace(/<anonymous function(: (\w+))?>/,"$2").replace(/\([^)]*\)/g,"")||void 0;functionCall.match(/\(([^)]*)\)/)&&(argsRaw=functionCall.replace(/^[^(]+\(([^)]*)\)$/,"$1"));var args=void 0===argsRaw||"[arguments not available]"===argsRaw?void 0:argsRaw.split(",");return new StackFrame({functionName:functionName,args:args,fileName:locationParts[0],lineNumber:locationParts[1],columnNumber:locationParts[2],source:line})}),this)}})}(errorStackParser);var ErrorStackParser=errorStackParser.exports;const IN_NODE="object"==typeof process&&"object"==typeof process.versions&&"string"==typeof process.versions.node&&void 0===process.browser;let nodeUrlMod,nodeFetch,nodePath,nodeVmMod,nodeFsPromisesMod,resolvePath,pathSep,loadBinaryFile,loadScript;if(resolvePath=IN_NODE?function(path,base){return nodePath.resolve(base||".",path)}:function(path,base){return void 0===base&&(base=location),new URL(path,base).toString()},IN_NODE||(pathSep="/"),loadBinaryFile=IN_NODE?async function(path,_file_sub_resource_hash){if(path.startsWith("file://")&&(path=path.slice("file://".length)),path.includes("://")){let response=await nodeFetch(path);if(!response.ok)throw new Error(`Failed to load '${path}': request failed.`);return new Uint8Array(await response.arrayBuffer())}{const data=await nodeFsPromisesMod.readFile(path);return new Uint8Array(data.buffer,data.byteOffset,data.byteLength)}}:async function(path,subResourceHash){const url=new URL(path,location);let options=subResourceHash?{integrity:subResourceHash}:{},response=await fetch(url,options);if(!response.ok)throw new Error(`Failed to load '${url}': request failed.`);return new Uint8Array(await response.arrayBuffer())},globalThis.document)loadScript=async url=>await import(/* webpackIgnore: true */url);else if(globalThis.importScripts)loadScript=async url=>{try{globalThis.importScripts(url)}catch(e){if(!(e instanceof TypeError))throw e;await import(/* webpackIgnore: true */url)}};else{if(!IN_NODE)throw new Error("Cannot determine runtime environment");loadScript=async function(url){url.startsWith("file://")&&(url=url.slice("file://".length));url.includes("://")?nodeVmMod.runInThisContext(await(await nodeFetch(url)).text()):await import(/* webpackIgnore: true */nodeUrlMod.pathToFileURL(url).href)}}function __values(o){var s="function"==typeof Symbol&&Symbol.iterator,m=s&&o[s],i=0;if(m)return m.call(o);if(o&&"number"==typeof o.length)return{next:function(){return o&&i>=o.length&&(o=void 0),{value:o&&o[i++],done:!o}}};throw new TypeError(s?"Object is not iterable.":"Symbol.iterator is not defined.")}function __asyncValues(o){if(!Symbol.asyncIterator)throw new TypeError("Symbol.asyncIterator is not defined.");var i,m=o[Symbol.asyncIterator];return m?m.call(o):(o=__values(o),i={},verb("next"),verb("throw"),verb("return"),i[Symbol.asyncIterator]=function(){return this},i);function verb(n){i[n]=o[n]&&function(v){return new Promise((function(resolve,reject){(function(resolve,reject,d,v){Promise.resolve(v).then((function(v){resolve({value:v,done:d})}),reject)})(resolve,reject,(v=o[n](v)).done,v.value)}))}}}const getFsHandles=async dirHandle=>{const handles=[];await async function collect(curDirHandle){var e_1,_a;try{for(var _c,_b=__asyncValues(curDirHandle.values());!(_c=await _b.next()).done;){const entry=_c.value;handles.push(entry),"directory"===entry.kind&&await collect(entry)}}catch(e_1_1){e_1={error:e_1_1}}finally{try{_c&&!_c.done&&(_a=_b.return)&&await _a.call(_b)}finally{if(e_1)throw e_1.error}}}(dirHandle);const result=new Map;result.set(".",dirHandle);for(const handle of handles){const relativePath=(await dirHandle.resolve(handle)).join("/");result.set(relativePath,handle)}return result};function initializeFileSystem(Module,config){let stdLibURL;stdLibURL=null!=config.stdLibURL?config.stdLibURL:config.indexURL+"python_stdlib.zip",function(Module,stdlibURL){const stdlibPromise=loadBinaryFile(stdlibURL);Module.preRun.push((()=>{const pymajor=Module._py_version_major(),pyminor=Module._py_version_minor();Module.FS.mkdirTree("/lib"),Module.FS.mkdirTree(`/lib/python${pymajor}.${pyminor}/site-packages`),Module.addRunDependency("install-stdlib"),stdlibPromise.then((stdlib=>{Module.FS.writeFile(`/lib/python${pymajor}${pyminor}.zip`,stdlib)})).catch((e=>{console.error("Error occurred while installing the standard library:"),console.error(e)})).finally((()=>{Module.removeRunDependency("install-stdlib")}))}))}(Module,stdLibURL),function(Module,path){Module.preRun.push((function(){try{Module.FS.mkdirTree(path)}catch(e){console.error(`Error occurred while making a home directory '${path}':`),console.error(e),console.error("Using '/' for a home directory instead"),path="/"}Module.ENV.HOME=path,Module.FS.chdir(path)}))}(Module,config.homedir),function(Module,mounts){Module.preRun.push((()=>{for(const mount of mounts)Module.FS.mkdirTree(mount),Module.FS.mount(Module.FS.filesystems.NODEFS,{root:mount},mount)}))}(Module,config._node_mounts),Module.preRun.push((()=>function(module){const FS=module.FS,MEMFS=module.FS.filesystems.MEMFS,PATH=module.PATH,nativeFSAsync={DIR_MODE:16895,FILE_MODE:33279,mount:function(mount){if(!mount.opts.fileSystemHandle)throw new Error("opts.fileSystemHandle is required");return MEMFS.mount.apply(null,arguments)},syncfs:async(mount,populate,callback)=>{try{const local=nativeFSAsync.getLocalSet(mount),remote=await nativeFSAsync.getRemoteSet(mount),src=populate?remote:local,dst=populate?local:remote;await nativeFSAsync.reconcile(mount,src,dst),callback(null)}catch(e){callback(e)}},getLocalSet:mount=>{let entries=Object.create(null);function isRealDir(p){return"."!==p&&".."!==p}function toAbsolute(root){return p=>PATH.join2(root,p)}let check=FS.readdir(mount.mountpoint).filter(isRealDir).map(toAbsolute(mount.mountpoint));for(;check.length;){let path=check.pop(),stat=FS.stat(path);FS.isDir(stat.mode)&&check.push.apply(check,FS.readdir(path).filter(isRealDir).map(toAbsolute(path))),entries[path]={timestamp:stat.mtime,mode:stat.mode}}return{type:"local",entries:entries}},getRemoteSet:async mount=>{const entries=Object.create(null),handles=await getFsHandles(mount.opts.fileSystemHandle);for(const[path,handle]of handles)"."!==path&&(entries[PATH.join2(mount.mountpoint,path)]={timestamp:"file"===handle.kind?(await handle.getFile()).lastModifiedDate:new Date,mode:"file"===handle.kind?nativeFSAsync.FILE_MODE:nativeFSAsync.DIR_MODE});return{type:"remote",entries:entries,handles:handles}},loadLocalEntry:path=>{const node=FS.lookupPath(path).node,stat=FS.stat(path);if(FS.isDir(stat.mode))return{timestamp:stat.mtime,mode:stat.mode};if(FS.isFile(stat.mode))return node.contents=MEMFS.getFileDataAsTypedArray(node),{timestamp:stat.mtime,mode:stat.mode,contents:node.contents};throw new Error("node type not supported")},storeLocalEntry:(path,entry)=>{if(FS.isDir(entry.mode))FS.mkdirTree(path,entry.mode);else{if(!FS.isFile(entry.mode))throw new Error("node type not supported");FS.writeFile(path,entry.contents,{canOwn:!0})}FS.chmod(path,entry.mode),FS.utime(path,entry.timestamp,entry.timestamp)},removeLocalEntry:path=>{var stat=FS.stat(path);FS.isDir(stat.mode)?FS.rmdir(path):FS.isFile(stat.mode)&&FS.unlink(path)},loadRemoteEntry:async handle=>{if("file"===handle.kind){const file=await handle.getFile();return{contents:new Uint8Array(await file.arrayBuffer()),mode:nativeFSAsync.FILE_MODE,timestamp:file.lastModifiedDate}}if("directory"===handle.kind)return{mode:nativeFSAsync.DIR_MODE,timestamp:new Date};throw new Error("unknown kind: "+handle.kind)},storeRemoteEntry:async(handles,path,entry)=>{const parentDirHandle=handles.get(PATH.dirname(path)),handle=FS.isFile(entry.mode)?await parentDirHandle.getFileHandle(PATH.basename(path),{create:!0}):await parentDirHandle.getDirectoryHandle(PATH.basename(path),{create:!0});if("file"===handle.kind){const writable=await handle.createWritable();await writable.write(entry.contents),await writable.close()}handles.set(path,handle)},removeRemoteEntry:async(handles,path)=>{const parentDirHandle=handles.get(PATH.dirname(path));await parentDirHandle.removeEntry(PATH.basename(path)),handles.delete(path)},reconcile:async(mount,src,dst)=>{let total=0;const create=[];Object.keys(src.entries).forEach((function(key){const e=src.entries[key],e2=dst.entries[key];(!e2||FS.isFile(e.mode)&&e.timestamp.getTime()>e2.timestamp.getTime())&&(create.push(key),total++)})),create.sort();const remove=[];if(Object.keys(dst.entries).forEach((function(key){src.entries[key]||(remove.push(key),total++)})),remove.sort().reverse(),!total)return;const handles="remote"===src.type?src.handles:dst.handles;for(const path of create){const relPath=PATH.normalize(path.replace(mount.mountpoint,"/")).substring(1);if("local"===dst.type){const handle=handles.get(relPath),entry=await nativeFSAsync.loadRemoteEntry(handle);nativeFSAsync.storeLocalEntry(path,entry)}else{const entry=nativeFSAsync.loadLocalEntry(path);await nativeFSAsync.storeRemoteEntry(handles,relPath,entry)}}for(const path of remove)if("local"===dst.type)nativeFSAsync.removeLocalEntry(path);else{const relPath=PATH.normalize(path.replace(mount.mountpoint,"/")).substring(1);await nativeFSAsync.removeRemoteEntry(handles,relPath)}}};module.FS.filesystems.NATIVEFS_ASYNC=nativeFSAsync}(Module)))}function finalizeBootstrap(API,config){API.runPythonInternal_dict=API._pyodide._base.eval_code("{}"),API.importlib=API.runPythonInternal("import importlib; importlib");let import_module=API.importlib.import_module;API.sys=import_module("sys"),API.sys.path.insert(0,config.homedir),API.os=import_module("os");let globals=API.runPythonInternal("import __main__; __main__.__dict__"),builtins=API.runPythonInternal("import builtins; builtins.__dict__");var builtins_dict;API.globals=(builtins_dict=builtins,new Proxy(globals,{get:(target,symbol)=>"get"===symbol?key=>{let result=target.get(key);return void 0===result&&(result=builtins_dict.get(key)),result}:"has"===symbol?key=>target.has(key)||builtins_dict.has(key):Reflect.get(target,symbol)}));let importhook=API._pyodide._importhook;importhook.register_js_finder.callKwargs({hook:function(o){"__all__"in o||Object.defineProperty(o,"__all__",{get:()=>pyodide.toPy(Object.getOwnPropertyNames(o).filter((name=>"__all__"!==name))),enumerable:!1,configurable:!0})}}),importhook.register_js_module("js",config.jsglobals);let pyodide=API.makePublicAPI();return importhook.register_js_module("pyodide_js",pyodide),API.pyodide_py=import_module("pyodide"),API.pyodide_code=import_module("pyodide.code"),API.pyodide_ffi=import_module("pyodide.ffi"),API.package_loader=import_module("pyodide._package_loader"),API.sitepackages=API.package_loader.SITE_PACKAGES.__str__(),API.dsodir=API.package_loader.DSO_DIR.__str__(),API.defaultLdLibraryPath=[API.dsodir,API.sitepackages],API.os.environ.__setitem__("LD_LIBRARY_PATH",API.defaultLdLibraryPath.join(":")),pyodide.pyodide_py=API.pyodide_py,pyodide.globals=API.globals,pyodide}async function loadPyodide(options={}){await async function(){if(!IN_NODE)return;if(nodeUrlMod=(await __webpack_require__.e(/*! import() */ "_5679").then(__webpack_require__.t.bind(__webpack_require__, /*! url */ "?5679", 23))).default,nodeFsPromisesMod=await __webpack_require__.e(/*! import() */ "_3bf2").then(__webpack_require__.t.bind(__webpack_require__, /*! fs/promises */ "?3bf2", 23)),nodeFetch=globalThis.fetch?fetch:(await __webpack_require__.e(/*! import() */ "node_modules_pyodide_node_modules_node-fetch_browser_js").then(__webpack_require__.t.bind(__webpack_require__, /*! node-fetch */ "./node_modules/pyodide/node_modules/node-fetch/browser.js", 23))).default,nodeVmMod=(await __webpack_require__.e(/*! import() */ "_6add").then(__webpack_require__.t.bind(__webpack_require__, /*! vm */ "?6add", 23))).default,nodePath=await __webpack_require__.e(/*! import() */ "_a0f9").then(__webpack_require__.t.bind(__webpack_require__, /*! path */ "?a0f9", 23)),pathSep=nodePath.sep,"undefined"!="function")return;const node_modules={fs:await __webpack_require__.e(/*! import() */ "_d940").then(__webpack_require__.t.bind(__webpack_require__, /*! fs */ "?d940", 23)),crypto:await __webpack_require__.e(/*! import() */ "_b190").then(__webpack_require__.t.bind(__webpack_require__, /*! crypto */ "?b190", 23)),ws:await __webpack_require__.e(/*! import() */ "_296d").then(__webpack_require__.t.bind(__webpack_require__, /*! ws */ "?296d", 23)),child_process:await __webpack_require__.e(/*! import() */ "_425d").then(__webpack_require__.t.bind(__webpack_require__, /*! child_process */ "?425d", 23))};globalThis.require=function(mod){return node_modules[mod]}}();let indexURL=options.indexURL||function(){if(true)return __dirname;let err;try{throw new Error}catch(e){err=e}let fileName=ErrorStackParser.parse(err)[0].fileName;const indexOfLastSlash=fileName.lastIndexOf(pathSep);if(-1===indexOfLastSlash)throw new Error("Could not extract indexURL path from pyodide module location");return fileName.slice(0,indexOfLastSlash)}();indexURL=resolvePath(indexURL),indexURL.endsWith("/")||(indexURL+="/"),options.indexURL=indexURL;const default_config={fullStdLib:!1,jsglobals:globalThis,stdin:globalThis.prompt?globalThis.prompt:void 0,homedir:"/home/pyodide",lockFileURL:indexURL+"repodata.json",args:[],_node_mounts:[],packageCacheDir:indexURL},config=Object.assign(default_config,options),Module=function(){let Module={noImageDecoding:!0,noAudioDecoding:!0,noWasmDecoding:!1,preRun:[],quit:(status,toThrow)=>{throw Module.exited={status:status,toThrow:toThrow},toThrow}};return Module}();Module.print=config.stdout,Module.printErr=config.stderr,Module.arguments=config.args;const API={config:config};Module.API=API,initializeFileSystem(Module,config);const moduleLoaded=new Promise((r=>Module.postRun=r));if(Module.locateFile=path=>config.indexURL+path,"function"!=typeof _createPyodideModule){const scriptSrc=`${config.indexURL}pyodide.asm.js`;await loadScript(scriptSrc)}if(await _createPyodideModule(Module),await moduleLoaded,Module.exited)throw Module.exited.toThrow;if("0.23.4"!==API.version)throw new Error(`Pyodide version does not match: '0.23.4' <==> '${API.version}'. If you updated the Pyodide version, make sure you also updated the 'indexURL' parameter passed to loadPyodide.`);Module.locateFile=path=>{throw new Error("Didn't expect to load any more file_packager files!")};let[err,captured_stderr]=API.rawRun("import _pyodide_core");err&&Module.API.fatal_loading_error("Failed to import _pyodide_core\n",captured_stderr);const pyodide=finalizeBootstrap(API,config);if(pyodide.version.includes("dev")||API.setCdnUrl(`https://cdn.jsdelivr.net/pyodide/v${pyodide.version}/full/`),await API.packageIndexReady,API._pyodide._importhook.register_module_not_found_hook(API._import_name_to_package_name,API.repodata_unvendored_stdlibs_and_test),"0.23.4"!==API.repodata_info.version)throw new Error("Lock file version doesn't match Pyodide version");return API.package_loader.init_loaded_packages(),config.fullStdLib&&await pyodide.loadPackage(API.repodata_unvendored_stdlibs),API.initializeStreams(config.stdin,config.stdout,config.stderr),pyodide}globalThis.loadPyodide=loadPyodide,exports.loadPyodide=loadPyodide,exports.version="0.23.4",Object.defineProperty(exports,"__esModule",{value:!0})}));
+//# sourceMappingURL=pyodide.js.map
+
+
+/***/ }),
+
+/***/ "./node_modules/regenerator-runtime/runtime.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/regenerator-runtime/runtime.js ***!
+  \*****************************************************/
+/***/ (function(module) {
+
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+var runtime = (function (exports) {
+  "use strict";
+
+  var Op = Object.prototype;
+  var hasOwn = Op.hasOwnProperty;
+  var defineProperty = Object.defineProperty || function (obj, key, desc) { obj[key] = desc.value; };
+  var undefined; // More compressible than void 0.
+  var $Symbol = typeof Symbol === "function" ? Symbol : {};
+  var iteratorSymbol = $Symbol.iterator || "@@iterator";
+  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+  function define(obj, key, value) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+    return obj[key];
+  }
+  try {
+    // IE 8 has a broken Object.defineProperty that only works on DOM objects.
+    define({}, "");
+  } catch (err) {
+    define = function(obj, key, value) {
+      return obj[key] = value;
+    };
+  }
+
+  function wrap(innerFn, outerFn, self, tryLocsList) {
+    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+    var generator = Object.create(protoGenerator.prototype);
+    var context = new Context(tryLocsList || []);
+
+    // The ._invoke method unifies the implementations of the .next,
+    // .throw, and .return methods.
+    defineProperty(generator, "_invoke", { value: makeInvokeMethod(innerFn, self, context) });
+
+    return generator;
+  }
+  exports.wrap = wrap;
+
+  // Try/catch helper to minimize deoptimizations. Returns a completion
+  // record like context.tryEntries[i].completion. This interface could
+  // have been (and was previously) designed to take a closure to be
+  // invoked without arguments, but in all the cases we care about we
+  // already have an existing method we want to call, so there's no need
+  // to create a new function object. We can even get away with assuming
+  // the method takes exactly one argument, since that happens to be true
+  // in every case, so we don't have to touch the arguments object. The
+  // only additional allocation required is the completion record, which
+  // has a stable shape and so hopefully should be cheap to allocate.
+  function tryCatch(fn, obj, arg) {
+    try {
+      return { type: "normal", arg: fn.call(obj, arg) };
+    } catch (err) {
+      return { type: "throw", arg: err };
+    }
+  }
+
+  var GenStateSuspendedStart = "suspendedStart";
+  var GenStateSuspendedYield = "suspendedYield";
+  var GenStateExecuting = "executing";
+  var GenStateCompleted = "completed";
+
+  // Returning this object from the innerFn has the same effect as
+  // breaking out of the dispatch switch statement.
+  var ContinueSentinel = {};
+
+  // Dummy constructor functions that we use as the .constructor and
+  // .constructor.prototype properties for functions that return Generator
+  // objects. For full spec compliance, you may wish to configure your
+  // minifier not to mangle the names of these two functions.
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+
+  // This is a polyfill for %IteratorPrototype% for environments that
+  // don't natively support it.
+  var IteratorPrototype = {};
+  define(IteratorPrototype, iteratorSymbol, function () {
+    return this;
+  });
+
+  var getProto = Object.getPrototypeOf;
+  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+  if (NativeIteratorPrototype &&
+      NativeIteratorPrototype !== Op &&
+      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+    // This environment has a native %IteratorPrototype%; use it instead
+    // of the polyfill.
+    IteratorPrototype = NativeIteratorPrototype;
+  }
+
+  var Gp = GeneratorFunctionPrototype.prototype =
+    Generator.prototype = Object.create(IteratorPrototype);
+  GeneratorFunction.prototype = GeneratorFunctionPrototype;
+  defineProperty(Gp, "constructor", { value: GeneratorFunctionPrototype, configurable: true });
+  defineProperty(
+    GeneratorFunctionPrototype,
+    "constructor",
+    { value: GeneratorFunction, configurable: true }
+  );
+  GeneratorFunction.displayName = define(
+    GeneratorFunctionPrototype,
+    toStringTagSymbol,
+    "GeneratorFunction"
+  );
+
+  // Helper for defining the .next, .throw, and .return methods of the
+  // Iterator interface in terms of a single ._invoke method.
+  function defineIteratorMethods(prototype) {
+    ["next", "throw", "return"].forEach(function(method) {
+      define(prototype, method, function(arg) {
+        return this._invoke(method, arg);
+      });
+    });
+  }
+
+  exports.isGeneratorFunction = function(genFun) {
+    var ctor = typeof genFun === "function" && genFun.constructor;
+    return ctor
+      ? ctor === GeneratorFunction ||
+        // For the native GeneratorFunction constructor, the best we can
+        // do is to check its .name property.
+        (ctor.displayName || ctor.name) === "GeneratorFunction"
+      : false;
+  };
+
+  exports.mark = function(genFun) {
+    if (Object.setPrototypeOf) {
+      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+    } else {
+      genFun.__proto__ = GeneratorFunctionPrototype;
+      define(genFun, toStringTagSymbol, "GeneratorFunction");
+    }
+    genFun.prototype = Object.create(Gp);
+    return genFun;
+  };
+
+  // Within the body of any async function, `await x` is transformed to
+  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+  // `hasOwn.call(value, "__await")` to determine if the yielded value is
+  // meant to be awaited.
+  exports.awrap = function(arg) {
+    return { __await: arg };
+  };
+
+  function AsyncIterator(generator, PromiseImpl) {
+    function invoke(method, arg, resolve, reject) {
+      var record = tryCatch(generator[method], generator, arg);
+      if (record.type === "throw") {
+        reject(record.arg);
+      } else {
+        var result = record.arg;
+        var value = result.value;
+        if (value &&
+            typeof value === "object" &&
+            hasOwn.call(value, "__await")) {
+          return PromiseImpl.resolve(value.__await).then(function(value) {
+            invoke("next", value, resolve, reject);
+          }, function(err) {
+            invoke("throw", err, resolve, reject);
+          });
+        }
+
+        return PromiseImpl.resolve(value).then(function(unwrapped) {
+          // When a yielded Promise is resolved, its final value becomes
+          // the .value of the Promise<{value,done}> result for the
+          // current iteration.
+          result.value = unwrapped;
+          resolve(result);
+        }, function(error) {
+          // If a rejected Promise was yielded, throw the rejection back
+          // into the async generator function so it can be handled there.
+          return invoke("throw", error, resolve, reject);
+        });
+      }
+    }
+
+    var previousPromise;
+
+    function enqueue(method, arg) {
+      function callInvokeWithMethodAndArg() {
+        return new PromiseImpl(function(resolve, reject) {
+          invoke(method, arg, resolve, reject);
+        });
+      }
+
+      return previousPromise =
+        // If enqueue has been called before, then we want to wait until
+        // all previous Promises have been resolved before calling invoke,
+        // so that results are always delivered in the correct order. If
+        // enqueue has not been called before, then it is important to
+        // call invoke immediately, without waiting on a callback to fire,
+        // so that the async generator function has the opportunity to do
+        // any necessary setup in a predictable way. This predictability
+        // is why the Promise constructor synchronously invokes its
+        // executor callback, and why async functions synchronously
+        // execute code before the first await. Since we implement simple
+        // async functions in terms of async generators, it is especially
+        // important to get this right, even though it requires care.
+        previousPromise ? previousPromise.then(
+          callInvokeWithMethodAndArg,
+          // Avoid propagating failures to Promises returned by later
+          // invocations of the iterator.
+          callInvokeWithMethodAndArg
+        ) : callInvokeWithMethodAndArg();
+    }
+
+    // Define the unified helper method that is used to implement .next,
+    // .throw, and .return (see defineIteratorMethods).
+    defineProperty(this, "_invoke", { value: enqueue });
+  }
+
+  defineIteratorMethods(AsyncIterator.prototype);
+  define(AsyncIterator.prototype, asyncIteratorSymbol, function () {
+    return this;
+  });
+  exports.AsyncIterator = AsyncIterator;
+
+  // Note that simple async functions are implemented on top of
+  // AsyncIterator objects; they just return a Promise for the value of
+  // the final result produced by the iterator.
+  exports.async = function(innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+    if (PromiseImpl === void 0) PromiseImpl = Promise;
+
+    var iter = new AsyncIterator(
+      wrap(innerFn, outerFn, self, tryLocsList),
+      PromiseImpl
+    );
+
+    return exports.isGeneratorFunction(outerFn)
+      ? iter // If outerFn is a generator, return the full iterator.
+      : iter.next().then(function(result) {
+          return result.done ? result.value : iter.next();
+        });
+  };
+
+  function makeInvokeMethod(innerFn, self, context) {
+    var state = GenStateSuspendedStart;
+
+    return function invoke(method, arg) {
+      if (state === GenStateExecuting) {
+        throw new Error("Generator is already running");
+      }
+
+      if (state === GenStateCompleted) {
+        if (method === "throw") {
+          throw arg;
+        }
+
+        // Be forgiving, per 25.3.3.3.3 of the spec:
+        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+        return doneResult();
+      }
+
+      context.method = method;
+      context.arg = arg;
+
+      while (true) {
+        var delegate = context.delegate;
+        if (delegate) {
+          var delegateResult = maybeInvokeDelegate(delegate, context);
+          if (delegateResult) {
+            if (delegateResult === ContinueSentinel) continue;
+            return delegateResult;
+          }
+        }
+
+        if (context.method === "next") {
+          // Setting context._sent for legacy support of Babel's
+          // function.sent implementation.
+          context.sent = context._sent = context.arg;
+
+        } else if (context.method === "throw") {
+          if (state === GenStateSuspendedStart) {
+            state = GenStateCompleted;
+            throw context.arg;
+          }
+
+          context.dispatchException(context.arg);
+
+        } else if (context.method === "return") {
+          context.abrupt("return", context.arg);
+        }
+
+        state = GenStateExecuting;
+
+        var record = tryCatch(innerFn, self, context);
+        if (record.type === "normal") {
+          // If an exception is thrown from innerFn, we leave state ===
+          // GenStateExecuting and loop back for another invocation.
+          state = context.done
+            ? GenStateCompleted
+            : GenStateSuspendedYield;
+
+          if (record.arg === ContinueSentinel) {
+            continue;
+          }
+
+          return {
+            value: record.arg,
+            done: context.done
+          };
+
+        } else if (record.type === "throw") {
+          state = GenStateCompleted;
+          // Dispatch the exception by looping back around to the
+          // context.dispatchException(context.arg) call above.
+          context.method = "throw";
+          context.arg = record.arg;
+        }
+      }
+    };
+  }
+
+  // Call delegate.iterator[context.method](context.arg) and handle the
+  // result, either by returning a { value, done } result from the
+  // delegate iterator, or by modifying context.method and context.arg,
+  // setting context.delegate to null, and returning the ContinueSentinel.
+  function maybeInvokeDelegate(delegate, context) {
+    var methodName = context.method;
+    var method = delegate.iterator[methodName];
+    if (method === undefined) {
+      // A .throw or .return when the delegate iterator has no .throw
+      // method, or a missing .next mehtod, always terminate the
+      // yield* loop.
+      context.delegate = null;
+
+      // Note: ["return"] must be used for ES3 parsing compatibility.
+      if (methodName === "throw" && delegate.iterator["return"]) {
+        // If the delegate iterator has a return method, give it a
+        // chance to clean up.
+        context.method = "return";
+        context.arg = undefined;
+        maybeInvokeDelegate(delegate, context);
+
+        if (context.method === "throw") {
+          // If maybeInvokeDelegate(context) changed context.method from
+          // "return" to "throw", let that override the TypeError below.
+          return ContinueSentinel;
+        }
+      }
+      if (methodName !== "return") {
+        context.method = "throw";
+        context.arg = new TypeError(
+          "The iterator does not provide a '" + methodName + "' method");
+      }
+
+      return ContinueSentinel;
+    }
+
+    var record = tryCatch(method, delegate.iterator, context.arg);
+
+    if (record.type === "throw") {
+      context.method = "throw";
+      context.arg = record.arg;
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    var info = record.arg;
+
+    if (! info) {
+      context.method = "throw";
+      context.arg = new TypeError("iterator result is not an object");
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    if (info.done) {
+      // Assign the result of the finished delegate to the temporary
+      // variable specified by delegate.resultName (see delegateYield).
+      context[delegate.resultName] = info.value;
+
+      // Resume execution at the desired location (see delegateYield).
+      context.next = delegate.nextLoc;
+
+      // If context.method was "throw" but the delegate handled the
+      // exception, let the outer generator proceed normally. If
+      // context.method was "next", forget context.arg since it has been
+      // "consumed" by the delegate iterator. If context.method was
+      // "return", allow the original .return call to continue in the
+      // outer generator.
+      if (context.method !== "return") {
+        context.method = "next";
+        context.arg = undefined;
+      }
+
+    } else {
+      // Re-yield the result returned by the delegate method.
+      return info;
+    }
+
+    // The delegate iterator is finished, so forget it and continue with
+    // the outer generator.
+    context.delegate = null;
+    return ContinueSentinel;
+  }
+
+  // Define Generator.prototype.{next,throw,return} in terms of the
+  // unified ._invoke helper method.
+  defineIteratorMethods(Gp);
+
+  define(Gp, toStringTagSymbol, "Generator");
+
+  // A Generator should always return itself as the iterator object when the
+  // @@iterator function is called on it. Some browsers' implementations of the
+  // iterator prototype chain incorrectly implement this, causing the Generator
+  // object to not be returned from this call. This ensures that doesn't happen.
+  // See https://github.com/facebook/regenerator/issues/274 for more details.
+  define(Gp, iteratorSymbol, function() {
+    return this;
+  });
+
+  define(Gp, "toString", function() {
+    return "[object Generator]";
+  });
+
+  function pushTryEntry(locs) {
+    var entry = { tryLoc: locs[0] };
+
+    if (1 in locs) {
+      entry.catchLoc = locs[1];
+    }
+
+    if (2 in locs) {
+      entry.finallyLoc = locs[2];
+      entry.afterLoc = locs[3];
+    }
+
+    this.tryEntries.push(entry);
+  }
+
+  function resetTryEntry(entry) {
+    var record = entry.completion || {};
+    record.type = "normal";
+    delete record.arg;
+    entry.completion = record;
+  }
+
+  function Context(tryLocsList) {
+    // The root entry object (effectively a try statement without a catch
+    // or a finally block) gives us a place to store values thrown from
+    // locations where there is no enclosing try statement.
+    this.tryEntries = [{ tryLoc: "root" }];
+    tryLocsList.forEach(pushTryEntry, this);
+    this.reset(true);
+  }
+
+  exports.keys = function(val) {
+    var object = Object(val);
+    var keys = [];
+    for (var key in object) {
+      keys.push(key);
+    }
+    keys.reverse();
+
+    // Rather than returning an object with a next method, we keep
+    // things simple and return the next function itself.
+    return function next() {
+      while (keys.length) {
+        var key = keys.pop();
+        if (key in object) {
+          next.value = key;
+          next.done = false;
+          return next;
+        }
+      }
+
+      // To avoid creating an additional object, we just hang the .value
+      // and .done properties off the next function object itself. This
+      // also ensures that the minifier will not anonymize the function.
+      next.done = true;
+      return next;
+    };
+  };
+
+  function values(iterable) {
+    if (iterable) {
+      var iteratorMethod = iterable[iteratorSymbol];
+      if (iteratorMethod) {
+        return iteratorMethod.call(iterable);
+      }
+
+      if (typeof iterable.next === "function") {
+        return iterable;
+      }
+
+      if (!isNaN(iterable.length)) {
+        var i = -1, next = function next() {
+          while (++i < iterable.length) {
+            if (hasOwn.call(iterable, i)) {
+              next.value = iterable[i];
+              next.done = false;
+              return next;
+            }
+          }
+
+          next.value = undefined;
+          next.done = true;
+
+          return next;
+        };
+
+        return next.next = next;
+      }
+    }
+
+    // Return an iterator with no values.
+    return { next: doneResult };
+  }
+  exports.values = values;
+
+  function doneResult() {
+    return { value: undefined, done: true };
+  }
+
+  Context.prototype = {
+    constructor: Context,
+
+    reset: function(skipTempReset) {
+      this.prev = 0;
+      this.next = 0;
+      // Resetting context._sent for legacy support of Babel's
+      // function.sent implementation.
+      this.sent = this._sent = undefined;
+      this.done = false;
+      this.delegate = null;
+
+      this.method = "next";
+      this.arg = undefined;
+
+      this.tryEntries.forEach(resetTryEntry);
+
+      if (!skipTempReset) {
+        for (var name in this) {
+          // Not sure about the optimal order of these conditions:
+          if (name.charAt(0) === "t" &&
+              hasOwn.call(this, name) &&
+              !isNaN(+name.slice(1))) {
+            this[name] = undefined;
+          }
+        }
+      }
+    },
+
+    stop: function() {
+      this.done = true;
+
+      var rootEntry = this.tryEntries[0];
+      var rootRecord = rootEntry.completion;
+      if (rootRecord.type === "throw") {
+        throw rootRecord.arg;
+      }
+
+      return this.rval;
+    },
+
+    dispatchException: function(exception) {
+      if (this.done) {
+        throw exception;
+      }
+
+      var context = this;
+      function handle(loc, caught) {
+        record.type = "throw";
+        record.arg = exception;
+        context.next = loc;
+
+        if (caught) {
+          // If the dispatched exception was caught by a catch block,
+          // then let that catch block handle the exception normally.
+          context.method = "next";
+          context.arg = undefined;
+        }
+
+        return !! caught;
+      }
+
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        var record = entry.completion;
+
+        if (entry.tryLoc === "root") {
+          // Exception thrown outside of any try block that could handle
+          // it, so set the completion value of the entire function to
+          // throw the exception.
+          return handle("end");
+        }
+
+        if (entry.tryLoc <= this.prev) {
+          var hasCatch = hasOwn.call(entry, "catchLoc");
+          var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+          if (hasCatch && hasFinally) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            } else if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else if (hasCatch) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            }
+
+          } else if (hasFinally) {
+            if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else {
+            throw new Error("try statement without catch or finally");
+          }
+        }
+      }
+    },
+
+    abrupt: function(type, arg) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc <= this.prev &&
+            hasOwn.call(entry, "finallyLoc") &&
+            this.prev < entry.finallyLoc) {
+          var finallyEntry = entry;
+          break;
+        }
+      }
+
+      if (finallyEntry &&
+          (type === "break" ||
+           type === "continue") &&
+          finallyEntry.tryLoc <= arg &&
+          arg <= finallyEntry.finallyLoc) {
+        // Ignore the finally entry if control is not jumping to a
+        // location outside the try/catch block.
+        finallyEntry = null;
+      }
+
+      var record = finallyEntry ? finallyEntry.completion : {};
+      record.type = type;
+      record.arg = arg;
+
+      if (finallyEntry) {
+        this.method = "next";
+        this.next = finallyEntry.finallyLoc;
+        return ContinueSentinel;
+      }
+
+      return this.complete(record);
+    },
+
+    complete: function(record, afterLoc) {
+      if (record.type === "throw") {
+        throw record.arg;
+      }
+
+      if (record.type === "break" ||
+          record.type === "continue") {
+        this.next = record.arg;
+      } else if (record.type === "return") {
+        this.rval = this.arg = record.arg;
+        this.method = "return";
+        this.next = "end";
+      } else if (record.type === "normal" && afterLoc) {
+        this.next = afterLoc;
+      }
+
+      return ContinueSentinel;
+    },
+
+    finish: function(finallyLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.finallyLoc === finallyLoc) {
+          this.complete(entry.completion, entry.afterLoc);
+          resetTryEntry(entry);
+          return ContinueSentinel;
+        }
+      }
+    },
+
+    "catch": function(tryLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc === tryLoc) {
+          var record = entry.completion;
+          if (record.type === "throw") {
+            var thrown = record.arg;
+            resetTryEntry(entry);
+          }
+          return thrown;
+        }
+      }
+
+      // The context.catch method must only be called with a location
+      // argument that corresponds to a known catch block.
+      throw new Error("illegal catch attempt");
+    },
+
+    delegateYield: function(iterable, resultName, nextLoc) {
+      this.delegate = {
+        iterator: values(iterable),
+        resultName: resultName,
+        nextLoc: nextLoc
+      };
+
+      if (this.method === "next") {
+        // Deliberately forget the last sent value so that we don't
+        // accidentally pass it on to the delegate.
+        this.arg = undefined;
+      }
+
+      return ContinueSentinel;
+    }
+  };
+
+  // Regardless of whether this script is executing as a CommonJS module
+  // or not, return the runtime object so that we can declare the variable
+  // regeneratorRuntime in the outer scope, which allows this module to be
+  // injected easily by `bin/regenerator --include-runtime script.js`.
+  return exports;
+
+}(
+  // If this script is executing as a CommonJS module, use module.exports
+  // as the regeneratorRuntime namespace. Otherwise create a new empty
+  // object. Either way, the resulting object will be used to initialize
+  // the regeneratorRuntime variable at the top of this file.
+   true ? module.exports : 0
+));
+
+try {
+  regeneratorRuntime = runtime;
+} catch (accidentalStrictMode) {
+  // This module should not be running in strict mode, so the above
+  // assignment should always work unless something is misconfigured. Just
+  // in case runtime.js accidentally runs in strict mode, in modern engines
+  // we can explicitly access globalThis. In older engines we can escape
+  // strict mode using a global Function call. This could conceivably fail
+  // if a Content Security Policy forbids using Function, but in that case
+  // the proper solution is to fix the accidental strict mode problem. If
+  // you've misconfigured your bundler to force strict mode and applied a
+  // CSP to forbid Function, and you're not willing to fix either of those
+  // problems, please detail your unique predicament in a GitHub issue.
+  if (typeof globalThis === "object") {
+    globalThis.regeneratorRuntime = runtime;
+  } else {
+    Function("r", "regeneratorRuntime = r")(runtime);
+  }
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/ua-parser-js/src/ua-parser.js":
 /*!****************************************************!*\
   !*** ./node_modules/ua-parser-js/src/ua-parser.js ***!
@@ -29912,6 +31466,9 @@ module.exports = JSON.parse('["art-lojban","cel-gaulish","no-bok","no-nyn","zh-g
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = __webpack_modules__;
+/******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/amd options */
 /******/ 	!function() {
@@ -29930,6 +31487,36 @@ module.exports = JSON.parse('["art-lojban","cel-gaulish","no-bok","no-nyn","zh-g
 /******/ 		};
 /******/ 	}();
 /******/ 	
+/******/ 	/* webpack/runtime/create fake namespace object */
+/******/ 	!function() {
+/******/ 		var getProto = Object.getPrototypeOf ? function(obj) { return Object.getPrototypeOf(obj); } : function(obj) { return obj.__proto__; };
+/******/ 		var leafPrototypes;
+/******/ 		// create a fake namespace object
+/******/ 		// mode & 1: value is a module id, require it
+/******/ 		// mode & 2: merge all properties of value into the ns
+/******/ 		// mode & 4: return value when already ns object
+/******/ 		// mode & 16: return value when it's Promise-like
+/******/ 		// mode & 8|1: behave like require
+/******/ 		__webpack_require__.t = function(value, mode) {
+/******/ 			if(mode & 1) value = this(value);
+/******/ 			if(mode & 8) return value;
+/******/ 			if(typeof value === 'object' && value) {
+/******/ 				if((mode & 4) && value.__esModule) return value;
+/******/ 				if((mode & 16) && typeof value.then === 'function') return value;
+/******/ 			}
+/******/ 			var ns = Object.create(null);
+/******/ 			__webpack_require__.r(ns);
+/******/ 			var def = {};
+/******/ 			leafPrototypes = leafPrototypes || [null, getProto({}), getProto([]), getProto(getProto)];
+/******/ 			for(var current = mode & 2 && value; typeof current == 'object' && !~leafPrototypes.indexOf(current); current = getProto(current)) {
+/******/ 				Object.getOwnPropertyNames(current).forEach(function(key) { def[key] = function() { return value[key]; }; });
+/******/ 			}
+/******/ 			def['default'] = function() { return value; };
+/******/ 			__webpack_require__.d(ns, def);
+/******/ 			return ns;
+/******/ 		};
+/******/ 	}();
+/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	!function() {
 /******/ 		// define getter functions for harmony exports
@@ -29939,6 +31526,28 @@ module.exports = JSON.parse('["art-lojban","cel-gaulish","no-bok","no-nyn","zh-g
 /******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
 /******/ 				}
 /******/ 			}
+/******/ 		};
+/******/ 	}();
+/******/ 	
+/******/ 	/* webpack/runtime/ensure chunk */
+/******/ 	!function() {
+/******/ 		__webpack_require__.f = {};
+/******/ 		// This file contains only the entry chunk.
+/******/ 		// The chunk loading function for additional chunks
+/******/ 		__webpack_require__.e = function(chunkId) {
+/******/ 			return Promise.all(Object.keys(__webpack_require__.f).reduce(function(promises, key) {
+/******/ 				__webpack_require__.f[key](chunkId, promises);
+/******/ 				return promises;
+/******/ 			}, []));
+/******/ 		};
+/******/ 	}();
+/******/ 	
+/******/ 	/* webpack/runtime/get javascript chunk filename */
+/******/ 	!function() {
+/******/ 		// This function allow to reference async chunks
+/******/ 		__webpack_require__.u = function(chunkId) {
+/******/ 			// return url for filenames based on template
+/******/ 			return "" + chunkId + ".debug.js";
 /******/ 		};
 /******/ 	}();
 /******/ 	
@@ -29959,6 +31568,51 @@ module.exports = JSON.parse('["art-lojban","cel-gaulish","no-bok","no-nyn","zh-g
 /******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
 /******/ 	}();
 /******/ 	
+/******/ 	/* webpack/runtime/load script */
+/******/ 	!function() {
+/******/ 		var inProgress = {};
+/******/ 		var dataWebpackPrefix = "dashjs:";
+/******/ 		// loadScript function to load a script via script tag
+/******/ 		__webpack_require__.l = function(url, done, key, chunkId) {
+/******/ 			if(inProgress[url]) { inProgress[url].push(done); return; }
+/******/ 			var script, needAttach;
+/******/ 			if(key !== undefined) {
+/******/ 				var scripts = document.getElementsByTagName("script");
+/******/ 				for(var i = 0; i < scripts.length; i++) {
+/******/ 					var s = scripts[i];
+/******/ 					if(s.getAttribute("src") == url || s.getAttribute("data-webpack") == dataWebpackPrefix + key) { script = s; break; }
+/******/ 				}
+/******/ 			}
+/******/ 			if(!script) {
+/******/ 				needAttach = true;
+/******/ 				script = document.createElement('script');
+/******/ 		
+/******/ 				script.charset = 'utf-8';
+/******/ 				script.timeout = 120;
+/******/ 				if (__webpack_require__.nc) {
+/******/ 					script.setAttribute("nonce", __webpack_require__.nc);
+/******/ 				}
+/******/ 				script.setAttribute("data-webpack", dataWebpackPrefix + key);
+/******/ 				script.src = url;
+/******/ 			}
+/******/ 			inProgress[url] = [done];
+/******/ 			var onScriptComplete = function(prev, event) {
+/******/ 				// avoid mem leaks in IE.
+/******/ 				script.onerror = script.onload = null;
+/******/ 				clearTimeout(timeout);
+/******/ 				var doneFns = inProgress[url];
+/******/ 				delete inProgress[url];
+/******/ 				script.parentNode && script.parentNode.removeChild(script);
+/******/ 				doneFns && doneFns.forEach(function(fn) { return fn(event); });
+/******/ 				if(prev) return prev(event);
+/******/ 			};
+/******/ 			var timeout = setTimeout(onScriptComplete.bind(null, undefined, { type: 'timeout', target: script }), 120000);
+/******/ 			script.onerror = onScriptComplete.bind(null, script.onerror);
+/******/ 			script.onload = onScriptComplete.bind(null, script.onload);
+/******/ 			needAttach && document.head.appendChild(script);
+/******/ 		};
+/******/ 	}();
+/******/ 	
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	!function() {
 /******/ 		// define __esModule on exports
@@ -29968,6 +31622,103 @@ module.exports = JSON.parse('["art-lojban","cel-gaulish","no-bok","no-nyn","zh-g
 /******/ 			}
 /******/ 			Object.defineProperty(exports, '__esModule', { value: true });
 /******/ 		};
+/******/ 	}();
+/******/ 	
+/******/ 	/* webpack/runtime/publicPath */
+/******/ 	!function() {
+/******/ 		__webpack_require__.p = "/dist/";
+/******/ 	}();
+/******/ 	
+/******/ 	/* webpack/runtime/jsonp chunk loading */
+/******/ 	!function() {
+/******/ 		// no baseURI
+/******/ 		
+/******/ 		// object to store loaded and loading chunks
+/******/ 		// undefined = chunk not loaded, null = chunk preloaded/prefetched
+/******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
+/******/ 		var installedChunks = {
+/******/ 			"dash.offline": 0
+/******/ 		};
+/******/ 		
+/******/ 		__webpack_require__.f.j = function(chunkId, promises) {
+/******/ 				// JSONP chunk loading for javascript
+/******/ 				var installedChunkData = __webpack_require__.o(installedChunks, chunkId) ? installedChunks[chunkId] : undefined;
+/******/ 				if(installedChunkData !== 0) { // 0 means "already installed".
+/******/ 		
+/******/ 					// a Promise means "currently loading".
+/******/ 					if(installedChunkData) {
+/******/ 						promises.push(installedChunkData[2]);
+/******/ 					} else {
+/******/ 						if(true) { // all chunks have JS
+/******/ 							// setup Promise in chunk cache
+/******/ 							var promise = new Promise(function(resolve, reject) { installedChunkData = installedChunks[chunkId] = [resolve, reject]; });
+/******/ 							promises.push(installedChunkData[2] = promise);
+/******/ 		
+/******/ 							// start chunk loading
+/******/ 							var url = __webpack_require__.p + __webpack_require__.u(chunkId);
+/******/ 							// create error before stack unwound to get useful stacktrace later
+/******/ 							var error = new Error();
+/******/ 							var loadingEnded = function(event) {
+/******/ 								if(__webpack_require__.o(installedChunks, chunkId)) {
+/******/ 									installedChunkData = installedChunks[chunkId];
+/******/ 									if(installedChunkData !== 0) installedChunks[chunkId] = undefined;
+/******/ 									if(installedChunkData) {
+/******/ 										var errorType = event && (event.type === 'load' ? 'missing' : event.type);
+/******/ 										var realSrc = event && event.target && event.target.src;
+/******/ 										error.message = 'Loading chunk ' + chunkId + ' failed.\n(' + errorType + ': ' + realSrc + ')';
+/******/ 										error.name = 'ChunkLoadError';
+/******/ 										error.type = errorType;
+/******/ 										error.request = realSrc;
+/******/ 										installedChunkData[1](error);
+/******/ 									}
+/******/ 								}
+/******/ 							};
+/******/ 							__webpack_require__.l(url, loadingEnded, "chunk-" + chunkId, chunkId);
+/******/ 						} else installedChunks[chunkId] = 0;
+/******/ 					}
+/******/ 				}
+/******/ 		};
+/******/ 		
+/******/ 		// no prefetching
+/******/ 		
+/******/ 		// no preloaded
+/******/ 		
+/******/ 		// no HMR
+/******/ 		
+/******/ 		// no HMR manifest
+/******/ 		
+/******/ 		// no on chunks loaded
+/******/ 		
+/******/ 		// install a JSONP callback for chunk loading
+/******/ 		var webpackJsonpCallback = function(parentChunkLoadingFunction, data) {
+/******/ 			var chunkIds = data[0];
+/******/ 			var moreModules = data[1];
+/******/ 			var runtime = data[2];
+/******/ 			// add "moreModules" to the modules object,
+/******/ 			// then flag all "chunkIds" as loaded and fire callback
+/******/ 			var moduleId, chunkId, i = 0;
+/******/ 			if(chunkIds.some(function(id) { return installedChunks[id] !== 0; })) {
+/******/ 				for(moduleId in moreModules) {
+/******/ 					if(__webpack_require__.o(moreModules, moduleId)) {
+/******/ 						__webpack_require__.m[moduleId] = moreModules[moduleId];
+/******/ 					}
+/******/ 				}
+/******/ 				if(runtime) var result = runtime(__webpack_require__);
+/******/ 			}
+/******/ 			if(parentChunkLoadingFunction) parentChunkLoadingFunction(data);
+/******/ 			for(;i < chunkIds.length; i++) {
+/******/ 				chunkId = chunkIds[i];
+/******/ 				if(__webpack_require__.o(installedChunks, chunkId) && installedChunks[chunkId]) {
+/******/ 					installedChunks[chunkId][0]();
+/******/ 				}
+/******/ 				installedChunks[chunkId] = 0;
+/******/ 			}
+/******/ 		
+/******/ 		}
+/******/ 		
+/******/ 		var chunkLoadingGlobal = self["webpackChunkdashjs"] = self["webpackChunkdashjs"] || [];
+/******/ 		chunkLoadingGlobal.forEach(webpackJsonpCallback.bind(null, 0));
+/******/ 		chunkLoadingGlobal.push = webpackJsonpCallback.bind(null, chunkLoadingGlobal.push.bind(chunkLoadingGlobal));
 /******/ 	}();
 /******/ 	
 /************************************************************************/

@@ -15,6 +15,7 @@ const config = merge(common, {
         filename: '[name].debug.js',
     },
     devServer: {
+        webSocketServer: false,
         static: {
             directory: path.join(__dirname, '../'),
         },
