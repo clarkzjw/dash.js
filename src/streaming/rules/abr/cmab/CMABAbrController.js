@@ -39,49 +39,6 @@ import FactoryMaker from '../../../../core/FactoryMaker';
 const statServerUrl = 'http://stat-server:8000';
 // const statServerUrl = 'http://100.99.201.63/stats';
 
-function getLatestNetworkLatency() {
-    let LatencySidecarURL = statServerUrl+'/ping';
-
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', LatencySidecarURL, false);
-    xhr.send(null);
-    if (xhr.status === 200) {
-        return xhr.responseText;
-    } else {
-        throw new Error('Request failed: ' + xhr.statusText);
-    }
-}
-
-function getHistory(url) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, false); // 'false' makes the request synchronous
-    xhr.setRequestHeader('Content-Type', 'application/json');
-
-    try {
-        xhr.send(null);
-
-        if (xhr.status === 200) {
-            return JSON.parse(xhr.responseText); // Return parsed JSON
-        } else {
-            // console.log("Error: " + xhr.status);
-            return null; // Handle non-200 responses
-        }
-    } catch (err) {
-        // console.log("Request failed", err);
-        return null;
-    }
-}
-
-function getLatencyHistory() {
-    const url = statServerUrl + '/pingstats';
-    return getHistory(url);
-}
-
-function getThroughputHistory() {
-    const url = statServerUrl + '/throughputstats';
-    return getHistory(url);
-}
-
 async function sendStats(url, type, stat) {
     fetch(url, {
         credentials: 'omit',
@@ -108,12 +65,31 @@ async function sendStats(url, type, stat) {
 function CMABAbrController() {
     let _py_mabwiser_select_arm = `
     import pandas as pd
+    import math
     from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
     from sklearn.preprocessing import StandardScaler
     from pprint import pprint
 
     from js import js_cmabArms, js_rewards, js_selected_arms, js_bitrate, js_history, js_rebuffer_events, js_cmabAlpha
-    from js import js_throughput_playback_history, js_latency_playback_history
+    from js import js_throughput_playback_history, js_latency_playback_history, js_pingMean, js_pingStd
+
+
+    def weights(a):
+        rate=1000
+        n = len(a)
+        if n <= 1:
+            return [1]
+
+        w = [math.log(1 + (rate - 1) * (i / (n - 1))) / math.log(rate) for i in range(n)]
+        return w
+
+
+    def calculate(a):
+        w = weights(a)
+        for i in range(len(a)):
+            a[i] = w[i] * a[i]
+        return a
+
 
     arms = js_cmabArms.to_py()
     rewards = js_rewards.to_py()
@@ -121,17 +97,21 @@ function CMABAbrController() {
     bitrate = js_bitrate.to_py()
     history = js_history.to_py()
     rebuffering_events = js_rebuffer_events.to_py()
+    ping_mean = js_pingMean.to_py()
+    ping_std = js_pingStd.to_py()
+
     cmab_alpha = js_cmabAlpha
     length = len(history)
     throughput_playback_history = js_throughput_playback_history.to_py()
     latency_playback_history = js_latency_playback_history.to_py()
 
-    print("cmab_alpha from pyodide", cmab_alpha)
-    pprint(throughput_playback_history)
-    pprint(latency_playback_history)
+    #print("cmab_alpha from pyodide", cmab_alpha)
+    #pprint(throughput_playback_history)
+    #pprint(latency_playback_history)
 
     # selected_arms == bitrate level in each round
     previous_rounds = length - 1
+    print("length of previous rounds", previous_rounds)
 
     throughput = [x['throughput'] for x in history]
     playback_rate = [x['playback_rate'] for x in history]
@@ -144,14 +124,24 @@ function CMABAbrController() {
     #print('bitrate length', len(bitrate))
     #print('throughput length', len(throughput))
 
+    # apply weights to throughput and playback_rate and live_latency
+    print("original throughput", throughput[:previous_rounds])
+
+    throughput = calculate(throughput[:previous_rounds])
+    playback_rate = playback_rate[:previous_rounds]
+    network_latency = calculate(network_latency[:previous_rounds])
+    live_latency = live_latency[:previous_rounds]
+
+    print("weighted throughput", throughput)
+
     train_df = pd.DataFrame({
                              'selected_arms': selected_arms,
                              'reward': rewards,
                              'bitrate': bitrate,
-                             'throughput': throughput[:previous_rounds],
-                             'playback_rate': playback_rate[:previous_rounds],
-                             'network_latency': network_latency[:previous_rounds],
-                             'live_latency': live_latency[:previous_rounds],
+                             'throughput': throughput,
+                             'playback_rate': playback_rate,
+                             'network_latency': network_latency,
+                             'live_latency': live_latency,
                             #  'live_latency': live_latency[length:previous_rounds],
                             #  'throughput': throughput[length:previous_rounds],
                             #  'playback_rate': playback_rate[length:previous_rounds]
@@ -163,7 +153,8 @@ function CMABAbrController() {
     train = scaler.fit_transform(train_df[[
         'throughput',
         'playback_rate',
-        'network_latency'
+        'network_latency',
+        'live_latency'
     ]])
 
     # Model
@@ -184,7 +175,8 @@ function CMABAbrController() {
     test_df = pd.DataFrame({
                             'throughput': [throughput[-1]],
                             'playback_rate': [playback_rate[-1]],
-                            'network_latency': [network_latency[-1]]
+                            'network_latency': [network_latency[-1]],
+                            'live_latency': [live_latency[-1]]
                             })
     test = scaler.transform(test_df)
 
@@ -396,20 +388,14 @@ function CMABAbrController() {
 
     function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel,
         currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput,
-        rebufferingEvents, cmabAlpha, pyodideInitDone) {
+        rebufferingEvents, cmabAlpha, pyodideInitDone, networkLatency,
+        _latency_playback_history, _throughput_playback_history,
+        pingMean, pingStd) {
         if (pyodideInitDone === false) {
             return 0;
         }
 
-        let _latency_playback_history = getLatencyHistory()
-        let _throughput_playback_history = getThroughputHistory()
-
-        // console.log(_latency_playback_history)
-        // console.log(_throughput_playback_history)
         let tic = new Date();
-
-        console.log('\ngetCMABNextQuality', tic);
-        // console.log(`Throughput ${throughput} kbps, playbackSpeed ${playbackRate}, currentLatency ${currentLiveLatency}, currentBitrate ${currentBitrateKbps}, maxBitrate ${maxBitrateKbps}, currentQualityLevel ${currentQualityLevel}`);
 
         throughput = throughput / 1000.0;
 
@@ -422,20 +408,19 @@ function CMABAbrController() {
             let last_timeslot_started_at = _throughputDict.get(starlinkTimeslotCount)['start']
             let same_timeslot = isSameSatelliteTimeSlot(last_timeslot_started_at, tic);
 
-            if (!same_timeslot) {
-                starlinkTimeslotCount += 1
-                _throughputDict.set(starlinkTimeslotCount, {
-                    'start': tic,
-                    'history': [],
-                });
-                _selectedArmsArray = [];
-                _rewardsArray = [];
-                _bitrateArray = [];
-            }
+            // if (!same_timeslot) {
+            //     starlinkTimeslotCount += 1
+            //     _throughputDict.set(starlinkTimeslotCount, {
+            //         'start': tic,
+            //         'history': [],
+            //     });
+            //     _selectedArmsArray = [];
+            //     _rewardsArray = [];
+            //     _bitrateArray = [];
+            // }
         }
 
         let selectedArm = 0;
-        let networkLatency = getLatestNetworkLatency();
 
         _throughputDict.get(starlinkTimeslotCount).history.push({
             tic: tic,
@@ -455,14 +440,16 @@ function CMABAbrController() {
         window.js_cmabAlpha = cmabAlpha;
         window.js_throughput_playback_history = _throughput_playback_history;
         window.js_latency_playback_history = _latency_playback_history;
+        window.js_pingMean = pingMean;
+        window.js_pingStd = pingStd;
 
         // just recovered from satellite handover
         if (_selectedArmsArray.length < cmabArms.length - 1) {
-            console.log('length: ', _selectedArmsArray.length)
             selectedArm = cmabArms.length - 1
         } else {
             selectedArm = pyodide.runPython(_py_mabwiser_select_arm);
         }
+        console.log('length: ', _selectedArmsArray.length)
 
         _selectedArmsArray.push(selectedArm);
 
