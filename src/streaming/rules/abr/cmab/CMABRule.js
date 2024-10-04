@@ -43,11 +43,11 @@ import EventBus from '../../../../core/EventBus';
 import Settings from '../../../../core/Settings';
 
 const { loadPyodide } = require('pyodide');
-const statServerUrl = 'http://stat-server:8000';
-const pyodideLoadingUrl = 'http://pyodide/pyodide/';
+// const statServerUrl = 'http://stat-server:8000';
+// const pyodideLoadingUrl = 'http://pyodide/pyodide/';
 
-// const statServerUrl = 'http://100.99.201.63/stats';
-// const pyodideLoadingUrl = 'http://100.99.201.63/pyodide/';
+const statServerUrl = 'http://100.99.201.63/stats';
+const pyodideLoadingUrl = 'http://100.99.201.63/pyodide/';
 
 function getLatestNetworkLatency() {
     let LatencySidecarURL = statServerUrl + '/ping';
@@ -149,7 +149,7 @@ function CMABRule(config) {
 
     async function init_pyodide() {
         console.log('[CMAB] Loading Pyodide...');
-        let pyodide = await loadPyodide({ indexURL: pyodideLoadingUrl });
+        pyodide = await loadPyodide({ indexURL: pyodideLoadingUrl});
         let requirements = [
             'pandas',
             'scikit-learn',
@@ -157,8 +157,8 @@ function CMABRule(config) {
             pyodideLoadingUrl + 'itu_p1203-1.9.5-py3-none-any.whl',
         ]
         await pyodide.loadPackage(requirements);
+        console.log('Time: ', new Date(), 'Pyodide ready');
         await pyodide.runPythonAsync(_py_import_test);
-
         return pyodide;
     }
 
@@ -170,16 +170,15 @@ function CMABRule(config) {
             pyodide = pyodide_context;
             console.log('[CMAB] Rule Setup Done', new Date());
             pyodideInitDone = true;
-
-            sendStats(statServerUrl + '/event/initDone', {
-                'initDone': 1,
-            });
-
-            eventBus.on(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);
-            eventBus.on(MediaPlayerEvents.BUFFER_EMPTY, onBufferEmpty, instance);
-
-            CMABController = CMABAbrController(context).create();
         });
+        // sendStats(statServerUrl + '/event/initDone', {
+        //     'initDone': 1,
+        // });
+
+        eventBus.on(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);
+        eventBus.on(MediaPlayerEvents.BUFFER_EMPTY, onBufferEmpty, instance);
+
+        CMABController = CMABAbrController(context).create();
     }
 
     function onBufferEmpty(e) {
@@ -278,7 +277,7 @@ function CMABRule(config) {
                 'timestamp': new Date()
             });
 
-            let pingHistory = sessionLatencyHistory["ping_history"];
+            let pingHistory = sessionLatencyHistory['ping_history'];
             // let lastFivePings = pingHistory.slice(-5);
             let pingMean = pingHistory.map(x => x.mean);
             let pingStd = pingHistory.map(x => x.std);

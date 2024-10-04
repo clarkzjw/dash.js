@@ -270,7 +270,7 @@ function CatchupController() {
 
             const catchupMode = _getCatchupMode();
 
-            if (catchupMode === Constants.LIVE_CATCHUP_MODE_LOLP) {
+            if (catchupMode === Constants.LIVE_CATCHUP_MODE_LOLP || catchupMode === Constants.LIVE_CATCHUP_MODE_CMAB) {
                 const currentBuffer = playbackController.getBufferLevel();
                 const playbackBufferMin = settings.get().streaming.liveCatchup.playbackBufferMin;
 
@@ -454,26 +454,26 @@ function CatchupController() {
         // Hybrid: Buffer-based
         if (isHandoverPeriod(tic.getSeconds())) {
             // 1. Satellite handover period, slow down
-             const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
-             const deltaBuffer = -1 * Math.abs(bufferLevel - playbackBufferMin); // -ve value
-             const d = deltaBuffer * 5;
- 
-             const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
-             newRate = (1 - cpr) + s;
- 
-             logger.debug('[CMAB playback control_satellite handover period] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
+            const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
+            const deltaBuffer = -1 * Math.abs(bufferLevel - playbackBufferMin); // -ve value
+            const d = deltaBuffer * 5;
+
+            const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+            newRate = (1 - cpr) + s;
+
+            logger.debug('[CMAB playback control_satellite handover period] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
         } else if (bufferLevel < playbackBufferMin) {
             // 2. Satellite handover period, slow down
-             const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
-             const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
-             const d = deltaBuffer * 5;
- 
-             // Playback rate must be between (1 - cpr) - (1 + cpr)
-             // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
-             const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
-             newRate = (1 - cpr) + s;
- 
-             logger.debug('[CMAB playback control_buffer-based] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
+            const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
+            const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
+            const d = deltaBuffer * 5;
+
+            // Playback rate must be between (1 - cpr) - (1 + cpr)
+            // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
+            const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+            newRate = (1 - cpr) + s;
+
+            logger.debug('[CMAB playback control_buffer-based] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
         } else {
             // Hybrid: Latency-based
             // Buffer is safe, vary playback rate based on latency

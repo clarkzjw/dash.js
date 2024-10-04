@@ -36,8 +36,8 @@
 
 import FactoryMaker from '../../../../core/FactoryMaker';
 
-const statServerUrl = 'http://stat-server:8000';
-// const statServerUrl = 'http://100.99.201.63/stats';
+// const statServerUrl = 'http://stat-server:8000';
+const statServerUrl = 'http://100.99.201.63/stats';
 
 async function sendStats(url, type, stat) {
     fetch(url, {
@@ -89,7 +89,6 @@ function CMABAbrController() {
         for i in range(len(a)):
             a[i] = w[i] * a[i]
         return a
-
 
     arms = js_cmabArms.to_py()
     rewards = js_rewards.to_py()
@@ -462,14 +461,14 @@ function CMABAbrController() {
         _bitrateArray.push(context.video_bitrate);
         _rewardsArray.push(reward_qoe);
 
-        sendStats(statServerUrl+'/qoe/', 'qoe', {
-            timestamp: new Date().valueOf(),
-            reward_qoe: reward_qoe,
-            arm: selectedArm,
-            video_bitrate: context.video_bitrate,
-            bitrateRatio: bitrateRatio,
-            currentLiveLatency: currentLiveLatency,
-        });
+        // sendStats(statServerUrl+'/qoe/', 'qoe', {
+        //     timestamp: new Date().valueOf(),
+        //     reward_qoe: reward_qoe,
+        //     arm: selectedArm,
+        //     video_bitrate: context.video_bitrate,
+        //     bitrateRatio: bitrateRatio,
+        //     currentLiveLatency: currentLiveLatency,
+        // });
 
         rounds = rounds + 1;
 

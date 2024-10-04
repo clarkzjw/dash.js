@@ -24,7 +24,6 @@ let App = function () {
     }
     this.events = []
     this.playbackMetric = []
-    this.pyodide_init_started = false;
 };
 
 const statServerUrl = 'http://stat-server:8000';
@@ -101,8 +100,8 @@ async function sendStats(url, type, stat) {
 
 App.prototype._load = function () {
     let now = new Date()
-    sendStats(statServerUrl+'/event/'+this.domElements.experimentID.value, 'event', {'type': 'loading', 'ts': now})
-    sendStats(statServerUrl+'/metric/'+this.domElements.experimentID.value, 'metric', {'type': 'loading', 'ts': now})
+    // sendStats(statServerUrl+'/event/'+this.domElements.experimentID.value, 'event', {'type': 'loading', 'ts': now})
+    // sendStats(statServerUrl+'/metric/'+this.domElements.experimentID.value, 'metric', {'type': 'loading', 'ts': now})
 
     let url;
 
@@ -113,7 +112,6 @@ App.prototype._load = function () {
         this.chartData.lastTimeStamp = null
     }
 
-    this.pyodide_init_started = true;
     url = document.getElementById('manifest').value;
 
     this.video = document.querySelector('video');
@@ -261,17 +259,17 @@ App.prototype._load = function () {
     }
 
     let self = this;
-    setInterval(function() {
-        let experimentID = self.domElements.experimentID.value;
+    // setInterval(function() {
+    //     let experimentID = self.domElements.experimentID.value;
 
-        const sendingEvents = self.events
-        self.events = []
-        sendStats(statServerUrl+'/event/'+experimentID, 'event', sendingEvents)
+    //     const sendingEvents = self.events
+    //     self.events = []
+    //     sendStats(statServerUrl+'/event/'+experimentID, 'event', sendingEvents)
 
-        const sendingPlaybackMetric = self.playbackMetric
-        self.playbackMetric = []
-        sendStats(statServerUrl+'/metric/'+experimentID, 'metric', sendingPlaybackMetric)
-    }, SEND_STAT_INTERVAL_MS)
+    //     const sendingPlaybackMetric = self.playbackMetric
+    //     self.playbackMetric = []
+    //     sendStats(statServerUrl+'/metric/'+experimentID, 'metric', sendingPlaybackMetric)
+    // }, SEND_STAT_INTERVAL_MS)
 }
 
 App.prototype._applyParameters = function () {
