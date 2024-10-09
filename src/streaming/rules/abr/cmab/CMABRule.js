@@ -90,27 +90,27 @@ function getHistory(url) {
     }
 }
 
-async function sendStats(url, stat) {
-    fetch(url, {
-        credentials: 'omit',
-        mode: 'cors',
-        method: 'post',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stat })
-    })
-        .then(resp => {
-            if (resp.status === 200) {
-                return resp.json()
-            } else {
-                console.log('Status: ' + resp.status)
-                return Promise.reject('500')
-            }
-        })
-        .catch(err => {
-            if (err === '500') return
-            console.log(err)
-        })
-}
+// async function sendStats(url, stat) {
+//     fetch(url, {
+//         credentials: 'omit',
+//         mode: 'cors',
+//         method: 'post',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ stat })
+//     })
+//         .then(resp => {
+//             if (resp.status === 200) {
+//                 return resp.json()
+//             } else {
+//                 console.log('Status: ' + resp.status)
+//                 return Promise.reject('500')
+//             }
+//         })
+//         .catch(err => {
+//             if (err === '500') return
+//             console.log(err)
+//         })
+// }
 
 function CMABRule(config) {
     config = config || {};

@@ -404,8 +404,8 @@ function CMABAbrController() {
                 'history': []
             });
         } else {
-            let last_timeslot_started_at = _throughputDict.get(starlinkTimeslotCount)['start']
-            let same_timeslot = isSameSatelliteTimeSlot(last_timeslot_started_at, tic);
+            // let last_timeslot_started_at = _throughputDict.get(starlinkTimeslotCount)['start']
+            // let same_timeslot = isSameSatelliteTimeSlot(last_timeslot_started_at, tic);
 
             // if (!same_timeslot) {
             //     starlinkTimeslotCount += 1

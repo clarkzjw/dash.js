@@ -1,6 +1,6 @@
 const METRIC_INTERVAL_MS = 100; // 0.1s
 const CHECK_PYODIDE_INIT_INTERVAL_MS = 2000; // 0.1s
-const SEND_STAT_INTERVAL_MS = 2000; // 2s
+const SEND_STAT_INTERVAL_MS = 5000; // 2s
 
 let App = function () {
     this.player = null;
@@ -75,17 +75,16 @@ App.prototype._setDomElements = function () {
     this.domElements.experimentID = document.getElementById('experiment-id');
 }
 
-async function sendStats(url, type, stat) {
+async function sendStats(url, dataType, stat) {
     fetch(url, {
         credentials: 'omit',
         mode: 'cors',
         method: 'post',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({type: stat})
+        body: JSON.stringify({ dataType: stat })
     })
         .then(resp => {
             if (resp.status === 200) {
-                // console.log('Sent %d %s', stat.length, type)
                 return resp.json()
             } else {
                 console.log('Status: ' + resp.status)
@@ -100,8 +99,8 @@ async function sendStats(url, type, stat) {
 
 App.prototype._load = function () {
     let now = new Date()
-    // sendStats(statServerUrl+'/event/'+this.domElements.experimentID.value, 'event', {'type': 'loading', 'ts': now})
-    // sendStats(statServerUrl+'/metric/'+this.domElements.experimentID.value, 'metric', {'type': 'loading', 'ts': now})
+    sendStats(statServerUrl+'/event/'+this.domElements.experimentID.value, 'event', {'dataType': 'loading', 'ts': now})
+    sendStats(statServerUrl + '/metric/' + this.domElements.experimentID.value, 'metric', {'dataType': 'loading', 'ts': now})
 
     let url;
 
@@ -171,24 +170,13 @@ App.prototype._load = function () {
     const events = [
         // "ADAPTATION_SET_REMOVED_NO_CAPABILITIES",
         // "AST_IN_FUTURE",
-        // "BASE_URLS_UPDATED",
-        // 'BUFFER_EMPTY',
-        // 'BUFFER_LEVEL_STATE_CHANGED',
-        // 'BUFFER_LEVEL_UPDATED',
-        // 'BUFFER_LOADED',
+        'BUFFER_EMPTY',
+        'BUFFER_LEVEL_STATE_CHANGED',
+        'BUFFER_LEVEL_UPDATED',
+        'BUFFER_LOADED',
         // "CAN_PLAY",
         // "CAN_PLAY_THROUGH",
-        // "CAPTION_CONTAINER_RESIZE",
-        // "CAPTION_RENDERED",
-        // "CONFORMANCE_VIOLATION",
-        // "CONTENT_STEERING_REQUEST_COMPLETED",
-        // "CUE_ENTER",
-        // "CUE_ENTER",
-        // "DVB_FONT_DOWNLOAD_ADDED",
-        // "DVB_FONT_DOWNLOAD_COMPLETE",
-        // "DVB_FONT_DOWNLOAD_FAILED",
-        // "DYNAMIC_TO_STATIC",
-        // "ERROR",
+        'ERROR',
         // "EVENT_MODE_ON_RECEIVE",
         // "EVENT_MODE_ON_START",
         // 'FRAGMENT_LOADING_ABANDONED',
@@ -197,34 +185,29 @@ App.prototype._load = function () {
         // 'FRAGMENT_LOADING_STARTED',
         // "INBAND_PRFT",
         // 'LOG',
-        // 'MANIFEST_LOADED',
-        // 'MANIFEST_LOADING_FINISHED',
-        // 'MANIFEST_LOADING_STARTED',
-        // "MANIFEST_VALIDITY_CHANGED",
         'METRIC_ADDED',
         // "METRIC_CHANGED",
         // "METRIC_UPDATED",
         // "METRICS_CHANGED",
         // "PERIOD_SWITCH_COMPLETED",
         // "PERIOD_SWITCH_STARTED",
-        // 'PLAYBACK_ENDED',
-        // 'PLAYBACK_ERROR',
-        // 'PLAYBACK_LOADED_DATA',
-        // 'PLAYBACK_METADATA_LOADED',
-        // "PLAYBACK_NOT_ALLOWED",
-        // 'PLAYBACK_PAUSED',
-        // 'PLAYBACK_PLAYING',
-        // 'PLAYBACK_PROGRESS',
-        // 'PLAYBACK_RATE_CHANGED',
-        // "PLAYBACK_SEEKED",
-        // "PLAYBACK_SEEKING",
-        // 'PLAYBACK_STALLED',
-        // 'PLAYBACK_STARTED',
-        // "PLAYBACK_TIME_UPDATED",
-        // "PLAYBACK_VOLUME_CHANGED",
-        // 'PLAYBACK_WAITING',
-        // 'QUALITY_CHANGE_RENDERED',
-        // 'QUALITY_CHANGE_REQUESTED',
+        'PLAYBACK_ENDED',
+        'PLAYBACK_ERROR',
+        'PLAYBACK_LOADED_DATA',
+        'PLAYBACK_METADATA_LOADED',
+        'PLAYBACK_NOT_ALLOWED',
+        'PLAYBACK_PAUSED',
+        'PLAYBACK_PLAYING',
+        'PLAYBACK_PROGRESS',
+        'PLAYBACK_RATE_CHANGED',
+        'PLAYBACK_SEEKED',
+        'PLAYBACK_SEEKING',
+        'PLAYBACK_STALLED',
+        'PLAYBACK_STARTED',
+        'PLAYBACK_TIME_UPDATED',
+        'PLAYBACK_WAITING',
+        'QUALITY_CHANGE_RENDERED',
+        'QUALITY_CHANGE_REQUESTED',
         'REPRESENTATION_SWITCH',
         // 'STREAM_ACTIVATED',
         // 'STREAM_DEACTIVATED',
@@ -232,8 +215,6 @@ App.prototype._load = function () {
         // 'STREAM_INITIALIZING',
         // "STREAM_TEARDOWN_COMPLETE",
         // 'STREAM_UPDATED',
-        // "TEXT_TRACK_ADDED",
-        // "TEXT_TRACKS_ADDED",
         'THROUGHPUT_MEASUREMENT_STORED',
         // 'TRACK_CHANGE_RENDERED',
         // "TTML_PARSED",
@@ -259,17 +240,17 @@ App.prototype._load = function () {
     }
 
     let self = this;
-    // setInterval(function() {
-    //     let experimentID = self.domElements.experimentID.value;
+    setInterval(function() {
+        let experimentID = self.domElements.experimentID.value;
 
-    //     const sendingEvents = self.events
-    //     self.events = []
-    //     sendStats(statServerUrl+'/event/'+experimentID, 'event', sendingEvents)
+        const sendingEvents = self.events
+        self.events = []
+        sendStats(statServerUrl+'/event/'+experimentID, 'event', sendingEvents)
 
-    //     const sendingPlaybackMetric = self.playbackMetric
-    //     self.playbackMetric = []
-    //     sendStats(statServerUrl+'/metric/'+experimentID, 'metric', sendingPlaybackMetric)
-    // }, SEND_STAT_INTERVAL_MS)
+        const sendingPlaybackMetric = self.playbackMetric
+        self.playbackMetric = []
+        sendStats(statServerUrl+'/metric/'+experimentID, 'metric', sendingPlaybackMetric)
+    }, SEND_STAT_INTERVAL_MS)
 }
 
 App.prototype._applyParameters = function () {
