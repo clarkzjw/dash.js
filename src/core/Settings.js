@@ -1026,6 +1026,7 @@ function Settings() {
             abr: {
                 cmab: {
                     alpha: 0.5,
+                    experimentID: '',
                 },
                 movingAverageMethod: Constants.MOVING_AVERAGE_SLIDING_WINDOW,
                 ABRStrategy: Constants.ABR_STRATEGY_DYNAMIC,

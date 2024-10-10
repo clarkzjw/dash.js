@@ -385,7 +385,7 @@ function CMABAbrController() {
         return false
     }
 
-    function getCMABNextQuality(pyodide, context, bitrateList, cmabArms, currentQualityLevel,
+    function getCMABNextQuality(experimentID, pyodide, context, bitrateList, cmabArms, currentQualityLevel,
         currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput,
         rebufferingEvents, cmabAlpha, pyodideInitDone, networkLatency,
         _latency_playback_history, _throughput_playback_history,
@@ -461,14 +461,14 @@ function CMABAbrController() {
         _bitrateArray.push(context.video_bitrate);
         _rewardsArray.push(reward_qoe);
 
-        // sendStats(statServerUrl+'/qoe/', 'qoe', {
-        //     timestamp: new Date().valueOf(),
-        //     reward_qoe: reward_qoe,
-        //     arm: selectedArm,
-        //     video_bitrate: context.video_bitrate,
-        //     bitrateRatio: bitrateRatio,
-        //     currentLiveLatency: currentLiveLatency,
-        // });
+        sendStats(statServerUrl+'/qoe/'+experimentID, 'qoe', {
+            timestamp: new Date().valueOf(),
+            reward_qoe: reward_qoe,
+            arm: selectedArm,
+            video_bitrate: context.video_bitrate,
+            bitrateRatio: bitrateRatio,
+            currentLiveLatency: currentLiveLatency,
+        });
 
         rounds = rounds + 1;
 

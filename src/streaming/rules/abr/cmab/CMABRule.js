@@ -137,6 +137,7 @@ function CMABRule(config) {
     let lastStallTime = null;
     let rebufferingEvents = new Map();
     let cmabAlpha = null;
+    let experimentID = 'default';
 
     let _py_import_test = `
     import pandas as pd
@@ -165,6 +166,7 @@ function CMABRule(config) {
     function setup() {
         player_settings = Settings(context).getInstance()
         cmabAlpha = player_settings.get().streaming.abr.cmab.alpha;
+        experimentID = player_settings.get().streaming.abr.cmab.experimentID;
 
         init_pyodide().then((pyodide_context) => {
             pyodide = pyodide_context;
@@ -284,6 +286,7 @@ function CMABRule(config) {
 
             console.log('[CMAB] Waiting CMABController.getCMABNextQuality')
             switchRequest.quality = CMABController.getCMABNextQuality(
+                experimentID,
                 pyodide,
                 context,
                 bitrateList,

@@ -75,13 +75,13 @@ App.prototype._setDomElements = function () {
     this.domElements.experimentID = document.getElementById('experiment-id');
 }
 
-async function sendStats(url, dataType, stat) {
+async function sendStats(url, type, stat) {
     fetch(url, {
         credentials: 'omit',
         mode: 'cors',
         method: 'post',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dataType: stat })
+        body: JSON.stringify({ type: stat })
     })
         .then(resp => {
             if (resp.status === 200) {
@@ -99,8 +99,8 @@ async function sendStats(url, dataType, stat) {
 
 App.prototype._load = function () {
     let now = new Date()
-    sendStats(statServerUrl+'/event/'+this.domElements.experimentID.value, 'event', {'dataType': 'loading', 'ts': now})
-    sendStats(statServerUrl + '/metric/' + this.domElements.experimentID.value, 'metric', {'dataType': 'loading', 'ts': now})
+    sendStats(statServerUrl+'/event/'+this.domElements.experimentID.value, 'event', {'type': 'loading', 'ts': now})
+    sendStats(statServerUrl + '/metric/' + this.domElements.experimentID.value, 'metric', {'type': 'loading', 'ts': now})
 
     let url;
 
@@ -259,6 +259,7 @@ App.prototype._applyParameters = function () {
     }
 
     let settings = this._getCurrentSettings();
+    console.log('settings', settings);
 
     this.player.updateSettings({
         streaming: {
@@ -280,6 +281,7 @@ App.prototype._applyParameters = function () {
             abr: {
                 cmab: {
                     alpha: settings.cmabAlpha,
+                    experimentID: settings.experimentID,
                 },
                 ABRStrategy: settings.abrGeneral,
                 additionalAbrRules: {
@@ -383,6 +385,7 @@ App.prototype._getCurrentSettings = function () {
     let catchupMechanism = document.querySelector('input[name="catchup"]:checked').value;
     let throughputCalculation = document.querySelector('input[name="throughput-calc"]:checked').value;
     let cmabAlpha = parseFloat(this.domElements.settings.cmabAlpha);
+    let experimentID = this.domElements.experimentID.value;
 
     return {
         cmabAlpha,
@@ -397,7 +400,8 @@ App.prototype._getCurrentSettings = function () {
         abrAdditionalSwitchHistoryRule,
         catchupMechanism,
         catchupEnabled,
-        throughputCalculation
+        throughputCalculation,
+        experimentID
     }
 }
 
