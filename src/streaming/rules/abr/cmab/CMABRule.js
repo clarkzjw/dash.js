@@ -117,6 +117,7 @@ function CMABRule(config) {
     let cmabAlpha = null;
     let experimentID = 'default';
     let manifest = null;
+    let pyodide_init_done = false;
 
     let _py_import_test = `
     import pandas as pd
@@ -149,10 +150,15 @@ function CMABRule(config) {
 
         eventBus.on(CoreEvents.MANIFEST_UPDATED, (e) => {
             manifest = e.manifest;
+            console.log('[CMAB] Manifest Updated:', manifest);
+            if (pyodide_init_done) {
+                eventBus.trigger(CoreEvents.CMAB_MANIFEST_LOADED, { manifest: manifest })
+            }
         }, instance);
 
         init_pyodide().then((_pyodide) => {
             pyodide = _pyodide;
+            pyodide_init_done = true;
             console.log('[CMAB] Rule Setup Done', new Date());
 
             const event = new CustomEvent('cmabSetupComplete');
