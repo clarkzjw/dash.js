@@ -36,8 +36,8 @@
 
 import FactoryMaker from '../../../../core/FactoryMaker';
 
-// const statServerUrl = 'http://stat-server:8000';
-const statServerUrl = 'http://100.99.201.63/stats';
+const statServerUrl = 'http://stat-server:8000';
+// const statServerUrl = 'http://100.99.201.63/stats';
 
 async function sendStats(url, type, stat) {
     fetch(url, {
@@ -336,7 +336,6 @@ function CMABAbrController() {
     // calculate ITU P1203 O46 QoE value
     function calculateITUP1203QoE(pyodide, itup1203_input_json) {
         window.js_itup1203inputjson = itup1203_input_json;
-
         return pyodide.runPython(_py_itu_p1203_calculate_o46);
     }
 
@@ -385,14 +384,38 @@ function CMABAbrController() {
         return false
     }
 
+    function handleSelectedArm(context, pyodide, _selectedArmsArray, selectedArm, bitrateList, _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic) {
+        _selectedArmsArray.push(selectedArm);
+
+        context.video_bitrate = bitrateList[selectedArm].bandwidth / 1000.0;
+        context.resolution = `${bitrateList[selectedArm].width}x${bitrateList[selectedArm].height}`;
+
+        let bitrateRatio = context.video_bitrate / maxBitrateKbps;
+        let reward_qoe = calculateReward(pyodide, context, currentLiveLatency, context.video_bitrate, bitrateRatio, rebufferingEvents);
+        console.log('Reward QoE:', reward_qoe);
+
+        _bitrateArray.push(context.video_bitrate);
+        _rewardsArray.push(reward_qoe);
+
+        sendStats(statServerUrl + '/qoe/' + experimentID, 'qoe', {
+            timestamp: new Date().valueOf(),
+            reward_qoe: reward_qoe,
+            arm: selectedArm,
+            video_bitrate: context.video_bitrate,
+            bitrateRatio: bitrateRatio,
+            currentLiveLatency: currentLiveLatency,
+        });
+
+        let toc = new Date();
+        console.log('selected arm', selectedArm, 'time used', timeDiff(tic, toc), 'seconds');
+        return selectedArm;
+    }
+
     function getCMABNextQuality(experimentID, pyodide, context, bitrateList, cmabArms, currentQualityLevel,
         currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput,
-        rebufferingEvents, cmabAlpha, pyodideInitDone, networkLatency,
+        rebufferingEvents, cmabAlpha, networkLatency,
         _latency_playback_history, _throughput_playback_history,
         pingMean, pingStd) {
-        if (pyodideInitDone === false) {
-            return 0;
-        }
 
         let tic = new Date();
 
@@ -445,40 +468,16 @@ function CMABAbrController() {
         // just recovered from satellite handover
         if (_selectedArmsArray.length < cmabArms.length - 1) {
             selectedArm = cmabArms.length - 1
+            console.log('running without cmab, selected arm', selectedArm);
         } else {
+            console.log('running cmab');
             selectedArm = pyodide.runPython(_py_mabwiser_select_arm);
         }
-        console.log('length: ', _selectedArmsArray.length)
-
-        _selectedArmsArray.push(selectedArm);
-
-        context.video_bitrate = bitrateList[selectedArm].bandwidth / 1000.0;
-        context.resolution = `${bitrateList[selectedArm].width}x${bitrateList[selectedArm].height}`;
-
-        let bitrateRatio = context.video_bitrate / maxBitrateKbps;
-        let reward_qoe = calculateReward(pyodide, context, currentLiveLatency, context.video_bitrate, bitrateRatio, rebufferingEvents);
-
-        _bitrateArray.push(context.video_bitrate);
-        _rewardsArray.push(reward_qoe);
-
-        sendStats(statServerUrl+'/qoe/'+experimentID, 'qoe', {
-            timestamp: new Date().valueOf(),
-            reward_qoe: reward_qoe,
-            arm: selectedArm,
-            video_bitrate: context.video_bitrate,
-            bitrateRatio: bitrateRatio,
-            currentLiveLatency: currentLiveLatency,
-        });
-
-        rounds = rounds + 1;
-
-        let toc = new Date();
-        console.log('selected arm', selectedArm, 'time used' , timeDiff(tic, toc), 'seconds');
-        return selectedArm;
+        return handleSelectedArm(context, pyodide, _selectedArmsArray, selectedArm, bitrateList, _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic);
     }
 
     instance = {
-        getCMABNextQuality,
+        getCMABNextQuality: getCMABNextQuality,
     };
 
     return instance;

@@ -40,14 +40,15 @@ import MetricsConstants from '../../../constants/MetricsConstants';
 import CMABAbrController from './CMABAbrController';
 import MediaPlayerEvents from '../../../MediaPlayerEvents';
 import EventBus from '../../../../core/EventBus';
+import CoreEvents from '../../../../core/events/Events';
 import Settings from '../../../../core/Settings';
 
 const { loadPyodide } = require('pyodide');
-// const statServerUrl = 'http://stat-server:8000';
-// const pyodideLoadingUrl = 'http://pyodide/pyodide/';
+const statServerUrl = 'http://stat-server:8000';
+const pyodideLoadingUrl = 'http://pyodide/pyodide/';
 
-const statServerUrl = 'http://100.99.201.63/stats';
-const pyodideLoadingUrl = 'http://100.99.201.63/pyodide/';
+// const statServerUrl = 'http://100.99.201.63/stats';
+// const pyodideLoadingUrl = 'http://100.99.201.63/pyodide/';
 
 function getLatestNetworkLatency() {
     let LatencySidecarURL = statServerUrl + '/ping';
@@ -60,16 +61,6 @@ function getLatestNetworkLatency() {
     } else {
         throw new Error('Request failed: ' + xhr.statusText);
     }
-}
-
-function getLatencyHistory() {
-    const url = statServerUrl + '/pingstats';
-    return getHistory(url);
-}
-
-function getThroughputHistory() {
-    const url = statServerUrl + '/throughputstats';
-    return getHistory(url);
 }
 
 function getHistory(url) {
@@ -90,27 +81,15 @@ function getHistory(url) {
     }
 }
 
-// async function sendStats(url, stat) {
-//     fetch(url, {
-//         credentials: 'omit',
-//         mode: 'cors',
-//         method: 'post',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ stat })
-//     })
-//         .then(resp => {
-//             if (resp.status === 200) {
-//                 return resp.json()
-//             } else {
-//                 console.log('Status: ' + resp.status)
-//                 return Promise.reject('500')
-//             }
-//         })
-//         .catch(err => {
-//             if (err === '500') return
-//             console.log(err)
-//         })
-// }
+function getLatencyHistory() {
+    const url = statServerUrl + '/pingstats';
+    return getHistory(url);
+}
+
+function getThroughputHistory() {
+    const url = statServerUrl + '/throughputstats';
+    return getHistory(url);
+}
 
 function CMABRule(config) {
     config = config || {};
@@ -125,7 +104,6 @@ function CMABRule(config) {
     let instance;
     let cmabArms = null;
     let pyodide = null;
-    let pyodideInitDone = false;
 
     let CMABController;
     let player_settings;
@@ -138,28 +116,29 @@ function CMABRule(config) {
     let rebufferingEvents = new Map();
     let cmabAlpha = null;
     let experimentID = 'default';
+    let manifest = null;
 
     let _py_import_test = `
     import pandas as pd
     from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
     from sklearn.preprocessing import StandardScaler
-    from pprint import pprint
     `
 
     let history = [];
 
     async function init_pyodide() {
         console.log('[CMAB] Loading Pyodide...');
-        pyodide = await loadPyodide({ indexURL: pyodideLoadingUrl});
         let requirements = [
             'pandas',
             'scikit-learn',
             pyodideLoadingUrl + 'mabwiser-2.7.0-py3-none-any.whl',
             pyodideLoadingUrl + 'itu_p1203-1.9.5-py3-none-any.whl',
         ]
+
+        pyodide = await loadPyodide({ indexURL: pyodideLoadingUrl});
         await pyodide.loadPackage(requirements);
+        pyodide.runPython(_py_import_test);
         console.log('Time: ', new Date(), 'Pyodide ready');
-        await pyodide.runPythonAsync(_py_import_test);
         return pyodide;
     }
 
@@ -168,14 +147,18 @@ function CMABRule(config) {
         cmabAlpha = player_settings.get().streaming.abr.cmab.alpha;
         experimentID = player_settings.get().streaming.abr.cmab.experimentID;
 
-        init_pyodide().then((pyodide_context) => {
-            pyodide = pyodide_context;
+        eventBus.on(CoreEvents.MANIFEST_UPDATED, (e) => {
+            manifest = e.manifest;
+        }, instance);
+
+        init_pyodide().then((_pyodide) => {
+            pyodide = _pyodide;
             console.log('[CMAB] Rule Setup Done', new Date());
-            pyodideInitDone = true;
+
+            const event = new CustomEvent('cmabSetupComplete');
+            window.dispatchEvent(event);
+            eventBus.trigger(CoreEvents.CMAB_MANIFEST_LOADED, {manifest: manifest})
         });
-        // sendStats(statServerUrl + '/event/initDone', {
-        //     'initDone': 1,
-        // });
 
         eventBus.on(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);
         eventBus.on(MediaPlayerEvents.BUFFER_EMPTY, onBufferEmpty, instance);
@@ -184,7 +167,7 @@ function CMABRule(config) {
     }
 
     function onBufferEmpty(e) {
-        if (e.mediaType === 'video' && pyodideInitDone === true) {
+        if (e.mediaType === 'video') {
             let tic = new Date();
             console.log('[CMAB] Buffer Empty:', e, tic, currentBitrate);
             lastStallTime = new Date();
@@ -192,7 +175,7 @@ function CMABRule(config) {
     }
 
     function onBufferLoaded(e) {
-        if (e.mediaType === 'video' && pyodideInitDone === true) {
+        if (e.mediaType === 'video') {
             let tic = new Date();
             console.log('[CMAB] Buffer Loaded:', e, tic, currentBitrate);
             if (lastStallTime != null) {
@@ -234,7 +217,6 @@ function CMABRule(config) {
             if (isNaN(throughput) ||
                 !bufferStateVO ||
                 mediaType === Constants.AUDIO ||
-                pyodideInitDone === false ||
                 abrController.getAbandonmentStateFor(streamInfo.id, mediaType) === MetricsConstants.ABANDON_LOAD) {
 
                 return switchRequest;
@@ -285,8 +267,8 @@ function CMABRule(config) {
             let pingStd = pingHistory.map(x => x.std);
 
             console.log('[CMAB] Waiting CMABController.getCMABNextQuality')
-            switchRequest.quality = CMABController.getCMABNextQuality(
-                experimentID,
+
+            switchRequest.quality = CMABController.getCMABNextQuality(experimentID,
                 pyodide,
                 context,
                 bitrateList,
@@ -299,20 +281,17 @@ function CMABRule(config) {
                 throughput,
                 rebufferingEvents,
                 cmabAlpha,
-                pyodideInitDone,
                 networkLatency,
                 sessionLatencyHistory,
                 sessionThroughputHistory,
                 pingMean,
-                pingStd,
-            );
+                pingStd);
+
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
-
             scheduleController.setTimeToLoadDelay(0);
-
+            console.log('[CMAB] Switch Request:', switchRequest.quality)
             return switchRequest;
-
         } catch (e) {
             console.log(e);
             throw e;

@@ -40,6 +40,7 @@ import Events from '../../../core/events/Events';
 import Debug from '../../../core/Debug';
 import MediaPlayerEvents from '../../MediaPlayerEvents';
 import Constants from '../../constants/Constants';
+import CoreEvents from '../../../core/events/Events';
 
 // BOLA_STATE_ONE_BITRATE   : If there is only one bitrate (or initialization failed), always return NO_CHANGE.
 // BOLA_STATE_STARTUP       : Set placeholder buffer such that we download fragments at most recently measured throughput.
@@ -72,6 +73,9 @@ function BolaRule(config) {
     function setup() {
         logger = Debug(context).getInstance().getLogger(instance);
         resetInitialSettings();
+        eventBus.on(CoreEvents.MANIFEST_UPDATED, (e) => {
+            eventBus.trigger(CoreEvents.CMAB_MANIFEST_LOADED, {manifest: e.manifest})
+        }, instance);
 
         eventBus.on(MediaPlayerEvents.BUFFER_EMPTY, onBufferEmpty, instance);
         eventBus.on(MediaPlayerEvents.PLAYBACK_SEEKING, onPlaybackSeeking, instance);

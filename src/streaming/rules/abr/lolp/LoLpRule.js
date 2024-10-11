@@ -44,6 +44,8 @@ import SwitchRequest from '../../SwitchRequest';
 import MetricsConstants from '../../../constants/MetricsConstants';
 import LoLpWeightSelector from './LoLpWeightSelector';
 import Constants from '../../../constants/Constants';
+import EventBus from '../../../../core/EventBus';
+import CoreEvents from '../../../../core/events/Events';
 
 const DWS_TARGET_LATENCY = 1.5;
 const DWS_BUFFER_MIN = 0.3;
@@ -55,6 +57,8 @@ function LoLPRule(config) {
     let dashMetrics = config.dashMetrics;
     let context = this.context;
 
+    const eventBus = EventBus(context).getInstance();
+
     let logger,
         instance,
         learningController,
@@ -64,6 +68,10 @@ function LoLPRule(config) {
         logger = Debug(context).getInstance().getLogger(instance);
         learningController = LearningAbrController(context).create();
         qoeEvaluator = LoLpQoeEvaluator(context).create();
+
+        eventBus.on(CoreEvents.MANIFEST_UPDATED, (e) => {
+            eventBus.trigger(CoreEvents.CMAB_MANIFEST_LOADED, {manifest: e.manifest})
+        }, instance);
     }
 
     function getMaxIndex(rulesContext) {

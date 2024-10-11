@@ -39,6 +39,7 @@ import EventBus from '../../../core/EventBus';
 import Events from '../../../core/events/Events';
 import Debug from '../../../core/Debug';
 import Constants from '../../constants/Constants';
+import CoreEvents from '../../../core/events/Events';
 
 const L2A_STATE_ONE_BITRATE = 0; // If there is only one bitrate (or initialization failed), always return NO_CHANGE.
 const L2A_STATE_STARTUP = 1; // Set placeholder buffer such that we download fragments at most recently measured throughput.
@@ -63,6 +64,10 @@ function L2ARule(config) {
     function setup() {
         logger = Debug(context).getInstance().getLogger(instance);
         _resetInitialSettings();
+
+        eventBus.on(CoreEvents.MANIFEST_UPDATED, (e) => {
+            eventBus.trigger(CoreEvents.CMAB_MANIFEST_LOADED, {manifest: e.manifest})
+        }, instance);
 
         eventBus.on(Events.PLAYBACK_SEEKING, _onPlaybackSeeking, instance);
         eventBus.on(Events.MEDIA_FRAGMENT_LOADED, _onMediaFragmentLoaded, instance);
