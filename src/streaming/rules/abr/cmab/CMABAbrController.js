@@ -379,6 +379,9 @@ function CMABAbrController() {
             if ((t1_second > 42 && t1_second <= 57) && (t2_second > 42 && t2_second <= 57)) {
                 return true
             }
+            if ((t1_second > 57 && t2_second > 57)) {
+                return true
+            }
         }
 
         return false
