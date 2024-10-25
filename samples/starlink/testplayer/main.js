@@ -1,6 +1,6 @@
-const METRIC_INTERVAL_MS = 50; // 0.1s
-const CHECK_PYODIDE_INIT_INTERVAL_MS = 2000; // 0.1s
-const SEND_STAT_INTERVAL_MS = 5000; // 2s
+const METRIC_INTERVAL_MS = 50; // 0.05s
+const SEND_STAT_INTERVAL_MS = 5000; // 5s
+const statServerUrl = 'http://stat-server:8000';
 
 let App = function () {
     this.player = null;
@@ -26,8 +26,13 @@ let App = function () {
     this.playbackMetric = []
 };
 
-const statServerUrl = 'http://stat-server:8000';
-// const statServerUrl = 'http://100.99.201.63/stats';
+App.prototype.init = function () {
+    this._setDomElements();
+    this._adjustSettingsByUrlParameters();
+    this._registerEventHandler();
+    this._startIntervalHandler();
+    this._setupLineChart();
+}
 
 App.prototype.addEvent = function (e) {
     this.events.push(e)
@@ -35,14 +40,6 @@ App.prototype.addEvent = function (e) {
 
 App.prototype.addPlaybackMetric = function (m) {
     this.playbackMetric.push(m)
-}
-
-App.prototype.init = function () {
-    this._setDomElements();
-    this._adjustSettingsByUrlParameters();
-    this._registerEventHandler();
-    this._startIntervalHandler();
-    this._setupLineChart();
 }
 
 App.prototype._setDomElements = function () {
@@ -102,7 +99,7 @@ App.prototype._load = function () {
     sendStats(statServerUrl+'/event/'+this.domElements.experimentID.value, 'event', {'type': 'loading', 'ts': now})
     sendStats(statServerUrl + '/metric/' + this.domElements.experimentID.value, 'metric', {'type': 'loading', 'ts': now})
 
-    let url;
+    let url = document.getElementById('manifest').value;
 
     if (this.player) {
         this.player.reset();
@@ -110,8 +107,6 @@ App.prototype._load = function () {
         this.chartData.playbackTime = 0;
         this.chartData.lastTimeStamp = null
     }
-
-    url = document.getElementById('manifest').value;
 
     this.video = document.querySelector('video');
     this.player = dashjs.MediaPlayer().create();
@@ -164,9 +159,6 @@ App.prototype._load = function () {
     this.video.muted = true;
 
     // http://cdn.dashjs.org/latest/jsdoc/MediaPlayerEvents.html
-    // const events = [
-    //     "THROUGHPUT_MEASUREMENT_STORED",
-    // ]
     const events = [
         // "ADAPTATION_SET_REMOVED_NO_CAPABILITIES",
         // "AST_IN_FUTURE",
@@ -368,7 +360,6 @@ App.prototype._adjustSettingsByUrlParameters = function () {
             document.getElementById(params.throughputCalculation).checked = true;
         }
     }
-
 }
 
 App.prototype._getCurrentSettings = function () {
@@ -527,7 +518,6 @@ App.prototype._updateChartData = function () {
         }
         self._updateChartData();
     }, self.chartReportingInterval)
-
 }
 
 App.prototype._adjustChartSettings = function () {
@@ -586,33 +576,6 @@ App.prototype._startIntervalHandler = function () {
         }
 
     }, METRIC_INTERVAL_MS);
-
-    // const intervalID = setInterval(function () {
-    //     if (self.pyodide_init_started) {
-    //         fetch(statServerUrl+'/event/initDone/'+self.domElements.experimentID.value, {
-    //             credentials: 'omit',
-    //             mode: 'cors',
-    //             method: 'get',
-    //             headers: { 'Content-Type': 'application/json' },
-    //         })
-    //             .then(resp => {
-    //                 if (resp.status === 200) {
-    //                     if (self.player) {
-    //                         console.log('reset player quality')
-    //                         self.player.setQualityFor('video', 1, 0)
-    //                         clearInterval(intervalID)
-    //                     }
-    //                     return resp.json()
-    //                 } else {
-    //                     console.log('initDone false')
-    //                     return Promise.reject('404')
-    //                 }
-    //             })
-    //             .catch(err => {
-    //                 console.log(err)
-    //             })
-    //     }
-    // }, CHECK_PYODIDE_INIT_INTERVAL_MS);
 }
 
 App.prototype._registerEventHandler = function () {

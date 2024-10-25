@@ -37,7 +37,6 @@
 import FactoryMaker from '../../../../core/FactoryMaker';
 
 const statServerUrl = 'http://stat-server:8000';
-// const statServerUrl = 'http://100.99.201.63/stats';
 
 async function sendStats(url, type, stat) {
     fetch(url, {
@@ -64,11 +63,13 @@ async function sendStats(url, type, stat) {
 
 function CMABAbrController() {
     let _py_mabwiser_select_arm = `
-    import pandas as pd
     import math
-    from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
-    from sklearn.preprocessing import StandardScaler
+    import pandas as pd
+
     from pprint import pprint
+
+    from sklearn.preprocessing import StandardScaler
+    from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
 
     from js import js_cmabArms, js_rewards, js_selected_arms, js_bitrate, js_history, js_rebuffer_events, js_cmabAlpha
     from js import js_throughput_playback_history, js_latency_playback_history, js_pingMean, js_pingStd
@@ -104,10 +105,6 @@ function CMABAbrController() {
     throughput_playback_history = js_throughput_playback_history.to_py()
     latency_playback_history = js_latency_playback_history.to_py()
 
-    #print("cmab_alpha from pyodide", cmab_alpha)
-    #pprint(throughput_playback_history)
-    #pprint(latency_playback_history)
-
     # selected_arms == bitrate level in each round
     previous_rounds = length - 1
     print("length of previous rounds", previous_rounds)
@@ -116,12 +113,6 @@ function CMABAbrController() {
     playback_rate = [x['playback_rate'] for x in history]
     network_latency = [x['network_latency'] for x in history]
     live_latency = [x['live_latency'] for x in history]
-
-    #print('history length', length)
-    #print('selected_arms length', len(selected_arms))
-    #print('rewards length', len(rewards))
-    #print('bitrate length', len(bitrate))
-    #print('throughput length', len(throughput))
 
     # apply weights to throughput and playback_rate and live_latency
     print("original throughput", throughput[:previous_rounds])
@@ -145,8 +136,6 @@ function CMABAbrController() {
                             #  'throughput': throughput[length:previous_rounds],
                             #  'playback_rate': playback_rate[length:previous_rounds]
                              })
-
-    #pprint(train_df)
 
     scaler = StandardScaler()
     train = scaler.fit_transform(train_df[[
@@ -204,8 +193,6 @@ function CMABAbrController() {
 
     let _throughputDict = new Map();
 
-    let rounds = 0;
-
     function timeDiff(tic, toc) {
         return (toc - tic) / 1000.0;
     }
@@ -213,7 +200,6 @@ function CMABAbrController() {
     // calculate reward using QoE ITU-T Rec. P.1203: https://github.com/itu-p1203/itu-p1203
     function calculateReward(pyodide, context, currentLatency, selectedBitrate, bitrateRatio, rebufferingEvents) {
         let itu_p1203_input_json = generateITUP1203InputJSON(context);
-        // console.log('calculateReward context', context, 'target live delay', context.target_latency);
 
         let total_rebuffering_time = 0;
         let selected_bitrate_rebuffering_time = 0;
@@ -230,13 +216,11 @@ function CMABAbrController() {
                 selected_bitrate_rebuffering_time = sum;
             }
             total_rebuffering_time = total_rebuffering_time + sum;
-            // console.log(`entry ${entry}, sum ${sum}, bitrate ${bitrate}`);
         }
 
         if (total_rebuffering_time > 0) {
             rebuffering_ratio = selected_bitrate_rebuffering_time / total_rebuffering_time;
         }
-        // console.log(`total rebuffering ${total_rebuffering_time}, selected rebuffering ${selected_bitrate_rebuffering_time}, ratio ${rebuffering_ratio}`);
 
         let itu_qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
         let qoe = itu_qoe * (context.target_latency / currentLatency) * bitrateRatio - rebuffering_ratio;
@@ -454,7 +438,6 @@ function CMABAbrController() {
             live_latency: currentLiveLatency,
             playback_rate: playbackRate
         });
-        // console.log('network latency:', networkLatency);
 
         window.js_cmabArms = cmabArms;
         window.js_rewards = _rewardsArray;

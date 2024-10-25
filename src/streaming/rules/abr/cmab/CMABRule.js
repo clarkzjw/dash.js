@@ -47,9 +47,6 @@ const { loadPyodide } = require('pyodide');
 const statServerUrl = 'http://stat-server:8000';
 const pyodideLoadingUrl = 'http://pyodide/pyodide/';
 
-// const statServerUrl = 'http://100.99.201.63/stats';
-// const pyodideLoadingUrl = 'http://100.99.201.63/pyodide/';
-
 function getLatestNetworkLatency() {
     let LatencySidecarURL = statServerUrl + '/ping';
 
@@ -244,7 +241,6 @@ function CMABRule(config) {
                 })
             }
 
-            // initialize map to store rebuffering events for different bitrate levels
             if (rebufferingEvents.size === 0) {
                 for (let i = 0; i < bitrateList.length; i++ ) {
                     rebufferingEvents.set(bitrateList[i].bandwidth / 1000.0, []);
@@ -268,7 +264,6 @@ function CMABRule(config) {
             });
 
             let pingHistory = sessionLatencyHistory['ping_history'];
-            // let lastFivePings = pingHistory.slice(-5);
             let pingMean = pingHistory.map(x => x.mean);
             let pingStd = pingHistory.map(x => x.std);
 
