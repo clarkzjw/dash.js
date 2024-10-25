@@ -73,31 +73,30 @@ App.prototype._setDomElements = function () {
 }
 
 async function sendStats(url, type, stat) {
-    fetch(url, {
-        credentials: 'omit',
-        mode: 'cors',
-        method: 'post',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: stat })
-    })
-        .then(resp => {
-            if (resp.status === 200) {
-                return resp.json()
-            } else {
-                console.log('Status: ' + resp.status)
-                return Promise.reject('500')
-            }
-        })
-        .catch(err => {
-            if (err === '500') return
-            console.log(err)
-        })
+    try {
+        await fetch(url, {
+            credentials: 'omit',
+            mode: 'cors',
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: stat })
+        });
+
+    } catch (error) {
+        console.log('send stats error: ', error);
+    }
 }
 
 App.prototype._load = function () {
     let now = new Date()
-    sendStats(statServerUrl+'/event/'+this.domElements.experimentID.value, 'event', {'type': 'loading', 'ts': now})
-    sendStats(statServerUrl + '/metric/' + this.domElements.experimentID.value, 'metric', {'type': 'loading', 'ts': now})
+    sendStats(statServerUrl + '/event/' + this.domElements.experimentID.value, 'event', {
+        'type': 'loading',
+        'ts': now
+    })
+    sendStats(statServerUrl + '/metric/' + this.domElements.experimentID.value, 'metric', {
+        'type': 'loading',
+        'ts': now}
+    )
 
     let url = document.getElementById('manifest').value;
 

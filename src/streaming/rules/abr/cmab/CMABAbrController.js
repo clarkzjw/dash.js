@@ -39,26 +39,18 @@ import FactoryMaker from '../../../../core/FactoryMaker';
 const statServerUrl = 'http://stat-server:8000';
 
 async function sendStats(url, type, stat) {
-    fetch(url, {
-        credentials: 'omit',
-        mode: 'cors',
-        method: 'post',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({type: stat})
-    })
-        .then(resp => {
-            if (resp.status === 200) {
-                // console.log('Sent %s', type)
-                return resp.json()
-            } else {
-                console.log('Status: ' + resp.status)
-                return Promise.reject('500')
-            }
-        })
-        .catch(err => {
-            if (err === '500') return
-            console.log(err)
-        })
+    try {
+        await fetch(url, {
+            credentials: 'omit',
+            mode: 'cors',
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: stat })
+        });
+
+    } catch (error) {
+        console.log('send stats error: ', error);
+    }
 }
 
 function CMABAbrController() {
