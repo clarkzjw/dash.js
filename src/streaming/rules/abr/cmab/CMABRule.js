@@ -122,7 +122,7 @@ function CMABRule(config) {
     from sklearn.preprocessing import StandardScaler
     `
 
-    let history = [];
+    // let history = [];
 
     async function init_pyodide() {
         console.log('[CMAB] Loading Pyodide...');
@@ -202,10 +202,12 @@ function CMABRule(config) {
             const bufferStateVO = dashMetrics.getCurrentBufferState(mediaType);
             const playbackRate = playbackController.getPlaybackRate();
             const throughputHistory = abrController.getThroughputHistory();
-            const throughput = throughputHistory.getSafeAverageThroughput(mediaType, isDynamic);
+            const throughput = throughputHistory.getSafeAverageThroughput(Constants.VIDEO, isDynamic);
             let currentLiveLatency = playbackController.getCurrentLiveLatency();
             let latencyTarget = playbackController.getLiveDelay();
             const mediaInfo = rulesContext.getMediaInfo();
+
+            console.log('dashjs metrics: throughput', throughput, 'latency', currentLiveLatency, 'latency target', latencyTarget);
 
             if (!currentLiveLatency) {
                 currentLiveLatency = 0;
@@ -217,9 +219,7 @@ function CMABRule(config) {
                 audioBitrate = mediaInfo.bitrateList[0].bandwidth / 1000.0;
             }
 
-            if (isNaN(throughput) ||
-                !bufferStateVO ||
-                mediaType === Constants.AUDIO ||
+            if (isNaN(throughput) || !bufferStateVO || mediaType === Constants.AUDIO ||
                 abrController.getAbandonmentStateFor(streamInfo.id, mediaType) === MetricsConstants.ABANDON_LOAD) {
 
                 return switchRequest;
@@ -241,6 +241,7 @@ function CMABRule(config) {
                 })
             }
 
+            // initialize a dictionary to store rebuffering events for each bitrate
             if (rebufferingEvents.size === 0) {
                 for (let i = 0; i < bitrateList.length; i++ ) {
                     rebufferingEvents.set(bitrateList[i].bandwidth / 1000.0, []);
@@ -256,20 +257,30 @@ function CMABRule(config) {
             let sessionLatencyHistory = getLatencyHistory()
             let sessionThroughputHistory = getThroughputHistory()
 
-            history.push({
-                'latency': networkLatency,
-                'latency_history': sessionLatencyHistory,
-                'throughput_history': sessionThroughputHistory,
-                'timestamp': new Date()
-            });
+            // TODO:
+            // move agent_context to this file
+            // record timestamp for each decision making
+            // and compare each timestamp with timeslot info from sessionLatencyHistory/sessionThroughputHistory
+            // to decide which timeslot it belongs to
+            // and then calculate the weight for each round
 
-            let pingHistory = sessionLatencyHistory['ping_history'];
-            let pingMean = pingHistory.map(x => x.mean);
-            let pingStd = pingHistory.map(x => x.std);
+            // variance weight for latency
+            let weight_var_latency = [];
+            const maxLatencyStd = Math.max(...sessionLatencyHistory.map(x => x.std));
+            for (let i = 0; i < sessionLatencyHistory.length; i++) {
+                weight_var_latency.push(maxLatencyStd / sessionLatencyHistory[i].std);
+            }
 
+            const rate = 100;
+            let weight_time = [];
+            for (let i = 1; i <= sessionLatencyHistory.length; i++) {
+                weight_time.push(Math.log((rate) * (i / sessionLatencyHistory.length)) / Math.log(rate));
+            }
+            console.assert(weight_time.length === weight_var_latency.length);
             console.log('[CMAB] Waiting CMABController.getCMABNextQuality')
 
-            switchRequest.quality = CMABController.getCMABNextQuality(experimentID,
+            switchRequest.quality = CMABController.getCMABNextQuality(
+                experimentID,
                 pyodide,
                 context,
                 bitrateList,
@@ -285,8 +296,10 @@ function CMABRule(config) {
                 networkLatency,
                 sessionLatencyHistory,
                 sessionThroughputHistory,
-                pingMean,
-                pingStd);
+                weight_var_latency,
+                // weight_var_throughput,
+                weight_time
+            );
 
             switchRequest.reason = 'Switch bitrate based on CMAB';
             switchRequest.priority = SwitchRequest.PRIORITY.STRONG;

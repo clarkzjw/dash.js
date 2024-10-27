@@ -64,38 +64,34 @@ function CMABAbrController() {
     from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
 
     from js import js_cmabArms, js_rewards, js_selected_arms, js_bitrate, js_history, js_rebuffer_events, js_cmabAlpha
-    from js import js_throughput_playback_history, js_latency_playback_history, js_pingMean, js_pingStd
 
 
-    def weights(a):
-        rate=1000
-        n = len(a)
-        if n <= 1:
-            return [1]
+    #def weights(a):
+    #    rate=1000
+    #    n = len(a)
+    #    if n <= 1:
+    #        return [1]
+    #    w = [math.log(1 + (rate - 1) * (i / (n - 1))) / math.log(rate) for i in range(n)]
+    #    return w
 
-        w = [math.log(1 + (rate - 1) * (i / (n - 1))) / math.log(rate) for i in range(n)]
-        return w
 
+    #def calculate(a):
+    #    w = weights(a)
+    #    for i in range(len(a)):
+    #        a[i] = w[i] * a[i]
+    #    return a
 
-    def calculate(a):
-        w = weights(a)
-        for i in range(len(a)):
-            a[i] = w[i] * a[i]
-        return a
-
+    # all available arms
     arms = js_cmabArms.to_py()
+
     rewards = js_rewards.to_py()
     selected_arms = js_selected_arms.to_py()
     bitrate = js_bitrate.to_py()
     history = js_history.to_py()
     rebuffering_events = js_rebuffer_events.to_py()
-    ping_mean = js_pingMean.to_py()
-    ping_std = js_pingStd.to_py()
 
     cmab_alpha = js_cmabAlpha
     length = len(history)
-    throughput_playback_history = js_throughput_playback_history.to_py()
-    latency_playback_history = js_latency_playback_history.to_py()
 
     # selected_arms == bitrate level in each round
     previous_rounds = length - 1
@@ -109,12 +105,10 @@ function CMABAbrController() {
     # apply weights to throughput and playback_rate and live_latency
     print("original throughput", throughput[:previous_rounds])
 
-    throughput = calculate(throughput[:previous_rounds])
+    throughput = throughput[:previous_rounds]
+    network_latency = network_latency[:previous_rounds]
     playback_rate = playback_rate[:previous_rounds]
-    network_latency = calculate(network_latency[:previous_rounds])
     live_latency = live_latency[:previous_rounds]
-
-    print("weighted throughput", throughput)
 
     train_df = pd.DataFrame({
                              'selected_arms': selected_arms,
@@ -183,7 +177,7 @@ function CMABAbrController() {
     let _selectedArmsArray = [];
     let _bitrateArray = [];
 
-    let _throughputDict = new Map();
+    let agent_context = [];
 
     function timeDiff(tic, toc) {
         return (toc - tic) / 1000.0;
@@ -390,60 +384,70 @@ function CMABAbrController() {
         return selectedArm;
     }
 
-    function getCMABNextQuality(experimentID, pyodide, context, bitrateList, cmabArms, currentQualityLevel,
-        currentBitrateKbps, maxBitrateKbps, currentLiveLatency, playbackRate, throughput,
-        rebufferingEvents, cmabAlpha, networkLatency,
-        _latency_playback_history, _throughput_playback_history,
-        pingMean, pingStd) {
+    function getCMABNextQuality(
+        experimentID,
+        pyodide,
+        context,
+        bitrateList,
+        cmabArms,
+        currentQualityLevel,
+        currentBitrateKbps,
+        maxBitrateKbps,
+        currentLiveLatency,
+        playbackRate,
+        throughput,
+        rebufferingEvents,
+        cmabAlpha,
+        networkLatency,
+        _latency_playback_history,
+        _throughput_playback_history,
+        weight_var_latency,
+        weight_time) {
 
         let tic = new Date();
 
         throughput = throughput / 1000.0;
 
-        if (_throughputDict.get(starlinkTimeslotCount) === undefined) {
-            _throughputDict.set(starlinkTimeslotCount, {
-                'start': tic,
-                'history': []
-            });
-        } else {
-            // let last_timeslot_started_at = _throughputDict.get(starlinkTimeslotCount)['start']
-            // let same_timeslot = isSameSatelliteTimeSlot(last_timeslot_started_at, tic);
-
-            // if (!same_timeslot) {
-            //     starlinkTimeslotCount += 1
-            //     _throughputDict.set(starlinkTimeslotCount, {
-            //         'start': tic,
-            //         'history': [],
-            //     });
-            //     _selectedArmsArray = [];
-            //     _rewardsArray = [];
-            //     _bitrateArray = [];
-            // }
-        }
-
         let selectedArm = 0;
 
-        _throughputDict.get(starlinkTimeslotCount).history.push({
+        agent_context.push({
             tic: tic,
-            throughput: throughput,
-            network_latency: networkLatency,
-            live_latency: currentLiveLatency,
-            playback_rate: playbackRate
+            throughput: parseFloat(throughput),
+            network_latency: parseFloat(networkLatency),
+            live_latency: parseFloat(currentLiveLatency),
+            playback_rate: parseFloat(playbackRate)
         });
 
+        console.log('current round: ', agent_context.length, 'network latency: ', networkLatency, 'live latency: ', currentLiveLatency, 'throughput: ', throughput, 'playback rate: ', playbackRate);
+
+        if (weight_time.length > agent_context.length) {
+            weight_time = weight_time.slice(-agent_context.length);
+            weight_var_latency = weight_var_latency.slice(-agent_context.length);
+        }
+
+        console.log('original agent context', agent_context);
+        let weighted_agent_context = Array(agent_context.length).fill({});
+
+        for (let i = 0; i < weight_var_latency.length; i++) {
+            weighted_agent_context[i].network_latency = weight_time[i] * weight_var_latency[i] * agent_context[i].network_latency;
+            weighted_agent_context[i].throughput = weight_time[i] * weight_var_latency[i] * agent_context[i].throughput;
+            weighted_agent_context[i].live_latency = agent_context[i].live_latency;
+            weighted_agent_context[i].playback_rate = agent_context[i].playback_rate;
+        }
+
+        console.log('weight_time', weight_time);
+        console.log('weight_var_latency', weight_var_latency);
+        console.log('weighted agent context', weighted_agent_context);
+
         window.js_cmabArms = cmabArms;
+        window.js_cmabAlpha = cmabAlpha;
+
         window.js_rewards = _rewardsArray;
         window.js_selected_arms = _selectedArmsArray;
         window.js_bitrate = _bitrateArray;
-        window.js_history = _throughputDict.get(starlinkTimeslotCount).history;
+        window.js_history = weighted_agent_context;
         window.js_rebuffer_events = rebufferingEvents;
-        window.js_cmabAlpha = cmabAlpha;
-        window.js_throughput_playback_history = _throughput_playback_history;
-        window.js_latency_playback_history = _latency_playback_history;
-        window.js_pingMean = pingMean;
-        window.js_pingStd = pingStd;
 
-        // just recovered from satellite handover
         if (_selectedArmsArray.length < cmabArms.length - 1) {
             selectedArm = cmabArms.length - 1
             console.log('running without cmab, selected arm', selectedArm);
