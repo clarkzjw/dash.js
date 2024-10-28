@@ -273,8 +273,6 @@ function CMABRule(config) {
             let latencyTarget = playbackController.getLiveDelay();
             const mediaInfo = rulesContext.getMediaInfo();
 
-            console.log('dashjs metrics: throughput', throughput, 'latency', currentLiveLatency, 'latency target', latencyTarget);
-
             let now = new Date();
             bufferLevelHistory.push({
                 now: now,
@@ -282,8 +280,10 @@ function CMABRule(config) {
             });
 
             // calculate bufferLevelMovingAverage from the latest 10 samples
-            const movingAverageWindow = 20;
+            const movingAverageWindow = 5;
             bufferLevelMovingAverage = bufferLevelHistory.slice(-movingAverageWindow).reduce((acc, val) => acc + val.bufferLevel, 0) / movingAverageWindow;
+
+            console.log('dashjs metrics: throughput', throughput, 'latency', currentLiveLatency, 'latency target', latencyTarget, 'buffer moving average', bufferLevelMovingAverage);
 
             if (!currentLiveLatency) {
                 currentLiveLatency = 0;

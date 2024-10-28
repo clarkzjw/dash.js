@@ -339,6 +339,10 @@ function CMABAbrController() {
         return [12, 27, 42, 57].includes(second);
     }
 
+    function isCloseToHandoverWidePeriod(second) {
+        return [11, 12, 13, 26, 27, 28, 41, 42, 43, 56, 57, 58].includes(second);
+    }
+
     function getCMABNextQuality(
         experimentID,
         pyodide,
@@ -375,7 +379,7 @@ function CMABAbrController() {
             selectedArm = _selectedArmsArray.length % cmabArms.length;
             console.log('running without cmab, still initial exploration');
         } else {
-            console.log('running cmab ', 'playbackBufferMin: ', playbackBufferMin, 'current buffer level: ', currentBufferLevel);
+            console.log('running cmab ', 'playbackBufferMin: ', playbackBufferMin, 'current buffer level: ', currentBufferLevelMovingAverage);
             selectedArm = pyodide.runPython(_py_mabwiser_select_arm);
 
             if (selectedArm === -1) {
@@ -393,10 +397,16 @@ function CMABAbrController() {
                     selectedArm = _selectedArmsArray[-1];
                     console.log('buffer level is above 2*beta*playbackBufferMin, keep the bitrate');
                 } else {
-                    if (currentBufferLevel >= playbackBufferMin * 1.5 && !isCloseToHandoverPeriod(tic.getSeconds())) {
+                    if (currentBufferLevelMovingAverage >= playbackBufferMin * 1.5 && !isCloseToHandoverPeriod(tic.getSeconds())) {
                         selectedArm = _selectedArmsArray[-1];
                         console.log('buffer level is above beta*playbackBufferMin, and it is not close to handover period, keep the bitrate');
                     }
+                }
+            } else if (selectedArm > _selectedArmsArray[-1]) {
+                // if this is a bitrate increase
+                if (isCloseToHandoverWidePeriod(tic.getSeconds()) && currentBufferLevelMovingAverage < playbackBufferMin * 2) {
+                    selectedArm = _selectedArmsArray[-1];
+                    console.log('it is close to handover period, do not increase the bitrate');
                 }
             }
         }
