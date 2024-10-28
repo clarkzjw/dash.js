@@ -444,24 +444,33 @@ function CatchupController() {
         let newRate;
         let tic = new Date();
         // also consider adjacent seconds to the exact handover second
+        // function isHandoverPeriod(second) {
+        //     return second === 11 || second === 12 || second === 13
+        //         || second === 26 || second === 27 || second === 28
+        //         || second === 41 || second === 42 || second === 43
+        //         || second === 56 || second === 57 || second === 58;
+        // }
+
         function isHandoverPeriod(second) {
-            return second === 11 || second === 12 || second === 13
-                || second === 26 || second === 27 || second === 28
-                || second === 41 || second === 42 || second === 43
-                || second === 56 || second === 57 || second === 58;
+            return [12, 27, 42, 57].includes(second);
         }
 
         // Hybrid: Buffer-based
         if (isHandoverPeriod(tic.getSeconds())) {
-            // 1. Satellite handover period, slow down
-            const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
-            const deltaBuffer = -1 * Math.abs(bufferLevel - playbackBufferMin); // -ve value
-            const d = deltaBuffer * 5;
+            // if buffer level is well above playbackBufferMin, don't slow down
+            if (bufferLevel > 5 * playbackBufferMin) {
+                newRate = 1;
+            } else {
+                // 1. Satellite handover period, slow down
+                const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
+                const deltaBuffer = -1 * Math.abs(bufferLevel - playbackBufferMin); // -ve value
+                const d = deltaBuffer * 5;
 
-            const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
-            newRate = (1 - cpr) + s;
+                const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+                newRate = (1 - cpr) + s;
 
-            logger.debug('[CMAB playback control_satellite handover period] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
+                logger.debug('[CMAB playback control_satellite handover period] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
+            }
         } else if (bufferLevel < playbackBufferMin) {
             // 2. Satellite handover period, slow down
             const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
@@ -492,7 +501,6 @@ function CatchupController() {
                 newRate = (1 - cpr) + s;
             }
         }
-
 
         return newRate;
     }
