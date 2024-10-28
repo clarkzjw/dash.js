@@ -171,13 +171,9 @@ function CMABAbrController() {
 
     let instance;
 
-    let starlinkTimeslotCount = 0;
-
     let _rewardsArray = [];
     let _selectedArmsArray = [];
     let _bitrateArray = [];
-
-    let agent_context = [];
 
     function timeDiff(tic, toc) {
         return (toc - tic) / 1000.0;
@@ -309,53 +305,6 @@ function CMABAbrController() {
         return pyodide.runPython(_py_itu_p1203_calculate_o46);
     }
 
-    function isSameSatelliteTimeSlot(t1, t2) {
-        // 12, 27, 42, 57
-
-        // if the difference between two timestamps > 15 seconds,
-        // they definitely belong to different satellite timeslots
-        if ((t2 - t1) / 1000.0 > 15) {
-            return false
-        }
-        let t1_minute = t1.getMinutes();
-        let t2_minute = t2.getMinutes();
-
-        // if their minute difference > 1,
-        // they definitely belong to different satellite timeslots
-        if (t2_minute - t1_minute > 1) {
-            return false
-        }
-
-        let t1_second = t1.getSeconds();
-        let t2_second = t2.getSeconds();
-
-        // if they are in adjacent minutes,
-        // and t1 > 57, t2 < 12, they belong to the same timeslot
-        if ((t2_minute - t1_minute === 1) && (t1_second > 57 && t2_second <= 12)) {
-            return true
-        }
-
-        // if they are in the same minute
-        if (t1_minute === t2_minute) {
-            if (t1_second <= 12 && t2_second <= 12) {
-                return true
-            }
-            if ((t1_second > 12 && t1_second <= 27) && (t2_second > 12 && t2_second <= 27)) {
-                return true
-            }
-            if ((t1_second > 27 && t1_second <= 42) && (t2_second > 27 && t2_second <= 42)) {
-                return true
-            }
-            if ((t1_second > 42 && t1_second <= 57) && (t2_second > 42 && t2_second <= 57)) {
-                return true
-            }
-            if ((t1_second > 57 && t2_second > 57)) {
-                return true
-            }
-        }
-
-        return false
-    }
 
     function handleSelectedArm(context, pyodide, _selectedArmsArray, selectedArm, bitrateList, _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic) {
         _selectedArmsArray.push(selectedArm);
@@ -390,54 +339,14 @@ function CMABAbrController() {
         context,
         bitrateList,
         cmabArms,
-        currentQualityLevel,
-        currentBitrateKbps,
         maxBitrateKbps,
         currentLiveLatency,
-        playbackRate,
-        throughput,
         rebufferingEvents,
         cmabAlpha,
-        networkLatency,
-        _latency_playback_history,
-        _throughput_playback_history,
-        weight_var_latency,
-        weight_time) {
+        weighted_agent_context) {
 
         let tic = new Date();
-
-        throughput = throughput / 1000.0;
-
         let selectedArm = 0;
-
-        agent_context.push({
-            tic: tic,
-            throughput: parseFloat(throughput),
-            network_latency: parseFloat(networkLatency),
-            live_latency: parseFloat(currentLiveLatency),
-            playback_rate: parseFloat(playbackRate)
-        });
-
-        console.log('current round: ', agent_context.length, 'network latency: ', networkLatency, 'live latency: ', currentLiveLatency, 'throughput: ', throughput, 'playback rate: ', playbackRate);
-
-        if (weight_time.length > agent_context.length) {
-            weight_time = weight_time.slice(-agent_context.length);
-            weight_var_latency = weight_var_latency.slice(-agent_context.length);
-        }
-
-        console.log('original agent context', agent_context);
-        let weighted_agent_context = Array(agent_context.length).fill({});
-
-        for (let i = 0; i < weight_var_latency.length; i++) {
-            weighted_agent_context[i].network_latency = weight_time[i] * weight_var_latency[i] * agent_context[i].network_latency;
-            weighted_agent_context[i].throughput = weight_time[i] * weight_var_latency[i] * agent_context[i].throughput;
-            weighted_agent_context[i].live_latency = agent_context[i].live_latency;
-            weighted_agent_context[i].playback_rate = agent_context[i].playback_rate;
-        }
-
-        console.log('weight_time', weight_time);
-        console.log('weight_var_latency', weight_var_latency);
-        console.log('weighted agent context', weighted_agent_context);
 
         window.js_cmabArms = cmabArms;
         window.js_cmabAlpha = cmabAlpha;
