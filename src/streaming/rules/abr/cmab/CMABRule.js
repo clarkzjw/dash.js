@@ -158,11 +158,15 @@ function CMABRule(config) {
     let currentBitrate;
     let currentBitrateKbps;
     let lastStallTime = null;
+    let lastRebufferingBitrate = null;
     let rebufferingEvents = new Map();
+    let rebufferingEventTimestamps = {};
     let cmabAlpha = null;
     let experimentID = 'default';
     let manifest = null;
     let pyodide_init_done = false;
+
+    let start_time = new Date();
 
     let _py_import_test = `
     import pandas as pd
@@ -221,9 +225,13 @@ function CMABRule(config) {
 
     function onBufferEmpty(e) {
         if (e.mediaType === 'video') {
-            let tic = new Date();
-            console.log('[CMAB] Buffer Empty:', e, tic, currentBitrate);
-            lastStallTime = new Date();
+            if (lastStallTime != null && lastRebufferingBitrate != null) {
+                let tic = new Date();
+                console.log('[CMAB] Buffer Empty:', e, tic, currentBitrate);
+                lastStallTime = new Date();
+                lastRebufferingBitrate = currentBitrateKbps;
+                rebufferingEvents.get(currentBitrateKbps).push(lastStallTime);
+            }
         }
     }
 
@@ -231,9 +239,11 @@ function CMABRule(config) {
         if (e.mediaType === 'video') {
             let tic = new Date();
             console.log('[CMAB] Buffer Loaded:', e, tic, currentBitrate);
-            if (lastStallTime != null) {
-                let duration = (tic - lastStallTime) / 1000.0;
-                rebufferingEvents.get(currentBitrateKbps).push(duration);
+
+            if (lastStallTime != null && lastRebufferingBitrate != null) {
+                let duration = (tic - rebufferingEvents.get(lastRebufferingBitrate)[-1]) / 1000.0;
+                rebufferingEvents.get(lastRebufferingBitrate)[-1] = duration;
+                rebufferingEventTimestamps[tic] = lastRebufferingBitrate;
                 console.log('[CMAB] Latest Rebuffering Duration:', duration);
                 console.log('[CMAB] All Rebuffering Events:', rebufferingEvents);
             }
@@ -269,12 +279,12 @@ function CMABRule(config) {
                 audioBitrate = mediaInfo.bitrateList[0].bandwidth / 1000.0;
             }
 
-            if (isNaN(throughput)) {
+            if (isNaN(throughput) && mediaType === Constants.VIDEO) {
                 console.log('[CMAB] Throughput is NaN');
                 switchRequest.reason = 'initial request';
                 switchRequest.quality = 1;
                 switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
-                scheduleController.setTimeToLoadDelay(0);
+                // scheduleController.setTimeToLoadDelay(0);
                 return switchRequest;
             }
 
@@ -404,6 +414,8 @@ function CMABRule(config) {
                 rebufferingEvents,
                 cmabAlpha,
                 weighted_agent_context,
+                rebufferingEventTimestamps,
+                start_time
             );
 
             switchRequest.reason = 'Switch bitrate based on CMAB';

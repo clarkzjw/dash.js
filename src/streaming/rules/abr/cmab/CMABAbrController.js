@@ -343,7 +343,9 @@ function CMABAbrController() {
         currentLiveLatency,
         rebufferingEvents,
         cmabAlpha,
-        weighted_agent_context) {
+        weighted_agent_context,
+        rebufferingEventTimestamps,
+        start_time) {
 
         let tic = new Date();
         let selectedArm = 0;
@@ -357,9 +359,13 @@ function CMABAbrController() {
         window.js_history = weighted_agent_context;
         window.js_rebuffer_events = rebufferingEvents;
 
-        if (_selectedArmsArray.length < cmabArms.length - 1) {
-            selectedArm = cmabArms.length - 1
+        if (_selectedArmsArray.length < cmabArms.length - 1 ) {
+            // selectedArm = cmabArms.length - 1
+            selectedArm = _selectedArmsArray.length;
             console.log('running without cmab, selected arm', selectedArm);
+        } else if ((tic - start_time) < 60000) {
+            selectedArm = _selectedArmsArray.length % cmabArms.length;
+            console.log('running without cmab, still initial exploration');
         } else {
             console.log('running cmab');
             selectedArm = pyodide.runPython(_py_mabwiser_select_arm);
