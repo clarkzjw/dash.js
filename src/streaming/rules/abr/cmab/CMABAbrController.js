@@ -356,7 +356,7 @@ function CMABAbrController() {
         playbackBufferMin) {
 
         let tic = new Date();
-        let selectedArm = 0;
+        let selectedArm = -1;
 
         window.js_cmabArms = cmabArms;
         window.js_cmabAlpha = cmabAlpha;
@@ -377,6 +377,12 @@ function CMABAbrController() {
         } else {
             console.log('running cmab ', 'playbackBufferMin: ', playbackBufferMin, 'current buffer level: ', currentBufferLevel);
             selectedArm = pyodide.runPython(_py_mabwiser_select_arm);
+
+            if (selectedArm === -1) {
+                // unexpected error happended during cmab calculation, keep the previous bitrate
+                selectedArm = _selectedArmsArray[-1];
+                console.log('unexpected error happened during cmab calculation, keep the previous bitrate');
+            }
 
             // if this is a bitrate drop
             if (selectedArm < _selectedArmsArray[-1]) {

@@ -364,9 +364,9 @@ function CMABRule(config) {
             let weight_time = [];
             const maxLatencyStd = Math.max(...sessionLatencyHistory.map(x => x.std));
 
-            let matched = false;
             const theta = 0.1;
             for (let i = 0; i < agent_context.length; i++) {
+                let matched = false;
                 for (let j = 0; j < sessionLatencyHistory.length; j++) {
                     if (agent_context[i].tic >= sessionLatencyHistory[j].start && agent_context[i].tic < sessionLatencyHistory[j].end) {
                         if (sessionLatencyHistory[j].std === maxLatencyStd) {
