@@ -352,7 +352,7 @@ function CMABAbrController() {
         weighted_agent_context,
         rebufferingEventTimestamps,
         start_time,
-        currentBufferLevel,
+        currentBufferLevelMovingAverage,
         playbackBufferMin) {
 
         let tic = new Date();
@@ -389,7 +389,7 @@ function CMABAbrController() {
                 // if the buffer level is above beta*playbackBufferMin
                 // and it's not close to handover period
                 // don't drop the bitrate
-                if (currentBufferLevel >= playbackBufferMin * 2) {
+                if (currentBufferLevelMovingAverage >= playbackBufferMin * 2) {
                     selectedArm = _selectedArmsArray[-1];
                     console.log('buffer level is above 2*beta*playbackBufferMin, keep the bitrate');
                 } else {

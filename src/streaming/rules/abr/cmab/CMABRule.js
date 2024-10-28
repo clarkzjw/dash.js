@@ -169,6 +169,9 @@ function CMABRule(config) {
 
     let start_time = new Date();
 
+    let bufferLevelHistory = [];
+    let bufferLevelMovingAverage = -1;
+
     let _py_import_test = `
     import pandas as pd
     from mabwiser.mab import MAB, LearningPolicy, NeighborhoodPolicy
@@ -271,6 +274,16 @@ function CMABRule(config) {
             const mediaInfo = rulesContext.getMediaInfo();
 
             console.log('dashjs metrics: throughput', throughput, 'latency', currentLiveLatency, 'latency target', latencyTarget);
+
+            let now = new Date();
+            bufferLevelHistory.push({
+                now: now,
+                bufferLevel: currentBufferLevel
+            });
+
+            // calculate bufferLevelMovingAverage from the latest 10 samples
+            const movingAverageWindow = 20;
+            bufferLevelMovingAverage = bufferLevelHistory.slice(-movingAverageWindow).reduce((acc, val) => acc + val.bufferLevel, 0) / movingAverageWindow;
 
             if (!currentLiveLatency) {
                 currentLiveLatency = 0;
@@ -419,7 +432,7 @@ function CMABRule(config) {
                 weighted_agent_context,
                 rebufferingEventTimestamps,
                 start_time,
-                currentBufferLevel,
+                bufferLevelMovingAverage,
                 playbackBufferMin
             );
 
