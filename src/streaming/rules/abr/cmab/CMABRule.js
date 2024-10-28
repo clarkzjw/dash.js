@@ -152,6 +152,7 @@ function CMABRule(config) {
 
     let CMABController;
     let player_settings;
+    let playbackBufferMin;
 
     let audioCodec = 'aaclc';
     let audioBitrate = -1;
@@ -198,6 +199,7 @@ function CMABRule(config) {
         player_settings = Settings(context).getInstance()
         cmabAlpha = player_settings.get().streaming.abr.cmab.alpha;
         experimentID = player_settings.get().streaming.abr.cmab.experimentID;
+        playbackBufferMin = player_settings.get().streaming.liveCatchup.playbackBufferMin;
 
         eventBus.on(CoreEvents.MANIFEST_UPDATED, (e) => {
             manifest = e.manifest;
@@ -260,6 +262,7 @@ function CMABRule(config) {
             const isDynamic = streamInfo && streamInfo.manifestInfo ? streamInfo.manifestInfo.isDynamic : null;
             const mediaType = rulesContext.getMediaInfo().type;
             const bufferStateVO = dashMetrics.getCurrentBufferState(mediaType);
+            const currentBufferLevel = playbackController.getBufferLevel();
             const playbackRate = playbackController.getPlaybackRate();
             const throughputHistory = abrController.getThroughputHistory();
             let throughput = throughputHistory.getSafeAverageThroughput(Constants.VIDEO, isDynamic);
@@ -284,7 +287,7 @@ function CMABRule(config) {
                 switchRequest.reason = 'initial request';
                 switchRequest.quality = 1;
                 switchRequest.priority = SwitchRequest.PRIORITY.STRONG;
-                // scheduleController.setTimeToLoadDelay(0);
+                scheduleController.setTimeToLoadDelay(0);
                 return switchRequest;
             }
 
@@ -415,7 +418,9 @@ function CMABRule(config) {
                 cmabAlpha,
                 weighted_agent_context,
                 rebufferingEventTimestamps,
-                start_time
+                start_time,
+                currentBufferLevel,
+                playbackBufferMin
             );
 
             switchRequest.reason = 'Switch bitrate based on CMAB';

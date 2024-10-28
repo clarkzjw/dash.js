@@ -37,6 +37,8 @@
 import FactoryMaker from '../../../../core/FactoryMaker';
 
 const statServerUrl = 'http://stat-server:8000';
+const initialExplorationRounds = 3;
+
 
 async function sendStats(url, type, stat) {
     try {
@@ -333,6 +335,10 @@ function CMABAbrController() {
         return selectedArm;
     }
 
+    function isCloseToHandoverPeriod(second) {
+        return [12, 27, 42, 57].includes(second);
+    }
+
     function getCMABNextQuality(
         experimentID,
         pyodide,
@@ -345,7 +351,9 @@ function CMABAbrController() {
         cmabAlpha,
         weighted_agent_context,
         rebufferingEventTimestamps,
-        start_time) {
+        start_time,
+        currentBufferLevel,
+        playbackBufferMin) {
 
         let tic = new Date();
         let selectedArm = 0;
@@ -363,12 +371,28 @@ function CMABAbrController() {
             // selectedArm = cmabArms.length - 1
             selectedArm = _selectedArmsArray.length;
             console.log('running without cmab, selected arm', selectedArm);
-        } else if ((tic - start_time) < 60000) {
+        } else if (_selectedArmsArray.length < cmabArms.length * initialExplorationRounds) {
             selectedArm = _selectedArmsArray.length % cmabArms.length;
             console.log('running without cmab, still initial exploration');
         } else {
-            console.log('running cmab');
+            console.log('running cmab ', 'playbackBufferMin: ', playbackBufferMin, 'current buffer level: ', currentBufferLevel);
             selectedArm = pyodide.runPython(_py_mabwiser_select_arm);
+
+            // if this is a bitrate drop
+            if (selectedArm < _selectedArmsArray[-1]) {
+                // if the buffer level is above beta*playbackBufferMin
+                // and it's not close to handover period
+                // don't drop the bitrate
+                if (currentBufferLevel >= playbackBufferMin * 2) {
+                    selectedArm = _selectedArmsArray[-1];
+                    console.log('buffer level is above 2*beta*playbackBufferMin, keep the bitrate');
+                } else {
+                    if (currentBufferLevel >= playbackBufferMin * 1.5 && !isCloseToHandoverPeriod(tic.getSeconds())) {
+                        selectedArm = _selectedArmsArray[-1];
+                        console.log('buffer level is above beta*playbackBufferMin, and it is not close to handover period, keep the bitrate');
+                    }
+                }
+            }
         }
         return handleSelectedArm(context, pyodide, _selectedArmsArray, selectedArm, bitrateList, _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic);
     }
