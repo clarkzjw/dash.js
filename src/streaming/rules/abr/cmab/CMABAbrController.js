@@ -357,6 +357,7 @@ function CMABAbrController() {
         rebufferingEventTimestamps,
         start_time,
         currentBufferLevelMovingAverage,
+        currentBufferLevel,
         playbackBufferMin) {
 
         let tic = new Date();
@@ -375,7 +376,7 @@ function CMABAbrController() {
             // selectedArm = cmabArms.length - 1
             selectedArm = _selectedArmsArray.length;
             console.log('running without cmab, selected arm', selectedArm);
-        } else if (_selectedArmsArray.length < cmabArms.length * initialExplorationRounds) {
+        } else if ((_selectedArmsArray.length < cmabArms.length * initialExplorationRounds) && (tic.getTime() - start_time.getTime()) < 30000) {
             selectedArm = _selectedArmsArray.length % cmabArms.length;
             console.log('running without cmab, still initial exploration');
         } else {
@@ -404,10 +405,13 @@ function CMABAbrController() {
                 }
             } else if (selectedArm > _selectedArmsArray[-1]) {
                 // if this is a bitrate increase
-                if (isCloseToHandoverWidePeriod(tic.getSeconds()) && currentBufferLevelMovingAverage < playbackBufferMin * 2) {
+                if (isCloseToHandoverWidePeriod(tic.getSeconds()) && (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin)) {
                     selectedArm = _selectedArmsArray[-1];
                     console.log('it is close to handover period, do not increase the bitrate');
                 }
+            } else if (currentBufferLevel < playbackBufferMin * 0.8) {
+                selectedArm = 0;
+                console.log('buffer level is extremely low, select the lowest bitrate');
             }
         }
         return handleSelectedArm(context, pyodide, _selectedArmsArray, selectedArm, bitrateList, _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic);

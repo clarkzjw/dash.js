@@ -433,6 +433,7 @@ function CMABRule(config) {
                 rebufferingEventTimestamps,
                 start_time,
                 bufferLevelMovingAverage,
+                currentBufferLevel,
                 playbackBufferMin
             );
 

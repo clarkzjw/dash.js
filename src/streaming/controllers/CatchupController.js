@@ -472,17 +472,22 @@ function CatchupController() {
                 logger.debug('[CMAB playback control_satellite handover period] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
             }
         } else if (bufferLevel < playbackBufferMin) {
-            // 2. Satellite handover period, slow down
-            const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
-            const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
-            const d = deltaBuffer * 5;
+            if (bufferLevel < playbackBufferMin * 0.8) {
+                newRate = 0.8;
+                console.log('buffer level is extremely low, set playback rate to 0.8');
+            } else {
+                // 2. Satellite handover period, slow down
+                const cpr = Math.abs(liveCatchUpPlaybackRates.min); // Absolute value as negative delta value will be used.
+                const deltaBuffer = bufferLevel - playbackBufferMin; // -ve value
+                const d = deltaBuffer * 5;
 
-            // Playback rate must be between (1 - cpr) - (1 + cpr)
-            // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
-            const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
-            newRate = (1 - cpr) + s;
+                // Playback rate must be between (1 - cpr) - (1 + cpr)
+                // ex: if cpr is 0.5, it can have values between 0.5 - 1.5
+                const s = (cpr * 2) / (1 + Math.pow(Math.E, -d));
+                newRate = (1 - cpr) + s;
 
-            logger.debug('[CMAB playback control_buffer-based] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
+                logger.debug('[CMAB playback control_buffer-based] bufferLevel: ' + bufferLevel + ', newRate: ' + newRate);
+            }
         } else {
             // Hybrid: Latency-based
             // Buffer is safe, vary playback rate based on latency
