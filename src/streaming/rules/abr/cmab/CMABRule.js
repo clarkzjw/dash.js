@@ -280,7 +280,7 @@ function CMABRule(config) {
             });
 
             // calculate bufferLevelMovingAverage from the latest 10 samples
-            const movingAverageWindow = 5;
+            const movingAverageWindow = 10;
             bufferLevelMovingAverage = bufferLevelHistory.slice(-movingAverageWindow).reduce((acc, val) => acc + val.bufferLevel, 0) / movingAverageWindow;
 
             console.log('dashjs metrics: throughput', throughput, 'latency', currentLiveLatency, 'latency target', latencyTarget, 'buffer moving average', bufferLevelMovingAverage);

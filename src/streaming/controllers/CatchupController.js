@@ -458,7 +458,7 @@ function CatchupController() {
         // Hybrid: Buffer-based
         if (isHandoverPeriod(tic.getSeconds())) {
             // if buffer level is well above playbackBufferMin, don't slow down
-            if (bufferLevel > 5 * playbackBufferMin) {
+            if (bufferLevel >= 2 * playbackBufferMin) {
                 newRate = 1;
             } else {
                 // 1. Satellite handover period, slow down
