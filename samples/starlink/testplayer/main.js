@@ -161,9 +161,15 @@ App.prototype._load = function () {
     const events = [
         // "ADAPTATION_SET_REMOVED_NO_CAPABILITIES",
         // "AST_IN_FUTURE",
+
+        // Triggered when the video element's buffer state changes to stalled.
         'BUFFER_EMPTY',
-        'BUFFER_LEVEL_STATE_CHANGED',
+        // 'BUFFER_LEVEL_STATE_CHANGED',
+
+        // Triggered when the buffer level of a media type has been updated
         'BUFFER_LEVEL_UPDATED',
+
+        // Triggered when the video element's buffer state changes to loaded.
         'BUFFER_LOADED',
         // "CAN_PLAY",
         // "CAN_PLAY_THROUGH",
@@ -182,17 +188,21 @@ App.prototype._load = function () {
         // "METRICS_CHANGED",
         // "PERIOD_SWITCH_COMPLETED",
         // "PERIOD_SWITCH_STARTED",
-        'PLAYBACK_ENDED',
-        'PLAYBACK_ERROR',
+        // 'PLAYBACK_ENDED',
+        // 'PLAYBACK_ERROR',
+
+        // The event is fired when the frame at the current playback position of the media has finished loading;
+        // often the first frame
         'PLAYBACK_LOADED_DATA',
+
         'PLAYBACK_METADATA_LOADED',
         'PLAYBACK_NOT_ALLOWED',
         'PLAYBACK_PAUSED',
         'PLAYBACK_PLAYING',
         'PLAYBACK_PROGRESS',
         'PLAYBACK_RATE_CHANGED',
-        'PLAYBACK_SEEKED',
-        'PLAYBACK_SEEKING',
+        // 'PLAYBACK_SEEKED',
+        // 'PLAYBACK_SEEKING',
         'PLAYBACK_STALLED',
         'PLAYBACK_STARTED',
         'PLAYBACK_TIME_UPDATED',
