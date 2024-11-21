@@ -37,7 +37,7 @@
 import FactoryMaker from '../../../../core/FactoryMaker';
 
 const statServerUrl = 'http://stat-server:8000';
-const initialExplorationRounds = 3;
+const initialExplorationRounds = 1;
 
 
 async function sendStats(url, type, stat) {
@@ -354,7 +354,6 @@ function CMABAbrController() {
         rebufferingEvents,
         cmabAlpha,
         weighted_agent_context,
-        rebufferingEventTimestamps,
         start_time,
         currentBufferLevelMovingAverage,
         currentBufferLevel,
@@ -372,13 +371,24 @@ function CMABAbrController() {
         window.js_history = weighted_agent_context;
         window.js_rebuffer_events = rebufferingEvents;
 
-        if (_selectedArmsArray.length < cmabArms.length - 1 ) {
+        if (_selectedArmsArray.length === cmabArms.length) {
+            sendStats(statServerUrl + '/event/' + experimentID, 'event', {
+                'event': {
+                    'type': 'cmab_initial_explore_done',
+                },
+                'ts': new Date().getTime()
+            });
+        }
+
+        // at least explore all arms once
+        if (_selectedArmsArray.length < cmabArms.length) {
             // selectedArm = cmabArms.length - 1
             selectedArm = _selectedArmsArray.length;
             console.log('running without cmab, selected arm', selectedArm);
-        } else if ((_selectedArmsArray.length < cmabArms.length * initialExplorationRounds) && (tic.getTime() - start_time.getTime()) < 30000) {
-            selectedArm = _selectedArmsArray.length % cmabArms.length;
-            console.log('running without cmab, still initial exploration');
+        // } else if ((_selectedArmsArray.length < cmabArms.length * initialExplorationRounds) && (tic.getTime() - start_time.getTime()) < 30000) {
+        // } else if ((_selectedArmsArray.length < cmabArms.length * initialExplorationRounds)) {
+        //     selectedArm = _selectedArmsArray.length % cmabArms.length;
+        //     console.log('running without cmab, still initial exploration');
         } else {
             console.log('running cmab ', 'playbackBufferMin: ', playbackBufferMin, 'current buffer level: ', currentBufferLevelMovingAverage);
             selectedArm = pyodide.runPython(_py_mabwiser_select_arm);

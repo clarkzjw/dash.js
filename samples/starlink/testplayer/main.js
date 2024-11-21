@@ -249,11 +249,16 @@ App.prototype._load = function () {
 
         const sendingEvents = self.events
         self.events = []
-        sendStats(statServerUrl+'/event/'+experimentID, 'event', sendingEvents)
+
+        if (sendingEvents.length > 0) {
+            sendStats(statServerUrl + '/event/' + experimentID, 'event', sendingEvents)
+        }
 
         const sendingPlaybackMetric = self.playbackMetric
         self.playbackMetric = []
-        sendStats(statServerUrl+'/metric/'+experimentID, 'metric', sendingPlaybackMetric)
+        if (sendingPlaybackMetric.length > 0) {
+            sendStats(statServerUrl + '/metric/' + experimentID, 'metric', sendingPlaybackMetric)
+        }
     }, SEND_STAT_INTERVAL_MS)
 }
 

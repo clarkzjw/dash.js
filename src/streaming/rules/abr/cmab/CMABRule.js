@@ -47,6 +47,25 @@ const { loadPyodide } = require('pyodide');
 const statServerUrl = 'http://stat-server:8000';
 const pyodideLoadingUrl = 'http://pyodide/pyodide/';
 
+async function sendStats(url, type, stat) {
+    try {
+        await fetch(url, {
+            credentials: 'omit',
+            mode: 'cors',
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: stat })
+        });
+
+    } catch (error) {
+        console.log('send stats error: ', error);
+    }
+}
+
+function cmabLog(msg) {
+    console.log(JSON.parse(JSON.stringify(msg)))
+}
+
 function getLatestNetworkLatency() {
     let LatencySidecarURL = statServerUrl + '/ping';
 
@@ -161,7 +180,6 @@ function CMABRule(config) {
     let lastStallTime = null;
     let lastRebufferingBitrate = null;
     let rebufferingEvents = new Map();
-    let rebufferingEventTimestamps = {};
     let cmabAlpha = null;
     let experimentID = 'default';
     let manifest = null;
@@ -220,6 +238,13 @@ function CMABRule(config) {
             const event = new CustomEvent('cmabSetupComplete');
             window.dispatchEvent(event);
             eventBus.trigger(CoreEvents.CMAB_MANIFEST_LOADED, {manifest: manifest})
+
+            sendStats(statServerUrl + '/event/' + experimentID, 'event', {
+                'event': {
+                    'type': 'pyodide_init_done',
+                },
+                'ts': new Date().getTime()
+            });
         });
 
         eventBus.on(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);
@@ -246,11 +271,12 @@ function CMABRule(config) {
             console.log('[CMAB] Buffer Loaded:', e, tic, currentBitrate);
 
             if (lastStallTime != null && lastRebufferingBitrate != null) {
-                let duration = (tic - rebufferingEvents.get(lastRebufferingBitrate)[-1]) / 1000.0;
-                rebufferingEvents.get(lastRebufferingBitrate)[-1] = duration;
-                rebufferingEventTimestamps[tic] = lastRebufferingBitrate;
+                let stall_started_at = rebufferingEvents.get(lastRebufferingBitrate).pop();
+                let duration = (tic - stall_started_at) / 1000.0;
+                rebufferingEvents.get(lastRebufferingBitrate).push(duration);
                 console.log('[CMAB] Latest Rebuffering Duration:', duration);
-                console.log('[CMAB] All Rebuffering Events:', rebufferingEvents);
+                console.log('[CMAB] All Rebuffering Events:')
+                cmabLog(rebufferingEvents);
             }
         }
     }
@@ -401,9 +427,8 @@ function CMABRule(config) {
             console.assert(weight_time.length === weight_var_latency.length);
             console.assert(weight_time.length === agent_context.length);
 
-            console.log(JSON.parse(JSON.stringify(weight_time)))
-            console.log(JSON.parse(JSON.stringify(weight_var_latency)))
-
+            cmabLog(weight_time)
+            cmabLog(weight_var_latency)
             console.log('[CMAB] Waiting CMABController.getCMABNextQuality')
 
             for (let i = 0; i < agent_context.length; i++) {
@@ -416,8 +441,8 @@ function CMABRule(config) {
             }
 
             console.log('current round: ', agent_context.length, 'network latency: ', networkLatency, 'live latency: ', currentLiveLatency, 'throughput: ', throughput, 'playback rate: ', playbackRate);
-            console.log('original agent context', JSON.parse(JSON.stringify(agent_context)));
-            console.log('weighted agent context', JSON.parse(JSON.stringify(weighted_agent_context)));
+            cmabLog(agent_context)
+            cmabLog(weighted_agent_context)
 
             switchRequest.quality = CMABController.getCMABNextQuality(
                 experimentID,
@@ -430,7 +455,6 @@ function CMABRule(config) {
                 rebufferingEvents,
                 cmabAlpha,
                 weighted_agent_context,
-                rebufferingEventTimestamps,
                 start_time,
                 bufferLevelMovingAverage,
                 currentBufferLevel,
