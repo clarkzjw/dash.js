@@ -35,7 +35,10 @@ App.prototype.init = function () {
 }
 
 App.prototype.addEvent = function (e) {
-    this.events.push(e)
+    this.events.push({
+        'event': e,
+        'ts': new Date().getTime()
+    })
 }
 
 App.prototype.addPlaybackMetric = function (m) {
@@ -89,14 +92,14 @@ async function sendStats(url, type, stat) {
 
 App.prototype._load = function () {
     let now = new Date()
-    sendStats(statServerUrl + '/event/' + this.domElements.experimentID.value, 'event', {
-        'type': 'loading',
-        'ts': now
-    })
-    sendStats(statServerUrl + '/metric/' + this.domElements.experimentID.value, 'metric', {
-        'type': 'loading',
-        'ts': now}
-    )
+    // sendStats(statServerUrl + '/event/' + this.domElements.experimentID.value, 'event', {
+    //     'type': 'loading',
+    //     'ts': now
+    // })
+    // sendStats(statServerUrl + '/metric/' + this.domElements.experimentID.value, 'metric', {
+    //     'type': 'loading',
+    //     'ts': now}
+    // )
 
     let url = document.getElementById('manifest').value;
 
