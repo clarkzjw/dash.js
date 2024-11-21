@@ -39,6 +39,9 @@ import FactoryMaker from '../../../../core/FactoryMaker';
 const statServerUrl = 'http://stat-server:8000';
 const initialExplorationRounds = 1;
 
+function cmabLog(msg) {
+    console.log(JSON.parse(JSON.stringify(msg)))
+}
 
 async function sendStats(url, type, stat) {
     try {
@@ -182,7 +185,7 @@ function CMABAbrController() {
     }
 
     // calculate reward using QoE ITU-T Rec. P.1203: https://github.com/itu-p1203/itu-p1203
-    function calculateReward(pyodide, context, currentLatency, selectedBitrate, bitrateRatio, rebufferingEvents) {
+    function calculateReward(trace_id, pyodide, context, currentLatency, selectedBitrate, bitrateRatio, rebufferingEvents) {
         let itu_p1203_input_json = generateITUP1203InputJSON(context);
 
         let total_rebuffering_time = 0;
@@ -207,7 +210,11 @@ function CMABAbrController() {
         }
 
         let itu_qoe = calculateITUP1203QoE(pyodide, itu_p1203_input_json);
-        let qoe = itu_qoe * (context.target_latency / currentLatency) * bitrateRatio - rebuffering_ratio;
+        // let qoe = itu_qoe * (context.target_latency / currentLatency) * bitrateRatio - rebuffering_ratio;
+        let qoe = itu_qoe * (context.target_latency / currentLatency) * bitrateRatio;
+        if (selected_bitrate_rebuffering_time > 0) {
+            qoe = -1 * qoe;
+        }
 
         console.log(`ITU P1203 QoE: ${itu_qoe}, qoe: ${qoe}, current latency: ${currentLatency}`);
         return qoe;
@@ -308,14 +315,19 @@ function CMABAbrController() {
     }
 
 
-    function handleSelectedArm(context, pyodide, _selectedArmsArray, selectedArm, bitrateList, _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic) {
+    function handleSelectedArm(trace_id, context, pyodide, _selectedArmsArray, selectedArm, bitrateList,
+        _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic,
+        weight_time, weight_var_latency) {
         _selectedArmsArray.push(selectedArm);
 
         context.video_bitrate = bitrateList[selectedArm].bandwidth / 1000.0;
         context.resolution = `${bitrateList[selectedArm].width}x${bitrateList[selectedArm].height}`;
 
         let bitrateRatio = context.video_bitrate / maxBitrateKbps;
-        let reward_qoe = calculateReward(pyodide, context, currentLiveLatency, context.video_bitrate, bitrateRatio, rebufferingEvents);
+        let reward_qoe = calculateReward(trace_id, pyodide, context, currentLiveLatency, context.video_bitrate,
+            bitrateRatio, rebufferingEvents,
+            weight_time, weight_var_latency);
+
         console.log('Reward QoE:', reward_qoe);
 
         _bitrateArray.push(context.video_bitrate);
@@ -344,6 +356,7 @@ function CMABAbrController() {
     }
 
     function getCMABNextQuality(
+        trace_id,
         experimentID,
         pyodide,
         context,
@@ -357,15 +370,52 @@ function CMABAbrController() {
         start_time,
         currentBufferLevelMovingAverage,
         currentBufferLevel,
-        playbackBufferMin) {
-
+        playbackBufferMin,
+        agent_context,
+        sessionLatencyHistory
+    ) {
         let tic = new Date();
         let selectedArm = -1;
 
+        const rate = 100;
+        let weight_var_latency = [];
+        let weight_time = [];
+
+        const maxLatencyStd = Math.max(...sessionLatencyHistory.map(x => x.std));
+        const theta = 0.1;
+        for (let i = 0; i < agent_context.length; i++) {
+            let matched = false;
+            for (let j = 0; j < sessionLatencyHistory.length; j++) {
+                if (agent_context[i].tic >= sessionLatencyHistory[j].start && agent_context[i].tic < sessionLatencyHistory[j].end) {
+                    if (sessionLatencyHistory[j].std === maxLatencyStd) {
+                        weight_var_latency.push(theta);
+                    } else {
+                        weight_var_latency.push(1 - (sessionLatencyHistory[j].std / maxLatencyStd));
+                    }
+                    weight_time.push(Math.log((rate) * ((i + 1) / sessionLatencyHistory.length)) / Math.log(rate));
+                    matched = true;
+                }
+            }
+            if (!matched) {
+                weight_var_latency.push(1);
+                weight_time.push(1);
+            }
+        }
+
+        console.log('reward array length: ', _rewardsArray.length, 'weight length: ', weight_time.length);
+        let weighted_rewards = [];
+        for (let i = 0; i < _rewardsArray.length; i++) {
+            weighted_rewards.push(_rewardsArray[i] * weight_time[i+1] * weight_var_latency[i+1]);
+        }
+
+        console.log('rewards array: ');
+        cmabLog(_rewardsArray);
+        console.log('weighted rewards: ');
+        cmabLog(weighted_rewards);
+
         window.js_cmabArms = cmabArms;
         window.js_cmabAlpha = cmabAlpha;
-
-        window.js_rewards = _rewardsArray;
+        window.js_rewards = weighted_rewards;
         window.js_selected_arms = _selectedArmsArray;
         window.js_bitrate = _bitrateArray;
         window.js_history = weighted_agent_context;
@@ -424,7 +474,9 @@ function CMABAbrController() {
                 console.log('buffer level is extremely low, select the lowest bitrate');
             }
         }
-        return handleSelectedArm(context, pyodide, _selectedArmsArray, selectedArm, bitrateList, _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic);
+        return handleSelectedArm(trace_id, context, pyodide, _selectedArmsArray, selectedArm,
+            bitrateList, _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic,
+            weight_time, weight_var_latency);
     }
 
     instance = {

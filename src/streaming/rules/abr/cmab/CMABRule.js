@@ -254,14 +254,19 @@ function CMABRule(config) {
     }
 
     function onBufferEmpty(e) {
+        if (rebufferingEvents.size === 0) {
+            // cmab not initialized yet
+            return;
+        }
+
         if (e.mediaType === 'video') {
-            if (lastStallTime != null && lastRebufferingBitrate != null) {
-                let tic = new Date();
-                console.log('[CMAB] Buffer Empty:', e, tic, currentBitrate);
-                lastStallTime = new Date();
-                lastRebufferingBitrate = currentBitrateKbps;
-                rebufferingEvents.get(currentBitrateKbps).push(lastStallTime);
-            }
+            // if (lastStallTime != null && lastRebufferingBitrate != null) {
+            let tic = new Date();
+            console.log('[CMAB] Buffer Empty:', e, tic, currentBitrate);
+            lastStallTime = new Date();
+            lastRebufferingBitrate = currentBitrateKbps;
+            rebufferingEvents.get(currentBitrateKbps).push(lastStallTime);
+            // }
         }
     }
 
@@ -281,6 +286,23 @@ function CMABRule(config) {
         }
     }
 
+    function generateUUID() {
+        var d = new Date().getTime();// Timestamp
+        var d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;
+        // Time in microseconds since page-load or 0 if unsupported
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16;// random number between 0 and 16
+            if (d > 0) {// Use timestamp until depleted
+                r = (d + r) % 16 | 0;
+                d = Math.floor(d / 16);
+            } else {// se microseconds since page-load if supported
+                r = (d2 + r) % 16 | 0;
+                d2 = Math.floor(d2 / 16);
+            }
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+    }
+
     function getMaxIndex(rulesContext) {
         try {
             let switchRequest = SwitchRequest(context).create();
@@ -298,6 +320,8 @@ function CMABRule(config) {
             let currentLiveLatency = playbackController.getCurrentLiveLatency();
             let latencyTarget = playbackController.getLiveDelay();
             const mediaInfo = rulesContext.getMediaInfo();
+
+            let trace_id = generateUUID();
 
             let now = new Date();
             bufferLevelHistory.push({
@@ -401,8 +425,8 @@ function CMABRule(config) {
             let weight_var_latency = [];
             const rate = 100;
             let weight_time = [];
-            const maxLatencyStd = Math.max(...sessionLatencyHistory.map(x => x.std));
 
+            const maxLatencyStd = Math.max(...sessionLatencyHistory.map(x => x.std));
             const theta = 0.1;
             for (let i = 0; i < agent_context.length; i++) {
                 let matched = false;
@@ -445,6 +469,7 @@ function CMABRule(config) {
             cmabLog(weighted_agent_context)
 
             switchRequest.quality = CMABController.getCMABNextQuality(
+                trace_id,
                 experimentID,
                 pyodide,
                 context,
@@ -458,7 +483,9 @@ function CMABRule(config) {
                 start_time,
                 bufferLevelMovingAverage,
                 currentBufferLevel,
-                playbackBufferMin
+                playbackBufferMin,
+                agent_context,
+                sessionLatencyHistory
             );
 
             switchRequest.reason = 'Switch bitrate based on CMAB';
