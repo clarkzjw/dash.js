@@ -283,7 +283,7 @@ function CMABRule(config) {
                 rebufferingEvents.get(lastRebufferingBitrate)[-1] = duration;
                 console.log('[CMAB] Latest Rebuffering Duration:', duration);
                 console.log('[CMAB] All Rebuffering Events:')
-                cmabLog(rebufferingEvents);
+                console.log(rebufferingEvents);
             }
         }
     }

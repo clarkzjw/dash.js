@@ -465,7 +465,12 @@ function CMABAbrController() {
                 }
             } else if (selectedArm > _selectedArmsArray[-1]) {
                 // if this is a bitrate increase
-                if (isCloseToHandoverWidePeriod(tic.getSeconds()) && (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin)) {
+                // if (isCloseToHandoverWidePeriod(tic.getSeconds()) && (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin)) {
+                //     selectedArm = _selectedArmsArray[-1];
+                //     console.log('it is close to handover period, do not increase the bitrate');
+                // }
+
+                if (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin) {
                     selectedArm = _selectedArmsArray[-1];
                     console.log('it is close to handover period, do not increase the bitrate');
                 }
