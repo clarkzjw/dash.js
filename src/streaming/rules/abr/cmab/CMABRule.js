@@ -276,9 +276,11 @@ function CMABRule(config) {
             console.log('[CMAB] Buffer Loaded:', e, tic, currentBitrate);
 
             if (lastStallTime != null && lastRebufferingBitrate != null) {
-                let stall_started_at = rebufferingEvents.get(lastRebufferingBitrate).pop();
-                let duration = (tic - stall_started_at) / 1000.0;
-                rebufferingEvents.get(lastRebufferingBitrate).push(duration);
+                // let stall_started_at = rebufferingEvents.get(lastRebufferingBitrate).pop();
+                // let duration = (tic - stall_started_at) / 1000.0;
+                // rebufferingEvents.get(lastRebufferingBitrate).push(duration);
+                let duration = (tic - rebufferingEvents.get(lastRebufferingBitrate)[-1]) / 1000.0;
+                rebufferingEvents.get(lastRebufferingBitrate)[-1] = duration;
                 console.log('[CMAB] Latest Rebuffering Duration:', duration);
                 console.log('[CMAB] All Rebuffering Events:')
                 cmabLog(rebufferingEvents);
