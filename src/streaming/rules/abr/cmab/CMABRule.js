@@ -170,6 +170,12 @@ function CMABRule(config) {
     let pyodide = null;
 
     let CMABController;
+    let playbackController;
+    let abrController;
+    let streamInfo;
+    let mediaInfo;
+    let bitrateList;
+
     let player_settings;
     let playbackBufferMin;
 
@@ -249,8 +255,39 @@ function CMABRule(config) {
 
         eventBus.on(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);
         eventBus.on(MediaPlayerEvents.BUFFER_EMPTY, onBufferEmpty, instance);
+        // eventBus.on(MediaPlayerEvents.PLAYBACK_STALLED, onPlaybackStalled, instance);
+        // eventBus.on(MediaPlayerEvents.BUFFER_LEVEL_UPDATED, onBufferLevelUpdated, instance);
+
 
         CMABController = CMABAbrController(context).create();
+    }
+
+    // function onPlaybackStalled(e) {
+    //     if (e.mediaType === 'video') {
+
+    //         let currentQualityLevel = abrController.getQualityFor(e.mediaType, streamInfo.id);
+    //         currentBitrate = bitrateList[currentQualityLevel].bandwidth;
+    //         currentBitrateKbps = currentBitrate / 1000.0;
+
+    //         console.log('[CMAB] Playback Stalled:', e, currentBitrateKbps);
+    //     }
+    // }
+
+    function onBufferLevelUpdated(e) {
+        if (e.mediaType === 'video') {
+            let now = new Date();
+            const currentBufferLevel = playbackController.getBufferLevel();
+            console.log(e)
+            console.log(e.bufferLevel, currentBufferLevel)
+            // bufferLevelHistory.push({
+            //     now: now,
+            //     bufferLevel: e.bufferLevel
+            // });
+
+            // calculate bufferLevelMovingAverage from the latest 10 samples
+            // const movingAverageWindow = 10;
+            // bufferLevelMovingAverage = bufferLevelHistory.slice(-movingAverageWindow).reduce((acc, val) => acc + val.bufferLevel, 0) / movingAverageWindow;
+        }
     }
 
     function onBufferEmpty(e) {
@@ -260,13 +297,15 @@ function CMABRule(config) {
         }
 
         if (e.mediaType === 'video') {
-            // if (lastStallTime != null && lastRebufferingBitrate != null) {
+            let currentQualityLevel = abrController.getQualityFor(e.mediaType, streamInfo.id);
+            let currentBitrate2 = bitrateList[currentQualityLevel].bandwidth;
+            let currentBitrateKbps2 = currentBitrate2 / 1000.0;
+
             let tic = new Date();
-            console.log('[CMAB] Buffer Empty:', e, tic, currentBitrate);
+            console.log('[CMAB] Buffer Empty:', e, tic, currentBitrate / 1000.0, currentBitrateKbps2);
             lastStallTime = new Date();
             lastRebufferingBitrate = currentBitrateKbps;
             rebufferingEvents.get(currentBitrateKbps).push(lastStallTime);
-            // }
         }
     }
 
@@ -279,8 +318,9 @@ function CMABRule(config) {
                 // let stall_started_at = rebufferingEvents.get(lastRebufferingBitrate).pop();
                 // let duration = (tic - stall_started_at) / 1000.0;
                 // rebufferingEvents.get(lastRebufferingBitrate).push(duration);
-                let duration = (tic - rebufferingEvents.get(lastRebufferingBitrate)[-1]) / 1000.0;
-                rebufferingEvents.get(lastRebufferingBitrate)[-1] = duration;
+                let list = rebufferingEvents.get(lastRebufferingBitrate);
+                let duration = (tic - list[list.length - 1]) / 1000.0;
+                rebufferingEvents.get(lastRebufferingBitrate)[list.length-1] = duration;
                 console.log('[CMAB] Latest Rebuffering Duration:', duration);
                 console.log('[CMAB] All Rebuffering Events:')
                 console.log(rebufferingEvents);
@@ -308,10 +348,10 @@ function CMABRule(config) {
     function getMaxIndex(rulesContext) {
         try {
             let switchRequest = SwitchRequest(context).create();
-            const abrController = rulesContext.getAbrController();
-            const streamInfo = rulesContext.getStreamInfo();
+            abrController = rulesContext.getAbrController();
+            streamInfo = rulesContext.getStreamInfo();
             const scheduleController = rulesContext.getScheduleController();
-            const playbackController = scheduleController.getPlaybackController();
+            playbackController = scheduleController.getPlaybackController();
             const isDynamic = streamInfo && streamInfo.manifestInfo ? streamInfo.manifestInfo.isDynamic : null;
             const mediaType = rulesContext.getMediaInfo().type;
             const bufferStateVO = dashMetrics.getCurrentBufferState(mediaType);
@@ -321,7 +361,7 @@ function CMABRule(config) {
             let throughput = throughputHistory.getSafeAverageThroughput(Constants.VIDEO, isDynamic);
             let currentLiveLatency = playbackController.getCurrentLiveLatency();
             let latencyTarget = playbackController.getLiveDelay();
-            const mediaInfo = rulesContext.getMediaInfo();
+            mediaInfo = rulesContext.getMediaInfo();
 
             let trace_id = generateUUID();
 
@@ -371,7 +411,7 @@ function CMABRule(config) {
                 target_latency: latencyTarget,
             };
 
-            let bitrateList = mediaInfo.bitrateList; // [{bandwidth: 200000, width: 640, height: 360}, ...]
+            bitrateList = mediaInfo.bitrateList; // [{bandwidth: 200000, width: 640, height: 360}, ...]
             if (cmabArms == null) {
                 cmabArms = Array.apply(null, Array(bitrateList.length)).map(function (x, i) {
                     return i;
@@ -504,6 +544,7 @@ function CMABRule(config) {
     function reset() {
         eventBus.off(MediaPlayerEvents.BUFFER_LOADED, onBufferLoaded, instance);
         eventBus.off(MediaPlayerEvents.BUFFER_EMPTY, onBufferEmpty, instance);
+        // eventBus.off(MediaPlayerEvents.PLAYBACK_STALLED, onPlaybackStalled, instance);
     }
 
 
