@@ -470,9 +470,9 @@ function CMABAbrController() {
                 //     console.log('it is close to handover period, do not increase the bitrate');
                 // }
 
-                if (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin) {
+                if (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin || currentBufferLevel < target_latency) {
                     selectedArm = _selectedArmsArray[-1];
-                    console.log('it is close to handover period, do not increase the bitrate');
+                    console.log('buffer level is low, do not increase the bitrate');
                 }
             } else if (currentBufferLevel < playbackBufferMin * 0.8) {
                 selectedArm = 0;
