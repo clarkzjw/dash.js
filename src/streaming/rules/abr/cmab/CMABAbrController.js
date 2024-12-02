@@ -465,15 +465,15 @@ function CMABAbrController() {
                 }
             } else if (selectedArm > _selectedArmsArray[_selectedArmsArray.length - 1]) {
                 // if this is a bitrate increase
-                // if (isCloseToHandoverWidePeriod(tic.getSeconds()) && (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin)) {
-                //     selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
-                //     console.log('it is close to handover period, do not increase the bitrate');
-                // }
-
-                if (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin || currentBufferLevel < 2 * target_latency || currentLiveLatency > 2 * target_latency) {
+                if (isCloseToHandoverWidePeriod(tic.getSeconds()) && (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin)) {
                     selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
-                    console.log('buffer level is low, do not increase the bitrate');
+                    console.log('it is close to handover period, do not increase the bitrate');
                 }
+
+                // if (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin) {
+                //     selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
+                //     console.log('buffer level is low, do not increase the bitrate');
+                // }
             } else if (currentBufferLevel < playbackBufferMin * 0.8) {
                 selectedArm = 0;
                 console.log('buffer level is extremely low, select the lowest bitrate');
