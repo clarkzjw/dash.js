@@ -318,7 +318,7 @@ function CMABAbrController() {
     function handleSelectedArm(trace_id, context, pyodide, _selectedArmsArray, selectedArm, bitrateList,
         _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic,
         weight_time, weight_var_latency) {
-        _selectedArmsArray.push(selectedArm);
+        // _selectedArmsArray.push(selectedArm);
 
         context.video_bitrate = bitrateList[selectedArm].bandwidth / 1000.0;
         context.resolution = `${bitrateList[selectedArm].width}x${bitrateList[selectedArm].height}`;
@@ -479,6 +479,8 @@ function CMABAbrController() {
                 console.log('buffer level is extremely low, select the lowest bitrate');
             }
         }
+        _selectedArmsArray.push(selectedArm);
+
         return handleSelectedArm(trace_id, context, pyodide, _selectedArmsArray, selectedArm,
             bitrateList, _bitrateArray, _rewardsArray, maxBitrateKbps, currentLiveLatency, rebufferingEvents, experimentID, tic,
             weight_time, weight_var_latency);
