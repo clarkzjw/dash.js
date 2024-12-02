@@ -445,33 +445,33 @@ function CMABAbrController() {
 
             if (selectedArm === -1) {
                 // unexpected error happended during cmab calculation, keep the previous bitrate
-                selectedArm = _selectedArmsArray[-1];
+                selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
                 console.log('unexpected error happened during cmab calculation, keep the previous bitrate');
             }
 
             // if this is a bitrate drop
-            if (selectedArm < _selectedArmsArray[-1]) {
+            if (selectedArm < _selectedArmsArray[_selectedArmsArray.length - 1]) {
                 // if the buffer level is above beta*playbackBufferMin
                 // and it's not close to handover period
                 // don't drop the bitrate
                 if (currentBufferLevelMovingAverage >= playbackBufferMin * 2) {
-                    selectedArm = _selectedArmsArray[-1];
+                    selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
                     console.log('buffer level is above 2*beta*playbackBufferMin, keep the bitrate');
                 } else {
                     if (currentBufferLevelMovingAverage >= playbackBufferMin * 1.5 && !isCloseToHandoverPeriod(tic.getSeconds())) {
-                        selectedArm = _selectedArmsArray[-1];
+                        selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
                         console.log('buffer level is above beta*playbackBufferMin, and it is not close to handover period, keep the bitrate');
                     }
                 }
-            } else if (selectedArm > _selectedArmsArray[-1]) {
+            } else if (selectedArm > _selectedArmsArray[_selectedArmsArray.length - 1]) {
                 // if this is a bitrate increase
                 // if (isCloseToHandoverWidePeriod(tic.getSeconds()) && (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin)) {
-                //     selectedArm = _selectedArmsArray[-1];
+                //     selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
                 //     console.log('it is close to handover period, do not increase the bitrate');
                 // }
 
                 if (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin || currentBufferLevel < 2 * target_latency || currentLiveLatency > 2 * target_latency) {
-                    selectedArm = _selectedArmsArray[-1];
+                    selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
                     console.log('buffer level is low, do not increase the bitrate');
                 }
             } else if (currentBufferLevel < playbackBufferMin * 0.8) {
