@@ -458,14 +458,14 @@ function CMABAbrController() {
                     selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
                     console.log('buffer level is above 2*beta*playbackBufferMin, keep the bitrate');
                 } else {
-                    if (currentBufferLevelMovingAverage >= playbackBufferMin * 1.5 && !isCloseToHandoverPeriod(tic.getSeconds())) {
+                    if (currentBufferLevelMovingAverage >= playbackBufferMin * 1.5) {
                         selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
                         console.log('buffer level is above beta*playbackBufferMin, and it is not close to handover period, keep the bitrate');
                     }
                 }
             } else if (selectedArm > _selectedArmsArray[_selectedArmsArray.length - 1]) {
                 // if this is a bitrate increase
-                if (isCloseToHandoverWidePeriod(tic.getSeconds()) && (currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin)) {
+                if ((currentBufferLevelMovingAverage < playbackBufferMin * 2 || currentBufferLevel < playbackBufferMin)) {
                     selectedArm = _selectedArmsArray[_selectedArmsArray.length - 1];
                     console.log('it is close to handover period, do not increase the bitrate');
                 }
